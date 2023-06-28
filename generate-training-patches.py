@@ -125,6 +125,7 @@ class TrainingDataGenerator:
     def yield_sample_points(index, sample_locations: ee.List) -> List:
         import ee
         ee.Initialize()
+        print(f"Yielding Index: {index} of {sample_locations.size().getInfo() - 1}")
         point = ee.Feature(sample_locations.get(index)).geometry().getInfo()
         return point["coordinates"]
 
@@ -212,6 +213,50 @@ class TrainingDataGenerator:
                 f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
             )
 
+    def generate_training_patch_seed_data(self) -> None:
+        """
+        Use Apache Beam to generate training, validation, and test patch data from the loaded data.
+        """
+        beam_options = PipelineOptions([], direct_num_workers=0, direct_running_mode="multi_processing", runner="DirectRunner")
+        with beam.Pipeline(options=beam_options) as pipeline:
+            training_data = (
+                pipeline
+                | "Create range" >> beam.Create(range(0, self.training_sample_locations, 1))
+                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
+                                                    self.training_sample_locations.toList(self.training_sample_locations.size()).getInfo())
+                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size)
+                | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
+            )
+
+            # Write the datasets to TFRecord files in the output bucket
+            training_data | "Write training data" >> beam.io.WriteToTFRecord(
+                f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
+            )
+
+            validation_data = (
+                pipeline
+                | "Create range" >> beam.Create(range(0, self.validation_sample_locations, 1))
+                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
+                                                    self.validation_sample_locations.toList(self.validation_sample_locations.size()).getInfo())
+                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size)
+                | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
+            )
+            validation_data | "Write validation data" >> beam.io.WriteToTFRecord(
+                f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
+            )
+            
+            test_data = (
+                pipeline
+                | "Create range" >> beam.Create(range(0, self.test_sample_locations, 1))
+                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
+                                                    self.test_sample_locations.toList(self.test_sample_locations.size()).getInfo())
+                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size)
+                | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
+            )
+            test_data | "Write test data" >> beam.io.WriteToTFRecord(
+                f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
+            )
+
     def generate_training_point_data(self) -> None:
         """
         Use Apache Beam to generate training, validation, and test point data from the loaded data.
@@ -265,6 +310,13 @@ class TrainingDataGenerator:
         self.load_data()
         self.generate_training_patch_data()
 
+    def run_patch_generator_seed(self) -> None:
+        """
+        Run the patch training data generation process.
+        """
+        self.load_data()
+        self.generate_training_patch_seed_data()
+
     def run_point_generator(self) -> None:
         """
         Run the point training data generation process.
@@ -277,6 +329,6 @@ if __name__ == "__main__":
     print("Program started..")
     generator = TrainingDataGenerator()
     # generator.run_patch_generator()
-    # generator.run_patch_generator_seed()
-    generator.run_point_generator()
+    generator.run_patch_generator_seed()
+    # generator.run_point_generator()
     print("\nProgram completed.")
