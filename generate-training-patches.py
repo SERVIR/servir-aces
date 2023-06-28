@@ -42,6 +42,7 @@ class TrainingDataGenerator:
         self.include_after = include_after
         self.test_ratio = 0.2
         self.validation_ratio = 0.2
+        self.seed = 100
 
     def load_data(self) -> None:
         """
@@ -53,6 +54,11 @@ class TrainingDataGenerator:
         self.paro = self.l1.filter(ee.Filter.eq("ADM1_EN", "Paro"))
 
         self.sample_locations = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/ACES_2/paro_2021_all_class_samples")
+        self.sample_locations = self.sample_locations.randomColumn("random", self.seed)
+        self.training_sample_locations = self.sample_locations.filter(ee.Filter.gt("random", self.validation_ratio + self.test_ratio)) # > 0.4
+        self.validation_sample_locations = self.sample_locations.filter(ee.Filter.lte("random", self.validation_ratio)) # <= 0.2
+        self.test_sample_locations = self.sample_locations.filter(ee.Filter.And(ee.Filter.gt("random", self.validation_ratio),
+                                                               ee.Filter.lte("random", self.validation_ratio + self.test_ratio))) # > 0.2 and <= 0.4
         self.sample_size = self.sample_locations.size().getInfo()
         print("Sample size:", self.sample_size)
         self.sample_locations_list = self.sample_locations.toList(self.sample_size + self.grace)
@@ -117,8 +123,8 @@ class TrainingDataGenerator:
         return point["coordinates"]
 
     @staticmethod
-    def get_training_patch(coords: List[float], image: ee.Image, bands: List[str] = [],
-                           scale: int = 5, patch_size: int = 128) -> np.ndarray:
+    def get_training_patches(coords: List[float], image: ee.Image, bands: List[str] = [],
+                             scale: int = 5, patch_size: int = 128) -> np.ndarray:
         """Get a training patch centered on the coordinates."""
         import ee
         ee.Initialize()
@@ -174,9 +180,9 @@ class TrainingDataGenerator:
         weights = [1 - validation_ratio - test_ratio, validation_ratio, test_ratio]
         return random.choices([0, 1, 2], weights)[0]
 
-    def generate_training_data(self) -> None:
+    def generate_training_patch_data(self) -> None:
         """
-        Use Apache Beam to generate training, validation, and test data from the loaded data.
+        Use Apache Beam to generate training, validation, and test patch data from the loaded data.
         """
         beam_options = PipelineOptions([], direct_num_workers=0, direct_running_mode="multi_processing", runner="DirectRunner")
         with beam.Pipeline(options=beam_options) as pipeline:
@@ -184,7 +190,7 @@ class TrainingDataGenerator:
                 pipeline
                 | "Create range" >> beam.Create(range(0, self.sample_size, 1))
                 | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points, self.sample_locations_list)
-                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patch, self.image, self.selectors, self.scale, self.kernel_size)
+                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
                 | "Split dataset" >> beam.Partition(TrainingDataGenerator.split_dataset, 3, validation_ratio=self.validation_ratio, test_ratio=self.test_ratio)
             )
@@ -200,16 +206,70 @@ class TrainingDataGenerator:
                 f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
             )
 
-    def run(self) -> None:
+    def generate_training_point_data(self) -> None:
         """
-        Run the training data generation process.
+        Use Apache Beam to generate training, validation, and test point data from the loaded data.
+        """
+        
+        training_sample_points = self.image.sampleRegions({
+            "collection": self.training_sample_locations,
+            "properties": self.selectors,
+            "scale": self.scale,
+            "geometries": False
+        })
+        
+        validation_sample_points = self.image.sampleRegions({
+            "collection": self.validation_sample_locations,
+            "properties": self.selectors,
+            "scale": self.scale,
+            "geometries": False
+        })
+        
+        test_sample_points = self.image.sampleRegions({
+            "collection": self.test_sample_locations,
+            "properties": self.selectors,
+            "scale": self.scale,
+            "geometries": False
+        })
+
+        training_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_training/training"
+        validation_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_validation/validation"
+        test_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_testing/testing"
+
+        self.export_training_data(training_sample_points, training_file_prefix)
+        self.export_training_data(validation_sample_points, validation_file_prefix)
+        self.export_training_data(test_sample_points, test_file_prefix)
+
+    def export_training_data(self, training_data, file_prefix, description: str=None, start_training: bool=True) -> None:
+        training_task = ee.batch.Export.table.toCloudStorage(
+            collection=ee.FeatureCollection(training_data),
+            description=description if description is not None else file_prefix,
+            fileNamePrefix=file_prefix,
+            bucket=self.output_bucket,
+            fileFormat="TFRecord",
+            selectors=self.selectors,
+        )
+
+        if start_training: training_task.start()
+
+    def run_patch_generator(self) -> None:
+        """
+        Run the patch training data generation process.
         """
         self.load_data()
-        self.generate_training_data()
+        self.generate_training_patch_data()
+
+    def run_point_generator(self) -> None:
+        """
+        Run the point training data generation process.
+        """
+        self.load_data()
+        self.generate_training_point_data()
 
 
 if __name__ == "__main__":
     print("Program started..")
     generator = TrainingDataGenerator()
-    generator.run()
+    # generator.run_patch_generator()
+    generator.run_point_generator()
     print("\nProgram completed.")
