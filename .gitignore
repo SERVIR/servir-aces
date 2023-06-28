@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# custom folders
+aces_copy/
+sampling.py
+write_dnn_prediction.py
+write_fcn_prediction.py
+predict.py
+push_model.py
+requirements.txt
