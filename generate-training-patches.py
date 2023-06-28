@@ -43,6 +43,7 @@ class TrainingDataGenerator:
         self.test_ratio = 0.2
         self.validation_ratio = 0.2
         self.seed = 100
+        self.select_bands = ["red", "green", "blue", "nir"]
 
     def load_data(self) -> None:
         """
@@ -67,8 +68,13 @@ class TrainingDataGenerator:
         # self.other = self.label.remap([0, 1], [1, 0]).rename(["other"])
 
         self.composite_after = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_after")
+        self.composite_after = self.composite_after.select(self.select_bands)
+
         self.composite_before = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_before")
+        self.composite_before = self.composite_before.select(self.select_bands)
+        
         self.composite_during = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_during")
+        self.composite_during = self.composite_during.select(self.select_bands)
 
         self.composite_before = self.composite_before.regexpRename("$(.*)", "_before")
         self.composite_after = self.composite_after.regexpRename("$(.*)", "_after")
@@ -210,39 +216,39 @@ class TrainingDataGenerator:
         """
         Use Apache Beam to generate training, validation, and test point data from the loaded data.
         """
+        training_sample_points = self.image.sampleRegions(
+            collection = self.training_sample_locations,
+            properties =self.selectors,
+            scale = self.scale,
+            geometries = False
+        )
         
-        training_sample_points = self.image.sampleRegions({
-            "collection": self.training_sample_locations,
-            "properties": self.selectors,
-            "scale": self.scale,
-            "geometries": False
-        })
+        validation_sample_points = self.image.sampleRegions(
+            collection = self.validation_sample_locations,
+            properties = self.selectors,
+            scale = self.scale,
+            geometries = False
+        )
         
-        validation_sample_points = self.image.sampleRegions({
-            "collection": self.validation_sample_locations,
-            "properties": self.selectors,
-            "scale": self.scale,
-            "geometries": False
-        })
-        
-        test_sample_points = self.image.sampleRegions({
-            "collection": self.test_sample_locations,
-            "properties": self.selectors,
-            "scale": self.scale,
-            "geometries": False
-        })
+        test_sample_points = self.image.sampleRegions(
+            collection = self.test_sample_locations,
+            properties = self.selectors,
+            scale = self.scale,
+            geometries = False
+        )
 
         training_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_training/training"
         validation_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_validation/validation"
         test_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_testing/testing"
 
-        self.export_training_data(training_sample_points, training_file_prefix)
-        self.export_training_data(validation_sample_points, validation_file_prefix)
-        self.export_training_data(test_sample_points, test_file_prefix)
+        self.export_training_data(training_sample_points, training_file_prefix, "Training")
+        self.export_training_data(validation_sample_points, validation_file_prefix, "Validation")
+        self.export_training_data(test_sample_points, test_file_prefix, "Test")
 
     def export_training_data(self, training_data, file_prefix, description: str=None, start_training: bool=True) -> None:
+        print(f"Exporting training data to {file_prefix}..")
         training_task = ee.batch.Export.table.toCloudStorage(
-            collection=ee.FeatureCollection(training_data),
+            collection=training_data,
             description=description if description is not None else file_prefix,
             fileNamePrefix=file_prefix,
             bucket=self.output_bucket,
@@ -271,5 +277,6 @@ if __name__ == "__main__":
     print("Program started..")
     generator = TrainingDataGenerator()
     # generator.run_patch_generator()
+    # generator.run_patch_generator_seed()
     generator.run_point_generator()
     print("\nProgram completed.")
