@@ -14,7 +14,7 @@ import ee
 import numpy as np
 from typing import List
 
-from aces.ee_utils import EESession
+from aces.ee_utils import EEUtils
 from aces.config import Config
 
 # Before running this script, you need to authenticate to Google Cloud:
@@ -46,20 +46,12 @@ class TrainingDataGenerator:
         self.validation_ratio = 0.2
         self.seed = 100
         self.use_service_account = use_service_account
-        if self.use_service_account:
-             self.ee_session = EESession(Config.GCS_PROJECT, Config.EE_SERVICE_CREDENTIALS, self.use_service_account)
-        else:
-            self.ee_session = None
 
     def load_data(self) -> None:
         """
         Load the necessary data from Earth Engine and prepare it for use.
         """
-        if self.ee_session is not None:
-            ee.Initialize(self.ee_session.session, project=self.ee_session.cloud_project, opt_url="https://earthengine-highvolume.googleapis.com")
-        else:
-            ee.Initialize()
-
+        EEUtils.initialize_session(use_highvolume=True, key=Config.EE_SERVICE_CREDENTIALS if self.use_service_account else None)
         self.l1 = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/BT_Admin_1")
         self.paro = self.l1.filter(ee.Filter.eq("ADM1_EN", "Paro"))
 
@@ -110,9 +102,6 @@ class TrainingDataGenerator:
         # Get scales out of the transform.
         self.scale_x = proj['transform'][0]
         self.scale_y = -proj['transform'][4]
-        print('projection:', proj)
-        print("Scale x:", self.scale_x)
-        print("Scale y:", self.scale_y)
 
     @staticmethod
     def calculate_min_max_statistics(image: ee.Image, geometry: ee.FeatureCollection, scale: int = 30) -> ee.Dictionary:
@@ -141,26 +130,23 @@ class TrainingDataGenerator:
         return stats
 
     @staticmethod
-    def yield_sample_points(index, sample_locations: ee.List, use_service_account: bool = False, ee_session: EESession | None = None) -> List:
+    def yield_sample_points(index, sample_locations: ee.List, use_service_account: bool = False) -> List:
+        from aces.ee_utils import EEUtils
+        from aces.config import Config
         import ee
-        if use_service_account and ee_session is not None:
-            ee.Initialize(ee_session.session, project=ee_session.cloud_project, opt_url="https://earthengine-highvolume.googleapis.com")
-        else:
-            ee.Initialize()
+        EEUtils.initialize_session(use_highvolume=True, key=Config.EE_SERVICE_CREDENTIALS if use_service_account else None)
         print(f"Yielding Index: {index} of {sample_locations.size().getInfo() - 1}")
         point = ee.Feature(sample_locations.get(index)).geometry().getInfo()
         return point["coordinates"]
 
     @staticmethod
     def get_training_patches(coords: List[float], image: ee.Image, bands: List[str] = [],
-                             scale: int = 5, patch_size: int = 128, use_service_account: bool = False,
-                             ee_session: EESession | None = None) -> np.ndarray:
+                             scale: int = 5, patch_size: int = 128, use_service_account: bool = False) -> np.ndarray:
         """Get a training patch centered on the coordinates."""
+        from aces.ee_utils import EEUtils
+        from aces.config import Config
         import ee
-        if use_service_account and ee_session is not None:
-            ee.Initialize(ee_session.session, project=ee_session.cloud_project, opt_url="https://earthengine-highvolume.googleapis.com")
-        else:
-            ee.Initialize()
+        EEUtils.initialize_session(use_highvolume=True, key=Config.EE_SERVICE_CREDENTIALS if use_service_account else None)
         from google.api_core import exceptions, retry
         import requests
         import numpy as np
@@ -250,8 +236,8 @@ class TrainingDataGenerator:
             training_data, validation_data, test_data = (
                 pipeline
                 | "Create range" >> beam.Create(range(0, self.sample_size, 1))
-                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points, self.sample_locations_list, self.use_service_account, self.ee_session)
-                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size, self.use_service_account, self.ee_session)
+                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points, self.sample_locations_list, self.use_service_account)
+                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size, self.use_service_account)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
                 | "Split dataset" >> beam.Partition(TrainingDataGenerator.split_dataset, 3, validation_ratio=self.validation_ratio, test_ratio=self.test_ratio)
             )
@@ -277,9 +263,9 @@ class TrainingDataGenerator:
                 | "Create range" >> beam.Create(range(0, self.training_sample_locations.size().getInfo(), 1))
                 | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
                                                     self.training_sample_locations.toList(self.training_sample_locations.size()),
-                                                    self.use_service_account, self.ee_session)
+                                                    self.use_service_account)
                 | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size,
-                                          self.use_service_account, self.ee_session)
+                                          self.use_service_account)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
             )
             # Write the datasets to TFRecord files in the output bucket
@@ -293,9 +279,9 @@ class TrainingDataGenerator:
                 | "Create range" >> beam.Create(range(0, self.validation_sample_locations.size().getInfo(), 1))
                 | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
                                                     self.validation_sample_locations.toList(self.validation_sample_locations.size()),
-                                                    self.use_service_account, self.ee_session)
+                                                    self.use_service_account)
                 | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size,
-                                          self.use_service_account, self.ee_session)
+                                          self.use_service_account)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
             )
             validation_data | "Write validation data" >> beam.io.WriteToTFRecord(
@@ -308,9 +294,9 @@ class TrainingDataGenerator:
                 | "Create range" >> beam.Create(range(0, self.test_sample_locations.size().getInfo(), 1))
                 | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
                                                     self.test_sample_locations.toList(self.test_sample_locations.size()),
-                                                    self.use_service_account, self.ee_session)
+                                                    self.use_service_account)
                 | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size,
-                                          self.use_service_account, self.ee_session)
+                                          self.use_service_account)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
             )
             test_data | "Write test data" >> beam.io.WriteToTFRecord(
