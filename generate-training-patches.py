@@ -9,11 +9,13 @@ The script uses TensorFlow to serialize the data into TFRecord format.
 
 # Necessary imports
 import apache_beam as beam
-from apache_beam.options.pipeline_options import PipelineOptions
 
 import ee
 import numpy as np
 from typing import List
+
+from aces.ee_utils import EESession
+from aces.config import Config
 
 # Before running this script, you need to authenticate to Google Cloud:
 # https://cloud.google.com/dataflow/docs/quickstarts/create-pipeline-python#before-you-begin
@@ -27,7 +29,7 @@ class TrainingDataGenerator:
     A class to generate training data for machine learning models.
     This class utilizes Apache Beam for data processing and Earth Engine for handling geospatial data.
     """
-    def __init__(self, include_after: bool = False):
+    def __init__(self, include_after: bool = False, use_service_account: bool = False):
         """
         Constructor for the TrainingDataGenerator class.
         
@@ -43,13 +45,20 @@ class TrainingDataGenerator:
         self.test_ratio = 0.2
         self.validation_ratio = 0.2
         self.seed = 100
-        self.select_bands = ["red", "green", "blue", "nir"]
+        self.use_service_account = use_service_account
+        if self.use_service_account:
+             self.ee_session = EESession(Config.GCS_PROJECT, Config.EE_SERVICE_CREDENTIALS, self.use_service_account)
+        else:
+            self.ee_session = None
 
     def load_data(self) -> None:
         """
         Load the necessary data from Earth Engine and prepare it for use.
         """
-        ee.Initialize()
+        if self.ee_session is not None:
+            ee.Initialize(self.ee_session.session, project=self.ee_session.cloud_project, opt_url="https://earthengine-highvolume.googleapis.com")
+        else:
+            ee.Initialize()
 
         self.l1 = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/BT_Admin_1")
         self.paro = self.l1.filter(ee.Filter.eq("ADM1_EN", "Paro"))
@@ -68,13 +77,10 @@ class TrainingDataGenerator:
         # self.other = self.label.remap([0, 1], [1, 0]).rename(["other"])
 
         self.composite_after = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_after")
-        self.composite_after = self.composite_after.select(self.select_bands)
 
         self.composite_before = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_before")
-        self.composite_before = self.composite_before.select(self.select_bands)
         
         self.composite_during = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_during")
-        self.composite_during = self.composite_during.select(self.select_bands)
 
         self.composite_before = self.composite_before.regexpRename("$(.*)", "_before")
         self.composite_after = self.composite_after.regexpRename("$(.*)", "_after")
@@ -88,12 +94,25 @@ class TrainingDataGenerator:
         self.slope = self.slope.unitScale(0, 90)
 
         if self.include_after:
-            self.image = self.composite_before.addBands(self.composite_during) \
-                             .addBands(self.composite_after).addBands(self.label).toFloat()
+            self.image = self.composite_before.addBands(self.composite_during).addBands(self.composite_after).toFloat()
+            self.image = self.image.select(Config.FEATURES)
+            self.image = self.image.addBands(self.label).toFloat()
         else:
-            self.image = self.composite_before.addBands(self.composite_during).addBands(self.label).toFloat()
-                         
+            self.image = self.composite_before.addBands(self.composite_during).toFloat()
+            self.image = self.image.select(Config.FEATURES)
+            self.image = self.image.addBands(self.label).toFloat()
+        
+        print("Image bands:", self.image.bandNames().getInfo())
         self.selectors = self.image.bandNames().getInfo()
+
+        proj = ee.Projection('EPSG:4326').atScale(10).getInfo()
+
+        # Get scales out of the transform.
+        self.scale_x = proj['transform'][0]
+        self.scale_y = -proj['transform'][4]
+        print('projection:', proj)
+        print("Scale x:", self.scale_x)
+        print("Scale y:", self.scale_y)
 
     @staticmethod
     def calculate_min_max_statistics(image: ee.Image, geometry: ee.FeatureCollection, scale: int = 30) -> ee.Dictionary:
@@ -122,19 +141,26 @@ class TrainingDataGenerator:
         return stats
 
     @staticmethod
-    def yield_sample_points(index, sample_locations: ee.List) -> List:
+    def yield_sample_points(index, sample_locations: ee.List, use_service_account: bool = False, ee_session: EESession | None = None) -> List:
         import ee
-        ee.Initialize()
+        if use_service_account and ee_session is not None:
+            ee.Initialize(ee_session.session, project=ee_session.cloud_project, opt_url="https://earthengine-highvolume.googleapis.com")
+        else:
+            ee.Initialize()
         print(f"Yielding Index: {index} of {sample_locations.size().getInfo() - 1}")
         point = ee.Feature(sample_locations.get(index)).geometry().getInfo()
         return point["coordinates"]
 
     @staticmethod
     def get_training_patches(coords: List[float], image: ee.Image, bands: List[str] = [],
-                             scale: int = 5, patch_size: int = 128) -> np.ndarray:
+                             scale: int = 5, patch_size: int = 128, use_service_account: bool = False,
+                             ee_session: EESession | None = None) -> np.ndarray:
         """Get a training patch centered on the coordinates."""
         import ee
-        ee.Initialize()
+        if use_service_account and ee_session is not None:
+            ee.Initialize(ee_session.session, project=ee_session.cloud_project, opt_url="https://earthengine-highvolume.googleapis.com")
+        else:
+            ee.Initialize()
         from google.api_core import exceptions, retry
         import requests
         import numpy as np
@@ -160,6 +186,35 @@ class TrainingDataGenerator:
                 # Still raise any other exceptions to make sure we got valid data.
             response.raise_for_status()
 
+            # Load the NumPy file data and return it as a NumPy array.
+            return np.load(io.BytesIO(response.content), allow_pickle=True)
+
+        @retry.Retry()
+        def compute_pixel(image: ee.Image, region: ee.Geometry, bands: List[str], patch_size: int, scale_x: float, scale_y: float) -> np.ndarray:
+            """Get the patch of pixels in the geometry as a Numpy array."""
+
+            # Make a request object.
+            request = {
+                'expression': image,
+                'fileFormat': 'NPY',
+                'bandIds': bands,
+                'grid': {
+                    'dimensions': {
+                        'width': patch_size,
+                        'height': patch_size
+                    },
+                    'affineTransform': {
+                        'scaleX': scale_x,
+                        'shearX': 0,
+                        'translateX': coords[0],
+                        'shearY': 0,
+                        'scaleY': scale_y,
+                        'translateY': coords[1]
+                    },
+                    'crsCode': 'EPSG:4326',
+                },
+            }
+            response = ee.data.computePixels(request)
             # Load the NumPy file data and return it as a NumPy array.
             return np.load(io.BytesIO(response.content), allow_pickle=True)
 
@@ -191,13 +246,12 @@ class TrainingDataGenerator:
         """
         Use Apache Beam to generate training, validation, and test patch data from the loaded data.
         """
-        beam_options = PipelineOptions([], direct_num_workers=0, direct_running_mode="multi_processing", runner="DirectRunner")
-        with beam.Pipeline(options=beam_options) as pipeline:
+        with beam.Pipeline(options=Config.beam_options) as pipeline:
             training_data, validation_data, test_data = (
                 pipeline
                 | "Create range" >> beam.Create(range(0, self.sample_size, 1))
-                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points, self.sample_locations_list)
-                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size)
+                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points, self.sample_locations_list, self.use_service_account, self.ee_session)
+                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size, self.use_service_account, self.ee_session)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
                 | "Split dataset" >> beam.Partition(TrainingDataGenerator.split_dataset, 3, validation_ratio=self.validation_ratio, test_ratio=self.test_ratio)
             )
@@ -217,40 +271,46 @@ class TrainingDataGenerator:
         """
         Use Apache Beam to generate training, validation, and test patch data from the loaded data.
         """
-        beam_options = PipelineOptions([], direct_num_workers=0, direct_running_mode="multi_processing", runner="DirectRunner")
-        with beam.Pipeline(options=beam_options) as pipeline:
+        with beam.Pipeline(options=Config.beam_options) as training_pipeline:
             training_data = (
-                pipeline
-                | "Create range" >> beam.Create(range(0, self.training_sample_locations, 1))
+                training_pipeline
+                | "Create range" >> beam.Create(range(0, self.training_sample_locations.size().getInfo(), 1))
                 | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
-                                                    self.training_sample_locations.toList(self.training_sample_locations.size()).getInfo())
-                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size)
+                                                    self.training_sample_locations.toList(self.training_sample_locations.size()),
+                                                    self.use_service_account, self.ee_session)
+                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size,
+                                          self.use_service_account, self.ee_session)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
             )
-
             # Write the datasets to TFRecord files in the output bucket
             training_data | "Write training data" >> beam.io.WriteToTFRecord(
                 f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
             )
 
+        with beam.Pipeline(options=Config.beam_options) as validation_pipeline:
             validation_data = (
-                pipeline
-                | "Create range" >> beam.Create(range(0, self.validation_sample_locations, 1))
+                validation_pipeline
+                | "Create range" >> beam.Create(range(0, self.validation_sample_locations.size().getInfo(), 1))
                 | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
-                                                    self.validation_sample_locations.toList(self.validation_sample_locations.size()).getInfo())
-                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size)
+                                                    self.validation_sample_locations.toList(self.validation_sample_locations.size()),
+                                                    self.use_service_account, self.ee_session)
+                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size,
+                                          self.use_service_account, self.ee_session)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
             )
             validation_data | "Write validation data" >> beam.io.WriteToTFRecord(
                 f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
             )
             
+        with beam.Pipeline(options=Config.beam_options) as test_pipeline:
             test_data = (
-                pipeline
-                | "Create range" >> beam.Create(range(0, self.test_sample_locations, 1))
+                test_pipeline
+                | "Create range" >> beam.Create(range(0, self.test_sample_locations.size().getInfo(), 1))
                 | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
-                                                    self.test_sample_locations.toList(self.test_sample_locations.size()).getInfo())
-                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size)
+                                                    self.test_sample_locations.toList(self.test_sample_locations.size()),
+                                                    self.use_service_account, self.ee_session)
+                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size,
+                                          self.use_service_account, self.ee_session)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
             )
             test_data | "Write test data" >> beam.io.WriteToTFRecord(
@@ -327,7 +387,7 @@ class TrainingDataGenerator:
 
 if __name__ == "__main__":
     print("Program started..")
-    generator = TrainingDataGenerator()
+    generator = TrainingDataGenerator(use_service_account=True)
     # generator.run_patch_generator()
     generator.run_patch_generator_seed()
     # generator.run_point_generator()
