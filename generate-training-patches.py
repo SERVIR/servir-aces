@@ -153,7 +153,7 @@ class TrainingDataGenerator:
         from typing import List
         import io
 
-        @retry.Retry()
+        @retry.Retry(timeout=300)
         def get_patch(image: ee.Image, region: ee.Geometry, bands: List[str], patch_size: int) -> np.ndarray:
             """Get the patch of pixels in the geometry as a Numpy array."""
             # Create the URL to download the band values of the patch of pixels.
@@ -257,51 +257,24 @@ class TrainingDataGenerator:
         """
         Use Apache Beam to generate training, validation, and test patch data from the loaded data.
         """
-        with beam.Pipeline(options=Config.beam_options) as training_pipeline:
-            training_data = (
-                training_pipeline
-                | "Create range" >> beam.Create(range(0, self.training_sample_locations.size().getInfo(), 1))
-                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
-                                                    self.training_sample_locations.toList(self.training_sample_locations.size()),
-                                                    self.use_service_account)
-                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size,
-                                          self.use_service_account)
-                | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
-            )
-            # Write the datasets to TFRecord files in the output bucket
-            training_data | "Write training data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
-            )
+        def _generate_data_seed(image, data, selectors, scale, kernel_size, use_service_account, output_path) -> None:
+            with beam.Pipeline(options=Config.beam_options) as pipeline:
+                _ = (
+                    pipeline
+                    | "Create range" >> beam.Create(range(0, data.size().getInfo(), 1))
+                    | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points, data.toList(data.size()), use_service_account)
+                    | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, image, selectors, scale, kernel_size, use_service_account)
+                    | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
+                    | "Write training data" >> beam.io.WriteToTFRecord(output_path, file_name_suffix=".tfrecord.gz")
+                )
+        _generate_data_seed(self.image, self.training_sample_locations, self.selectors, self.scale, self.kernel_size,
+                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training")
 
-        with beam.Pipeline(options=Config.beam_options) as validation_pipeline:
-            validation_data = (
-                validation_pipeline
-                | "Create range" >> beam.Create(range(0, self.validation_sample_locations.size().getInfo(), 1))
-                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
-                                                    self.validation_sample_locations.toList(self.validation_sample_locations.size()),
-                                                    self.use_service_account)
-                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size,
-                                          self.use_service_account)
-                | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
-            )
-            validation_data | "Write validation data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
-            )
+        _generate_data_seed(self.image, self.validation_sample_locations, self.selectors, self.scale, self.kernel_size,
+                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation")
             
-        with beam.Pipeline(options=Config.beam_options) as test_pipeline:
-            test_data = (
-                test_pipeline
-                | "Create range" >> beam.Create(range(0, self.test_sample_locations.size().getInfo(), 1))
-                | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points,
-                                                    self.test_sample_locations.toList(self.test_sample_locations.size()),
-                                                    self.use_service_account)
-                | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size,
-                                          self.use_service_account)
-                | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
-            )
-            test_data | "Write test data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
-            )
+        _generate_data_seed(self.image, self.test_sample_locations, self.selectors, self.scale, self.kernel_size,
+                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing")
 
     def generate_training_point_data(self) -> None:
         """
