@@ -19,6 +19,15 @@ class DataIO:
     @tf.autograph.experimental.do_not_convert
     def get_single_sample(x):
         return tf.numpy_function(lambda _: 1, inp=[x], Tout=tf.int64)
+    
+    @staticmethod
+    def filter_good_patches(patch):
+        # the getdownload url has field names so we're using view here
+        has_nan = np.isnan(np.sum(patch.view(np.float32)))
+        has_inf = np.isinf(np.sum(patch.view(np.float32)))
+        if has_nan or has_inf:
+            return False
+        return True
 
     @staticmethod
     def calculate_n_samples(**config):
@@ -58,7 +67,9 @@ class DataIO:
         for inputs, outputs in dataset.take(1):
             try:
                 logging.info(f"inputs: {inputs.dtype.name} {inputs.shape}")
+                print(inputs)
                 logging.info(f"outputs: {outputs.dtype.name} {outputs.shape}")
+                print(outputs)
             except:
                 logging.info(f" > inputs:")
                 for name, values in inputs.items():

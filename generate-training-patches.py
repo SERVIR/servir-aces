@@ -16,6 +16,7 @@ from typing import List
 
 from aces.ee_utils import EEUtils
 from aces.config import Config
+from aces.dataio import DataIO
 
 # Before running this script, you need to authenticate to Google Cloud:
 # https://cloud.google.com/dataflow/docs/quickstarts/create-pipeline-python#before-you-begin
@@ -173,16 +174,7 @@ class TrainingDataGenerator:
             response.raise_for_status()
 
             # Load the NumPy file data and return it as a NumPy array.
-            np_array = np.load(io.BytesIO(response.content), allow_pickle=True)
-            has_nan = np.isnan(np.sum(np_array.view(np.float32)))
-            if has_nan:
-                print("WARNING: Patch contains NaN values.")
-                print("WARNING: Patch contains NaN values.")
-                print("WARNING: Patch contains NaN values.")
-                print("WARNING: Patch contains NaN values.")
-                print("WARNING: Patch contains NaN values.")
-                print("WARNING: Patch contains NaN values.")
-            return np_array
+            return np.load(io.BytesIO(response.content), allow_pickle=True)
 
         @retry.Retry()
         def compute_pixel(image: ee.Image, region: ee.Geometry, bands: List[str], patch_size: int, scale_x: float, scale_y: float) -> np.ndarray:
@@ -247,19 +239,20 @@ class TrainingDataGenerator:
                 | "Create range" >> beam.Create(range(0, self.sample_size, 1))
                 | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points, self.sample_locations_list, self.use_service_account)
                 | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size, self.use_service_account)
+                | "Filter patches" >> beam.Filter(DataIO.filter_good_patches)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
                 | "Split dataset" >> beam.Partition(TrainingDataGenerator.split_dataset, 3, validation_ratio=self.validation_ratio, test_ratio=self.test_ratio)
             )
 
             # Write the datasets to TFRecord files in the output bucket
             training_data | "Write training data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/delete_experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
+                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
             )
             validation_data | "Write validation data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/delete_experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
+                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
             )
             test_data | "Write test data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/delete_experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
+                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
             )
 
     def generate_training_patch_seed_data(self) -> None:

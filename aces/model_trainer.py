@@ -36,7 +36,7 @@ class ModelTrainer:
         self.configure_memory_growth()
         logging.info("****************************************************************************")
         logging.info("****************************** creating datasets... ************************")
-        self.create_datasets(print_info=False)
+        self.create_datasets(print_info=True)
         logging.info("****************************************************************************")
         logging.info("************************ building and compiling model... *******************")
         self.build_and_compile_model(print_model_summary=True)
