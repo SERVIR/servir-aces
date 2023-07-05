@@ -3,9 +3,11 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from aces import metrics
-from aces import remote_sensing as rs
+from aces.metrics import Metrics
+from aces.remote_sensing import RemoteSensingFeatures as rs
 
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 class ModelBuilder:
@@ -35,7 +37,7 @@ class ModelBuilder:
 
         inputs = keras.Input(shape=(None, self.in_size), name='input_layer')
 
-        input_features = rs.RemoteSensingFeatures.concatenate_features_for_dnn(inputs)
+        input_features = rs.concatenate_features_for_dnn(inputs)
 
         # Create a custom input layer that accepts 4 channels
         y = keras.layers.Conv1D(64, 3, activation='relu', padding='same', name='conv1')(input_features)
@@ -58,12 +60,12 @@ class ModelBuilder:
 
         model = keras.models.Model(inputs=inputs, outputs=output)
         metrics_list = [
-            metrics.precision(),
-            metrics.recall(),
+            Metrics.precision(),
+            Metrics.recall(),
             keras.metrics.categorical_accuracy,
-            metrics.dice_coef,
-            metrics.f1_m,
-            metrics.one_hot_io_u(self.out_classes),
+            Metrics.dice_coef,
+            Metrics.f1_m,
+            Metrics.one_hot_io_u(self.out_classes),
         ]
 
         model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
@@ -91,43 +93,41 @@ class ModelBuilder:
         model = keras.Model(inputs, outputs, name='cnn_model')
 
         metrics_list = [
-            metrics.true_positives(),
-            metrics.false_positives(),
-            metrics.true_negatives(),
-            metrics.false_negatives(),
-            metrics.binary_accuracy(),
-            metrics.precision(),
-            metrics.recall(),
-            metrics.auc(),
-            metrics.prc(),
-            metrics.one_hot_io_u(self.out_classes),
-            metrics.f1_m,
-            metrics.dice_coef,
+            Metrics.true_positives(),
+            Metrics.false_positives(),
+            Metrics.true_negatives(),
+            Metrics.false_negatives(),
+            Metrics.binary_accuracy(),
+            Metrics.precision(),
+            Metrics.recall(),
+            Metrics.auc(),
+            Metrics.prc(),
+            Metrics.one_hot_io_u(self.out_classes),
+            Metrics.f1_m,
+            Metrics.dice_coef,
         ]
 
         model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
         return model
 
     def build_and_compile_unet_model(self, **kwargs):
-        DISTRIBUTED_STRATEGY = kwargs.get('DISTRIBUTED_STRATEGY', None)
-        print('DISTRIBUTED_STRATEGY', DISTRIBUTED_STRATEGY)
+        DISTRIBUTED_STRATEGY = kwargs.get("DISTRIBUTED_STRATEGY", None)
 
         if DISTRIBUTED_STRATEGY is not None:
             with DISTRIBUTED_STRATEGY.scope():
                 return self._build_and_compile_unet_model(**kwargs)
         else:
+            print("No distributed strategy found.")
             return self._build_and_compile_unet_model(**kwargs)
 
     def _build_and_compile_unet_model(self, **kwargs):
-        FINAL_ACTIVATION = kwargs.get('FINAL_ACTIVATION', 'sigmoid')
-
         inputs = keras.Input(shape=(None, None, self.in_size))
 
-        input_features = rs.RemoteSensingFeatures.concatenate_features_for_cnn(inputs)
+        input_features = rs.concatenate_features_for_cnn(inputs)
 
         y = keras.layers.Conv2D(64, 3, activation='relu', padding='same', name='conv1')(input_features)
         y = keras.layers.Conv2D(32, 3, activation='relu', padding='same', name='conv2')(y)
-        y = keras.layers.Conv2D(self.in_size, 2, activation='relu', padding='same', name='conv4')(y)
+        y = keras.layers.Conv2D(self.in_size, 3, activation='relu', padding='same', name='conv4')(y)
 
         all_inputs = keras.layers.concatenate([inputs, y])
 
@@ -176,17 +176,18 @@ class ModelBuilder:
             x = keras.layers.add([x, residual])
             previous_block_activation = x
 
-        outputs = keras.layers.Conv2D(self.out_classes, 1, activation=FINAL_ACTIVATION, name='final_conv')(x)
+        outputs = keras.layers.Conv2D(self.out_classes, 3, activation=kwargs.get("ACTIVATION_FN"), padding="same", name="final_conv")(x)
 
         model = keras.Model(inputs=inputs, outputs=outputs, name='unet')
 
         metrics_list = [
-            metrics.precision(),
-            metrics.recall(),
+            # Metrics.precision(),
+            # Metrics.recall(),
             keras.metrics.categorical_accuracy,
-            metrics.dice_coef,
-            metrics.f1_m,
-            metrics.one_hot_io_u(self.out_classes),
+            # Metrics.dice_coef,
+            # Metrics.f1_m,
+            keras.metrics.Accuracy(),
+            # Metrics.one_hot_io_u(self.out_classes),
         ]
 
         model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)

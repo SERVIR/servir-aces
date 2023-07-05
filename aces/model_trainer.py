@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import logging
+logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+
 import os
 import datetime
 import glob
@@ -9,7 +12,7 @@ from functools import partial
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import callbacks
+from keras import callbacks
 
 from aces.model import ModelBuilder
 from aces.dataio import DataIO
@@ -20,7 +23,7 @@ class ModelTrainer:
     def __init__(self, config):
         self.config = config
         self.model_builder = ModelBuilder(
-            in_size=self.config.len(self.config.FEATURES),
+            in_size=len(self.config.FEATURES),
             out_classes=self.config.OUT_CLASS_NUM,
             optimizer=self.config.OPTIMIZER,
             loss=self.config.LOSS
@@ -28,12 +31,22 @@ class ModelTrainer:
         self.build_model = partial(self.model_builder.build_model, model_type=self.config.MODEL_TYPE)
 
     def train_model(self) -> None:
-        self.build_and_compile_model()
-        self.prepare_output_dir()
-        self.get_file_paths()
-        self.create_datasets(print_info=True)
+        logging.info("****************************************************************************")
+        print(f"****************************** Configure memory growth... ************************")
         self.configure_memory_growth()
-        self.train_model()
+        logging.info("****************************************************************************")
+        logging.info("****************************** creating datasets... ************************")
+        self.create_datasets(print_info=False)
+        logging.info("****************************************************************************")
+        logging.info("************************ building and compiling model... *******************")
+        self.build_and_compile_model(print_model_summary=True)
+        logging.info("****************************************************************************")
+        logging.info("************************ preparing output directory... *********************")
+        self.prepare_output_dir()
+        # self.get_file_paths()
+        logging.info("****************************************************************************")
+        logging.info("****************************** training model... ***************************")
+        self.start_training()
         self.evaluate_and_print_val()
         self.save_parameters()
         self.save_plots()
@@ -47,7 +60,7 @@ class ModelTrainer:
         today = datetime.date.today().strftime("%Y_%m_%d")
         iterator = 1
         while True:
-            self.model_dir_name = f"trial_{today}_V{iterator}"
+            self.model_dir_name = f"trial_{self.config.MODEL_TYPE}_{today}_V{iterator}"
             self.config.MODEL_SAVE_DIR = self.config.OUTPUT_DIR / self.model_dir_name
             try:
                 os.mkdir(self.config.MODEL_SAVE_DIR)
@@ -56,90 +69,64 @@ class ModelTrainer:
                 iterator += 1
                 continue
             break
-        logging.info("***************************************************************************")
-
-    def get_file_paths(self) -> None:
-        """
-        Get the file paths for training, testing, and validation datasets.
-        """
-        self.config.TRAINING_FILES = glob.glob(str(self.config.TRAINING_DIR) + "/*")
-        logging.info(f"> training files: {len(self.config.TRAINING_FILES)}")
-        self.config.TESTING_FILES = glob.glob(str(self.config.TESTING_DIR) + "/*")
-        logging.info(f"> testing files: {len(self.config.TESTING_FILES)}")
-        self.config.VALIDATION_FILES = glob.glob(str(self.config.VALIDATION_DIR) + "/*")
-        logging.info(f"> validation files: {len(self.config.VALIDATION_FILES)}")
 
     def create_datasets(self, print_info: bool = False) -> None:
         """
         Create TensorFlow datasets for training, testing, and validation.
         """
-        self.config.TRAINING_DATASET = DataIO.get_dataset(
-            self.config.TRAINING_FILES,
+        self.TRAINING_DATASET = DataIO.get_dataset(
+            # self.config.TRAINING_FILES,
+            f"{str(self.config.TRAINING_DIR)}/*",
             self.config.FEATURES,
             self.config.LABELS,
-            self.config.PATCH_SHAPE,
+            self.config.PATCH_SHAPE[0],
             self.config.BATCH_SIZE,
-            **self.config.kargs,
-        ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        self.config.TESTING_DATASET = DataIO.get_dataset(
-            self.config.TESTING_FILES,
-            self.config.FEATURES,
-            self.config.LABELS,
-            self.config.PATCH_SHAPE,
-            1,
-            **self.config.kargs,
+            self.config.OUT_CLASS_NUM,
         ).repeat()
-        self.config.VALIDATION_DATASET = DataIO.get_dataset(
-            self.config.VALIDATION_FILES,
+        self.TESTING_DATASET = DataIO.get_dataset(
+            # self.config.TESTING_FILES,
+            f"{str(self.config.TESTING_DIR)}/*",
             self.config.FEATURES,
             self.config.LABELS,
-            self.config.PATCH_SHAPE,
+            self.config.PATCH_SHAPE[0],
             1,
-            **self.config.kargs,
+            self.config.OUT_CLASS_NUM,
+        ).repeat()
+        self.VALIDATION_DATASET = DataIO.get_dataset(
+            # self.config.VALIDATION_FILES,
+            f"{str(self.config.VALIDATION_DIR)}/*",
+            self.config.FEATURES,
+            self.config.LABELS,
+            self.config.PATCH_SHAPE[0],
+            1,
+            self.config.OUT_CLASS_NUM,
         )
 
         if print_info:
-            self.print_dataset_info(self.config.TRAINING_DATASET, "Training")
-            self.print_dataset_info(self.config.TESTING_DATASET, "Testing")
-            self.print_dataset_info(self.config.VALIDATION_DATASET, "Validation")
-
-    def print_dataset_info(self, dataset, dataset_name):
-        logging.info(dataset_name)
-        for inputs, outputs in dataset.take(1):
-            try:
-                logging.info(f"inputs: {inputs.dtype.name} {inputs.shape}")
-                logging.info(f"outputs: {outputs.dtype.name} {outputs.shape}")
-            except:
-                for name, values in inputs.items():
-                    logging.info(f"  {name}: {values.dtype.name} {values.shape}")
-                logging.info(f"outputs: {outputs.dtype.name} {outputs.shape}")
+            logging.info("Printing dataset info:")
+            DataIO.print_dataset_info(self.TRAINING_DATASET, "Training")
+            DataIO.print_dataset_info(self.TESTING_DATASET, "Testing")
+            DataIO.print_dataset_info(self.VALIDATION_DATASET, "Validation")
 
     def configure_memory_growth(self) -> None:
         """
         Configure TensorFlow to allocate GPU memory dynamically.
         """
         if self.config.physical_devices:
-            logging.info(f"Found {len(self.config.physical_devices)} GPUs")
+            logging.info(f" > Found {len(self.config.physical_devices)} GPUs")
             try:
                 for device in self.config.physical_devices:
                     tf.config.experimental.set_memory_growth(device, True)
             except Exception as err:
                 logging.error(err)
+        else:
+            logging.info(" > No GPUs found")
 
-    def build_and_compile_model(self) -> None:
-        args = {
-            "PATCH_SHAPE_SINGLE": self.config.PATCH_SHAPE_SINGLE,
-            "ACTIVATION_FN": self.config.ACTIVATION_FN,
-            "DISTRIBUTED_STRATEGY": self.config.strategy,
-            "INITIAL_BIAS": self.config.initial_bias,
-            "DURING_ONLY": False,
-            "DNN_DURING_ONLY": False,
-        }
+    def build_and_compile_model(self, print_model_summary: bool = True) -> None:
+        self.model = self.build_model(**self.config.__dict__)
+        if print_model_summary:  logging.info(self.model.summary())
 
-        self.model = self.build_model(**args)
-        logging.info(self.model.summary())
-
-    def train_model(self) -> None:
+    def start_training(self) -> None:
         model_checkpoint = callbacks.ModelCheckpoint(
             f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_CHECKPOINT_NAME}.h5",
             monitor=self.config.CALLBACK_PARAMETER,
@@ -175,15 +162,15 @@ class ModelTrainer:
         self.model_callbacks = model_callbacks
 
         self.history = self.model.fit(
-            x=self.config.TRAINING_DATASET,
+            x=self.TRAINING_DATASET,
             epochs=self.config.EPOCHS,
             steps_per_epoch=(self.config.TRAIN_SIZE // self.config.BATCH_SIZE),
-            validation_data=self.config.TESTING_DATASET,
+            validation_data=self.TESTING_DATASET,
             validation_steps=(self.config.TEST_SIZE // self.config.BATCH_SIZE),
             callbacks=model_callbacks,
         )
 
-        logging.info(self.model.summary())
+        # logging.info(self.model.summary())
 
     def evaluate_and_print_val(self) -> None:
         logging.info("************************************************")

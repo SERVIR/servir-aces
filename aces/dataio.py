@@ -1,117 +1,69 @@
 # -*- coding: utf-8 -*-
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
+import numpy as np
 import tensorflow as tf
 from functools import partial
-import matplotlib.pyplot as plt
 
 
 class DataIO:
-    @staticmethod
-    @tf.function
-    def parse_tfrecord(example_proto: tf.Tensor, features: list = None, labels: list = None) -> tf.data.Dataset:
-        keys = features + labels
-        columns = [
-            tf.io.FixedLenFeature(shape=(), dtype=tf.float32) for _ in keys
-        ]
-        proto_struct = dict(zip(keys, columns))
-        inputs = tf.io.parse_single_example(example_proto, proto_struct)
-        inputs_list = [inputs.get(key) for key in keys]
-        stacked = tf.stack(inputs_list, axis=0)
-        stacked = tf.transpose(stacked, [1, 2, 0])
-        return tf.data.Dataset.from_tensors(stacked)
 
     @staticmethod
-    @tf.function
-    def to_tuple(dataset: tf.Tensor, n_features: int = None, inverse_labels: bool = False) -> tuple:
-        features = dataset[:, :, :, :n_features]
-        labels = dataset[:, :, :, n_features:]
-        if inverse_labels:
-            labels_inverse = tf.math.abs(labels - 1)
-            labels = tf.concat([labels_inverse, labels], axis=-1)
-        return features, labels
+    @tf.autograph.experimental.do_not_convert
+    def create_tfrecord_from_file(filename):
+        return tf.data.TFRecordDataset(filename, compression_type="GZIP")
 
     @staticmethod
-    @tf.function
-    def parse_tfrecord_dnn(example_proto: tf.Tensor, features: list = None, labels: list = None) -> tuple:
-        keys = features + labels
-        columns = [
-            tf.io.FixedLenFeature(shape=[1], dtype=tf.float32) for _ in keys
-        ]
-        proto_struct = dict(zip(keys, columns))
-        parsed_features = tf.io.parse_single_example(example_proto, proto_struct)
-        label = parsed_features.pop(labels[0])
-        label = tf.cast(label, tf.int32)
-        return parsed_features, label
+    @tf.autograph.experimental.do_not_convert
+    def get_single_sample(x):
+        return tf.numpy_function(lambda _: 1, inp=[x], Tout=tf.int64)
 
     @staticmethod
-    @tf.function
-    def to_tuple_dnn(dataset: dict, label: tf.Tensor, depth: int = 1) -> tuple:
-        return tf.transpose(list(dataset.values())), tf.one_hot(indices=label, depth=depth)
+    def calculate_n_samples(**config):
+        parser = partial(DataIO.parse_tfrecord_multi_label,
+                         patch_size=config.get("PATCH_SHAPE_SINGLE"),
+                         features=config.get("FEATURES"),
+                         labels=config.get("LABELS"))
+        tupler = partial(DataIO.to_tuple_multi_label, depth=config.get("OUT_CLASS_NUM"), x_only=True)
+
+        tf_training_records = tf.data.Dataset.list_files(f"{str(config.get('TRAINING_DIR'))}/*")\
+                                             .interleave(DataIO.create_tfrecord_from_file, num_parallel_calls=tf.data.AUTOTUNE)
+        tf_training_records = tf_training_records.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
+        tf_training_records = tf_training_records.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        d0_training_records = tf_training_records.map(DataIO.get_single_sample, num_parallel_calls=tf.data.AUTOTUNE)
+        n_training_records = d0_training_records.reduce(np.int64(0), lambda x, y: x + y).numpy()
+
+        tf_testing_records = tf.data.Dataset.list_files(f"{str(config.get('TESTING_DIR'))}/*")\
+                                            .interleave(DataIO.create_tfrecord_from_file, num_parallel_calls=tf.data.AUTOTUNE)
+        tf_testing_records = tf_testing_records.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
+        tf_testing_records = tf_testing_records.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        d0_testing_records = tf_testing_records.map(DataIO.get_single_sample, num_parallel_calls=tf.data.AUTOTUNE)
+        n_testing_records = d0_testing_records.reduce(np.int64(0), lambda x, y: x + y).numpy()
+
+        tf_validation_records = tf.data.Dataset.list_files(f"{str(config.get('VALIDATION_DIR'))}/*")\
+                                               .interleave(DataIO.create_tfrecord_from_file, num_parallel_calls=tf.data.AUTOTUNE)
+        tf_validation_records = tf_validation_records.map(parser, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        tf_validation_records = tf_validation_records.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        d0_validation_records = tf_validation_records.map(DataIO.get_single_sample, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        n_validation_records = d0_validation_records.reduce(np.int64(0), lambda x, y: x + y).numpy()
+
+        return n_training_records, n_testing_records, n_validation_records
+
 
     @staticmethod
-    @tf.function
-    def parse_tfrecord_multi_label(example_proto: tf.Tensor, features: list = None, labels: list = None) -> tf.data.Dataset:
-        keys = features + labels
-        columns = [
-            tf.io.FixedLenFeature(shape=(), dtype=tf.float32) for _ in keys
-        ]
-        proto_struct = dict(zip(keys, columns))
-        parsed_features = tf.io.parse_single_example(example_proto, proto_struct)
-        inputs_list = [parsed_features.get(key) for key in keys]
-        stacked = tf.stack(inputs_list, axis=0)
-        stacked = tf.transpose(stacked, [1, 2, 0])
-        return tf.data.Dataset.from_tensors(stacked)
-
-    @staticmethod
-    @tf.function
-    def to_tuple_multi_label(dataset: tf.Tensor, n_features: int, depth: int = 1) -> tuple:
-        features = dataset[:, :, :, :n_features]
-        label = dataset[:, :, :, n_features:]
-        label = tf.cast(label, tf.int32)
-        label = tf.one_hot(indices=label, depth=depth, axis=-1)
-        label = tf.squeeze(label, axis=-2)
-        return features, label
-
-    @staticmethod
-    @tf.function
-    def parse_tfrecord_multi_label_2(example_proto: tf.Tensor, features: list = None, labels: list = None) -> tuple:
-        keys = features + labels
-        columns = [
-            tf.io.FixedLenFeature(shape=(), dtype=tf.float32) for _ in keys
-        ]
-        proto_struct = dict(zip(keys, columns))
-        parsed_features = tf.io.parse_single_example(example_proto, proto_struct)
-        label = parsed_features.pop(labels[0])
-        return parsed_features, label
-
-    @staticmethod
-    @tf.function
-    def to_tuple_multi_label_2(dataset: dict, label: tf.Tensor, depth: int = 1) -> tuple:
-        label = tf.cast(label, tf.int32)
-        label = tf.one_hot(indices=label, depth=depth)
-        parsed_dataset = tf.transpose(list(dataset.values()))
-        return parsed_dataset, label
-
-    @staticmethod
-    @tf.function
-    def parse_tfrecord_2(example_proto: tf.Tensor, features: list = None, labels: list = None) -> tf.data.Dataset:
-        keys = features + labels
-        columns = [
-            tf.io.FixedLenFeature(shape=(), dtype=tf.float32) for _ in keys
-        ]
-        proto_struct = dict(zip(keys, columns))
-        inputs = tf.io.parse_single_example(example_proto, proto_struct)
-        inputs_list = [inputs.get(key) for key in keys]
-        stacked = tf.stack(inputs_list, axis=0)
-        stacked = tf.transpose(stacked, [1, 2, 0])
-        return tf.data.Dataset.from_tensors(stacked)
-
-    @staticmethod
-    @tf.function
-    def to_tuple_2(dataset: tf.Tensor, n_features: int = None) -> tuple:
-        features = dataset[:, :, :n_features]
-        labels = dataset[:, :, n_features:]
-        return features, labels
+    def print_dataset_info(dataset: tf.data.Dataset, dataset_name: str) -> None:
+        logging.info(dataset_name)
+        for inputs, outputs in dataset.take(1):
+            try:
+                logging.info(f"inputs: {inputs.dtype.name} {inputs.shape}")
+                logging.info(f"outputs: {outputs.dtype.name} {outputs.shape}")
+            except:
+                logging.info(f" > inputs:")
+                for name, values in inputs.items():
+                    logging.info(f"    {name}: {values.dtype.name} {values.shape}")
+                logging.info(f" > outputs: {outputs.dtype.name} {outputs.shape}")
 
     @staticmethod
     @tf.function
@@ -166,19 +118,89 @@ class DataIO:
         return tf.image.rot90(inputs, k=3)
 
     @staticmethod
-    def get_dataset_2(files: list, features: list, labels: list, patch_shape: list, pca_components: int = None) -> tf.data.Dataset:
-        parser = partial(DataIO.parse_tfrecord_2, features=features, labels=labels)
-        split_data = partial(DataIO.to_tuple_2, n_features=len(features))
-        dataset = tf.data.TFRecordDataset(files, compression_type='GZIP')
-        dataset = dataset.interleave(parser, num_parallel_calls=tf.data.experimental.AUTOTUNE).map(split_data, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-
-        if pca_components is not None:
-            dataset = dataset.map(lambda x, y: DataIO.pca_transform(x, y, pca_components), num_parallel_calls=tf.data.experimental.AUTOTUNE)
-
-        return dataset
+    @tf.function
+    def parse_tfrecord(example_proto: tf.Tensor, patch_size: int, features: list = None, labels: list = None) -> tf.data.Dataset:
+        keys = features + labels
+        columns = [
+            tf.io.FixedLenFeature(shape=[patch_size, patch_size], dtype=tf.float32) for _ in keys
+        ]
+        proto_struct = dict(zip(keys, columns))
+        inputs = tf.io.parse_single_example(example_proto, proto_struct)
+        inputs_list = [inputs.get(key) for key in keys]
+        stacked = tf.stack(inputs_list, axis=0)
+        stacked = tf.transpose(stacked, [1, 2, 0])
+        return tf.data.Dataset.from_tensors(stacked)
 
     @staticmethod
-    def get_dataset(files: list, features: list, labels: list, patch_shape: list, batch_size: int, buffer_size: int = 1000, training: bool = False, **kwargs) -> tf.data.Dataset:
+    @tf.function
+    def to_tuple(dataset: tf.Tensor, n_features: int = None, inverse_labels: bool = False) -> tuple:
+        features = dataset[:, :, :, :n_features]
+        labels = dataset[:, :, :, n_features:]
+        if inverse_labels:
+            labels_inverse = tf.math.abs(labels - 1)
+            labels = tf.concat([labels_inverse, labels], axis=-1)
+        return features, labels
+
+    @staticmethod
+    @tf.function
+    def parse_tfrecord_with_name(example_proto: tf.Tensor, patch_size: int, features: list = None, labels: list = None) -> tf.data.Dataset:
+        keys = features + labels
+        columns = [
+            tf.io.FixedLenFeature(shape=[patch_size, patch_size], dtype=tf.float32) for _ in keys
+        ]
+        proto_struct = dict(zip(keys, columns))
+        return tf.io.parse_single_example(example_proto, proto_struct)
+
+    @staticmethod
+    @tf.function
+    def to_tuple_with_name(inputs: tf.Tensor, features: list = None, labels: list = None, n_classes: int = 1) -> tuple:
+        return (
+            {name: inputs[name] for name in features},
+            tf.one_hot(tf.cast(inputs[labels[0]], tf.uint8), n_classes)
+        )
+
+    @staticmethod
+    @tf.function
+    def parse_tfrecord_dnn(example_proto: tf.Tensor, features: list = None, labels: list = None) -> tuple:
+        keys = features + labels
+        columns = [
+            tf.io.FixedLenFeature(shape=[1], dtype=tf.float32) for _ in keys
+        ]
+        proto_struct = dict(zip(keys, columns))
+        parsed_features = tf.io.parse_single_example(example_proto, proto_struct)
+        label = parsed_features.pop(labels[0])
+        label = tf.cast(label, tf.int32)
+        return parsed_features, label
+
+    @staticmethod
+    @tf.function
+    def to_tuple_dnn(dataset: dict, label: tf.Tensor, depth: int = 1) -> tuple:
+        return tf.transpose(list(dataset.values())), tf.one_hot(indices=label, depth=depth)
+
+    @staticmethod
+    @tf.function
+    def parse_tfrecord_multi_label(example_proto: tf.data.Dataset, patch_size: int, features: list = None, labels: list = None) -> tuple:
+        keys = features + labels
+        columns = [
+            tf.io.FixedLenFeature(shape=[patch_size, patch_size], dtype=tf.float32) for _ in keys
+        ]
+        proto_struct = dict(zip(keys, columns))
+        parsed_features = tf.io.parse_single_example(example_proto, proto_struct)
+        label = parsed_features.pop(labels[0])
+        return parsed_features, label
+
+    @staticmethod
+    @tf.function
+    def to_tuple_multi_label(dataset: dict, label: tf.Tensor, depth: int = 1, x_only: bool = False) -> tuple:
+        label = tf.cast(label, tf.uint8)
+        label = tf.one_hot(indices=label, depth=depth)
+        parsed_dataset = tf.transpose(list(dataset.values()))
+        if x_only:
+            return parsed_dataset
+        return parsed_dataset, label
+
+    @staticmethod
+    def _get_dataset(files: list, features: list, labels: list, patch_shape: list, batch_size: int, buffer_size: int = 1000, training: bool = False, **kwargs) -> tf.data.Dataset:
         dnn = kwargs.get('dnn', False)
         inverse_labels = kwargs.get('inverse_labels', False)
         depth = kwargs.get('depth', len(labels))
@@ -217,4 +239,21 @@ class DataIO:
         else:
             dataset = dataset.batch(batch_size).map(split_data, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
+        return dataset
+
+    @staticmethod
+    def get_dataset(pattern: str, features: list, labels: list, patch_size: int, batch_size: int, n_classes: int = 1) -> tf.data.Dataset:
+        logging.info(f"Loading dataset from {pattern}")
+        logging.info(f"list_files: {tf.data.Dataset.list_files(pattern)}")
+
+        parser = partial(DataIO.parse_tfrecord_multi_label, patch_size=patch_size, features=features, labels=labels)
+        tupler = partial(DataIO.to_tuple_multi_label, depth=n_classes)
+
+        dataset = tf.data.Dataset.list_files(pattern).interleave(DataIO.create_tfrecord_from_file)
+        dataset = dataset.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        # dataset = dataset.cache()
+        dataset = dataset.shuffle(512)
+        dataset = dataset.batch(batch_size)
+        dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
         return dataset

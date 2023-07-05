@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ee
+from typing import Union
 
 
 class EEUtils:
@@ -15,7 +16,7 @@ class EEUtils:
         return credentials
 
     @staticmethod
-    def initialize_session(use_highvolume : bool = False, key : str | None = None):
+    def initialize_session(use_highvolume : bool = False, key : Union[str, None] = None):
         """Initialize EE session"""
         if key is None:
             if use_highvolume:
@@ -28,4 +29,3 @@ class EEUtils:
                 ee.Initialize(credentials, opt_url="https://earthengine-highvolume.googleapis.com")
             else:
                 ee.Initialize(credentials)
-

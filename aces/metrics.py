@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 
 from tensorflow import keras
-from tensorflow.keras import backend as K
+from keras import backend as K
 
 
 class Metrics:
@@ -43,7 +43,7 @@ class Metrics:
 
     @staticmethod
     def bce_dice_loss(y_true, y_pred):
-        return keras.losses.binary_crossentropy(y_true, y_pred, label_smoothing=0.2) + Metrics.dice_loss(y_true, y_pred)
+        return Metrics.bce_loss(y_true, y_pred) + Metrics.dice_loss(y_true, y_pred)
 
     @staticmethod
     def bce_loss(y_true, y_pred):
@@ -64,8 +64,7 @@ class Metrics:
 
     @staticmethod
     def focal_tversky_loss(y_true, y_pred, gamma=0.75):
-        tv = Metrics.tversky(y_true, y_pred)
-        return K.pow((1 - tv), gamma)
+        return K.pow((1 - Metrics.tversky(y_true, y_pred)), gamma)
 
     @staticmethod
     def true_positives(): return keras.metrics.TruePositives(name='tp')

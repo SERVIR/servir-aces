@@ -173,7 +173,16 @@ class TrainingDataGenerator:
             response.raise_for_status()
 
             # Load the NumPy file data and return it as a NumPy array.
-            return np.load(io.BytesIO(response.content), allow_pickle=True)
+            np_array = np.load(io.BytesIO(response.content), allow_pickle=True)
+            has_nan = np.isnan(np.sum(np_array.view(np.float32)))
+            if has_nan:
+                print("WARNING: Patch contains NaN values.")
+                print("WARNING: Patch contains NaN values.")
+                print("WARNING: Patch contains NaN values.")
+                print("WARNING: Patch contains NaN values.")
+                print("WARNING: Patch contains NaN values.")
+                print("WARNING: Patch contains NaN values.")
+            return np_array
 
         @retry.Retry()
         def compute_pixel(image: ee.Image, region: ee.Geometry, bands: List[str], patch_size: int, scale_x: float, scale_y: float) -> np.ndarray:
@@ -244,13 +253,13 @@ class TrainingDataGenerator:
 
             # Write the datasets to TFRecord files in the output bucket
             training_data | "Write training data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
+                f"gs://{self.output_bucket}/delete_experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
             )
             validation_data | "Write validation data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
+                f"gs://{self.output_bucket}/delete_experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
             )
             test_data | "Write test data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
+                f"gs://{self.output_bucket}/delete_experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
             )
 
     def generate_training_patch_seed_data(self) -> None:
@@ -347,7 +356,7 @@ class TrainingDataGenerator:
 if __name__ == "__main__":
     print("Program started..")
     generator = TrainingDataGenerator(use_service_account=True)
-    # generator.run_patch_generator()
-    generator.run_patch_generator_seed()
+    generator.run_patch_generator()
+    # generator.run_patch_generator_seed()
     # generator.run_point_generator()
     print("\nProgram completed.")

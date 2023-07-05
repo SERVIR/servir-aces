@@ -17,8 +17,8 @@ load_dotenv('.env')
 class Config:
     """Configuration class for the project."""
 
-    physical_devices = tf.config.list_physical_devices('GPU')
-    strategy = tf.distribute.MirroredStrategy(['GPU:0', 'GPU:1', 'GPU:2', 'GPU:3'])
+    physical_devices = tf.config.list_physical_devices("GPU")
+    DISTRIBUTED_STRATEGY = tf.distribute.MirroredStrategy() if len(physical_devices) > 1 else None
 
     BASEDIR = Path(os.getenv('BASEDIR'))
     DATADIR = BASEDIR / os.getenv('DATADIR')
@@ -82,7 +82,7 @@ class Config:
     DROPOUT_RATE = float(os.getenv('DROPOUT_RATE'))
 
     LOSS = os.getenv('LOSS')
-    if LOSS == 'custom':
+    if LOSS == 'custom_focal_tversky_loss':
         LOSS = Metrics.focal_tversky_loss
         LOSS_TXT = 'focal_tversky_loss'
     else:
@@ -109,7 +109,7 @@ class Config:
 
     def __init__(self) -> None:
         self.physical_devices = Config.physical_devices
-        self.strategy = Config.strategy
+        self.DISTRIBUTED_STRATEGY = Config.DISTRIBUTED_STRATEGY
 
         self.BASEDIR = Config.BASEDIR
         self.DATADIR = Config.DATADIR
@@ -163,9 +163,9 @@ class Config:
         self.MIN_LR = Config.MIN_LR
         self.DROPOUT_RATE = Config.DROPOUT_RATE
 
-        LOSS = Config.LOSS
-        LOSS_TXT = Config.LOSS_TXT
-        OPTIMIZER = Config.OPTIMIZER
+        self.LOSS = Config.LOSS
+        self.LOSS_TXT = Config.LOSS_TXT
+        self.OPTIMIZER = Config.OPTIMIZER
 
         self.OUT_CLASS_NUM = Config.OUT_CLASS_NUM
 
