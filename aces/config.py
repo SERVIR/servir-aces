@@ -75,7 +75,9 @@ class Config:
     OUTPUT_DIR = BASEDIR / os.getenv("OUTPUT_DIR")
 
     MODEL_NAME = os.getenv("MODEL_NAME")
-    MODEL_CHECKPOINT_NAME: str = os.getenv("MODEL_CHECKPOINT_NAME")
+    MODEL_CHECKPOINT_NAME = os.getenv("MODEL_CHECKPOINT_NAME")
+    
+    SCALE = int(os.getenv("SCALE"))
 
     FEATURES = os.getenv("FEATURES").split("\n")
     LABELS = ast.literal_eval(os.getenv("LABELS"))
@@ -145,6 +147,8 @@ class Config:
 
         self.MODEL_NAME = Config.MODEL_NAME
         self.MODEL_CHECKPOINT_NAME = Config.MODEL_CHECKPOINT_NAME
+        
+        self.SCALE = Config.SCALE
 
         self.FEATURES = Config.FEATURES
         print(f"FEATURES: {self.FEATURES}")

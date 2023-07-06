@@ -48,24 +48,6 @@ class DataProcessor:
         tf.Tensor: The single sample.
         """
         return tf.numpy_function(lambda _: 1, inp=[x], Tout=tf.int64)
-    
-    @staticmethod
-    def filter_good_patches(patch):
-        """
-        Filter patches to remove those with NaN or infinite values.
-
-        Parameters:
-        patch (np.ndarray): The patch to filter.
-
-        Returns:
-        bool: True if the patch has no NaN or infinite values, False otherwise.
-        """
-        # the getdownload url has field names so we're using view here
-        has_nan = np.isnan(np.sum(patch.view(np.float32)))
-        has_inf = np.isinf(np.sum(patch.view(np.float32)))
-        if has_nan or has_inf:
-            return False
-        return True
 
     @staticmethod
     def calculate_n_samples(**config):

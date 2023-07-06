@@ -8,7 +8,6 @@ try:
     from aces.data_processor import DataProcessor
 except ModuleNotFoundError:
     print("ModuleNotFoundError: Attempting to import from parent directory.")
-    # Add the parent directory of the 'aces' package to the module search path
     import os, sys
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 

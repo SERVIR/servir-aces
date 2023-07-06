@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from tensorflow import keras
 from keras import backend as K
 
-__all__ = ["Metrics", "Utils"]
+__all__ = ["Metrics"]
 
 class Metrics:
     """
@@ -320,42 +320,3 @@ class Metrics:
             One-hot IoU metric.
         """
         return keras.metrics.OneHotIoU(num_classes=num_classes, target_class_ids=list(range(num_classes)), name=name)
-
-
-class Utils:
-    """
-    Utils: Utility Functions for Model Visualization
-
-    This class provides utility functions for plotting and visualizing model metrics during training.
-    """
-    @staticmethod
-    def plot_metrics(metrics, history, epoch, model_save_dir):
-        """
-        Plot the training and validation metrics over epochs.
-
-        Args:
-            metrics: List of metrics to plot.
-            history: Training history containing metric values.
-            epoch: Number of epochs.
-            model_save_dir: Directory to save the plot.
-
-        Returns:
-            None.
-        """
-        fig, ax = plt.subplots(nrows=len(metrics), sharex=True, figsize=(15, len(metrics) * 6))
-        colors = ["#1f77b4", "#ff7f0e", "red", "green", "purple", "orange", "brown", "pink", "gray", "olive", "cyan"]
-        for i, metric in enumerate(metrics):
-            try:
-                ax[i].plot(history[metric], color=colors[i], label=f"Training {metric.upper()}")
-                ax[i].plot(history[f"val_{metric}"], linestyle=":", marker="o", markersize=3, color=colors[i], label=f"Validation {metric.upper()}")
-                ax[i].set_ylabel(metric.upper())
-                ax[i].legend()
-            except Exception as e:
-                logging.info(f"Exception: {e}")
-                logging.info(f"Skipping {metric}.")
-                continue
-
-        ax[i].set_xticks(range(1, epoch + 1, 4))
-        ax[i].set_xticklabels(range(1, epoch + 1, 4))
-        ax[i].set_xlabel("Epoch")
-        fig.savefig(f"{model_save_dir}/training.png", dpi=1000)

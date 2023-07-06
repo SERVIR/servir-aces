@@ -16,7 +16,7 @@ from keras import callbacks
 
 from aces.model_builder import ModelBuilder
 from aces.data_processor import DataProcessor
-from aces.metrics import Utils
+from aces.utils import Utils
 
 
 class ModelTrainer:
