@@ -123,13 +123,13 @@ class TrainingDataGenerator:
 
             # Write the datasets to TFRecord files in the output bucket
             training_data | "Write training data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/delete_experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
+                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
             )
             validation_data | "Write validation data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/delete_experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
+                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
             )
             test_data | "Write test data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/delete_experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
+                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
             )
 
     def generate_training_patch_seed_data(self) -> None:
@@ -147,13 +147,13 @@ class TrainingDataGenerator:
                     | "Write training data" >> beam.io.WriteToTFRecord(output_path, file_name_suffix=".tfrecord.gz")
                 )
         _generate_data_seed(self.image, self.training_sample_locations, self.selectors, self.scale, self.kernel_size,
-                            self.use_service_account, f"gs://{self.output_bucket}/delete_experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training")
+                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training")
 
         _generate_data_seed(self.image, self.validation_sample_locations, self.selectors, self.scale, self.kernel_size,
-                            self.use_service_account, f"gs://{self.output_bucket}/delete_experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation")
+                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation")
             
         _generate_data_seed(self.image, self.test_sample_locations, self.selectors, self.scale, self.kernel_size,
-                            self.use_service_account, f"gs://{self.output_bucket}/delete_experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing")
+                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing")
 
     def generate_training_point_data(self) -> None:
         """
