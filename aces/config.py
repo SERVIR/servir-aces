@@ -63,7 +63,7 @@ class Config:
     """
 
     physical_devices = tf.config.list_physical_devices("GPU")
-    DISTRIBUTED_STRATEGY = tf.distribute.MirroredStrategy() if len(physical_devices) > 1 else None
+    # DISTRIBUTED_STRATEGY = tf.distribute.MirroredStrategy() if len(physical_devices) > 1 else None
 
     BASEDIR = Path(os.getenv("BASEDIR"))
     DATADIR = BASEDIR / os.getenv("DATADIR")
@@ -133,7 +133,6 @@ class Config:
 
     def __init__(self) -> None:
         self.physical_devices = Config.physical_devices
-        self.DISTRIBUTED_STRATEGY = Config.DISTRIBUTED_STRATEGY
 
         self.BASEDIR = Config.BASEDIR
         self.DATADIR = Config.DATADIR

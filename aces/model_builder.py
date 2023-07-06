@@ -14,9 +14,6 @@ from tensorflow import keras
 from aces.metrics import Metrics
 from aces.remote_sensing import RemoteSensingFeatures as rs
 
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
 
 class ModelBuilder:
     """
@@ -193,10 +190,8 @@ class ModelBuilder:
         Returns:
             keras.Model: The compiled U-Net model.
         """
-        DISTRIBUTED_STRATEGY = kwargs.get("DISTRIBUTED_STRATEGY", None)
-
-        if DISTRIBUTED_STRATEGY is not None:
-            with DISTRIBUTED_STRATEGY.scope():
+        if len(kwargs.get("physical_devices")) > 0:
+            with tf.distribute.MirroredStrategy().scope():
                 return self._build_and_compile_unet_model(**kwargs)
         else:
             print("No distributed strategy found.")

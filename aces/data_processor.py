@@ -483,7 +483,6 @@ class DataProcessor:
         tf.data.Dataset: The TFRecord dataset.
         """
         logging.info(f"Loading dataset from {pattern}")
-        logging.info(f"list_files: {tf.data.Dataset.list_files(pattern)}")
 
         parser = partial(DataProcessor.parse_tfrecord_multi_label, patch_size=patch_size, features=features, labels=labels)
         tupler = partial(DataProcessor.to_tuple_multi_label, depth=n_classes)
