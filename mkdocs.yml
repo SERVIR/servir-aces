@@ -1,0 +1,19 @@
+site_name: ACES Documentation
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Usage: usage.md
+  - API Reference:
+    - data_processor module: data_processor.md
+    - model_builder module: model_builder.md
+    - model_trainer module: model_trainer.md
+    - metrics module: metrics.md
+    - ee_utils module: ee_utils.md
+    - remote_sensing module: remote_sensing.md
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings

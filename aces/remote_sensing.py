@@ -5,61 +5,200 @@ from tensorflow import keras
 
 
 class RemoteSensingFeatures:
+    """
+    A class for generating remote sensing features using TensorFlow.
+
+    This class provides static methods to compute various remote sensing indices and concatenate them into feature tensors.
+    """
     @staticmethod
     def normalized_difference(c1: tf.Tensor, c2: tf.Tensor, name: str = 'nd') -> tf.Tensor:
+        """
+        Compute the normalized difference index between two spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the normalized difference index.
+
+        """
         nd_f = keras.layers.Lambda(lambda x: ((x[0] - x[1]) / (x[0] + x[1])), name=name)([c1, c2])
         nd_inf = keras.layers.Lambda(lambda x: (x[0] - x[1]), name=f'{name}_inf')([c1, c2])
         return tf.where(tf.math.is_finite(nd_f), nd_f, nd_inf)
 
     @staticmethod
     def evi(c1: tf.Tensor, c2: tf.Tensor, c3: tf.Tensor, name: str = 'evi') -> tf.Tensor:
+        """
+        Compute the enhanced vegetation index (EVI) using three spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            c3: A TensorFlow tensor representing the third spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the EVI.
+
+        """
         _evi = keras.layers.Lambda(lambda x: 2.5 * ((x[0] - x[1]) / (x[0] + 6 * x[1] - 7.5 * x[2] + 1)), name=name)([c1, c2, c3])
         return _evi
 
     @staticmethod
     def savi(c1: tf.Tensor, c2: tf.Tensor, name: str = 'savi') -> tf.Tensor:
+        """
+        Compute the soil-adjusted vegetation index (SAVI) between two spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the SAVI.
+
+        """
         savi_f = keras.layers.Lambda(lambda x: ((x[0] - x[1]) / (x[0] + x[1] + 0.5)) * 1.5, name=name)([c1, c2])
         return savi_f
 
     @staticmethod
     def msavi(c1: tf.Tensor, c2: tf.Tensor, name: str = 'msavi') -> tf.Tensor:
+        """
+        Compute the modified soil-adjusted vegetation index (MSAVI) between two spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the MSAVI.
+
+        """
         msavi_f = keras.layers.Lambda(lambda x: (((2 * x[0] + 1) - tf.sqrt(((2 * x[0] + 1) * (2 * x[0] + 1)) - 8 * (x[0] - x[1]))) / 2), name=name)([c1, c2])
         return msavi_f
 
     @staticmethod
     def mtvi2(c1: tf.Tensor, c2: tf.Tensor, c3: tf.Tensor, name: str = 'mtvi2') -> tf.Tensor:
+        """
+        Compute the modified transformed vegetation index 2 (MTVI2) using three spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            c3: A TensorFlow tensor representing the third spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the MTVI2.
+
+        """
         mtvi2_f = keras.layers.Lambda(lambda x: (1.5 * (1.2 * (x[0] - x[2]) - 2.5 * (x[1] - x[2]))) / (tf.sqrt(((2 * x[0] + 1) * (2 * x[0] + 1)) - (6 * x[0] - 5 * tf.sqrt(x[1])) - 0.5)), name=name)([c1, c2, c3])
         return mtvi2_f
 
     @staticmethod
     def vari(c1: tf.Tensor, c2: tf.Tensor, c3: tf.Tensor, name: str = 'vari') -> tf.Tensor:
+        """
+        Compute the visible atmospheric resistant index (VARI) using three spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            c3: A TensorFlow tensor representing the third spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the VARI.
+
+        """
         vari_f = keras.layers.Lambda(lambda x: ((x[0] - x[1]) / (x[0] + x[1] - x[2])), name=name)([c1, c2, c3])
         return vari_f
 
     @staticmethod
     def tgi(c1: tf.Tensor, c2: tf.Tensor, c3: tf.Tensor, name: str = 'tgi') -> tf.Tensor:
+        """
+        Compute the triangular greenness index (TGI) using three spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            c3: A TensorFlow tensor representing the third spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the TGI.
+
+        """
         tgi_f = keras.layers.Lambda(lambda x: ((120 * (x[1] - x[2])) - (190 * (x[1] - x[0]))) / 2, name=name)([c1, c2, c3])
         return tgi_f
 
     @staticmethod
     def ratio(c1: tf.Tensor, c2: tf.Tensor, name: str = 'ratio') -> tf.Tensor:
+        """
+        Compute the ratio between two spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the ratio between the spectral bands.
+
+        """
         ratio_f = keras.layers.Lambda(lambda x: x[0] / x[1], name=name)([c1, c2])
         ratio_inf = keras.layers.Lambda(lambda x: x[0], name=f'{name}_inf')([c1, c2])
         return tf.where(tf.math.is_finite(ratio_f), ratio_f, ratio_inf)
 
     @staticmethod
     def nvi(c1: tf.Tensor, c2: tf.Tensor, name: str = 'nvi') -> tf.Tensor:
+        """
+        Compute the normalized vegetation index (NVI) between two spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the NVI.
+
+        """
         nvi_f = keras.layers.Lambda(lambda x: x[0] / (x[0] + x[1]), name=name)([c1, c2])
         nvi_inf = keras.layers.Lambda(lambda x: x[0], name=f'{name}_inf')([c1, c2])
         return tf.where(tf.math.is_finite(nvi_f), nvi_f, nvi_inf)
 
     @staticmethod
     def diff_band(c1: tf.Tensor, c2: tf.Tensor, name: str = 'diff') -> tf.Tensor:
+        """
+        Compute the difference between two spectral bands.
+
+        Args:
+            c1: A TensorFlow tensor representing the first spectral band.
+            c2: A TensorFlow tensor representing the second spectral band.
+            name: A string specifying the name for the operation.
+
+        Returns:
+            A TensorFlow tensor representing the difference between the spectral bands.
+
+        """
         diff = keras.layers.Lambda(lambda x: x[0] - x[1], name=name)([c1, c2])
         return diff
 
     @staticmethod
     def concatenate_features_for_cnn(input_tensor: tf.Tensor) -> tf.Tensor:
+        """
+        Concatenate remote sensing features for Convolutional Neural Network (CNN) input.
+
+        Args:
+            input_tensor: A TensorFlow tensor representing the input remote sensing data.
+
+        Returns:
+            A TensorFlow tensor representing the concatenated features for CNN input.
+
+        """
         red_before = input_tensor[:, :, :, 0:1]
         green_before = input_tensor[:, :, :, 1:2]
         blue_before = input_tensor[:, :, :, 2:3]
@@ -100,6 +239,16 @@ class RemoteSensingFeatures:
 
     @staticmethod
     def concatenate_features_for_dnn(input_tensor: tf.Tensor) -> tf.Tensor:
+        """
+        Concatenate remote sensing features for Deep Neural Network (DNN) input.
+
+        Args:
+            input_tensor: A TensorFlow tensor representing the input remote sensing data.
+
+        Returns:
+            A TensorFlow tensor representing the concatenated features for DNN input.
+
+        """
         red_before = input_tensor[:, :, 0:1]
         green_before = input_tensor[:, :, 1:2]
         blue_before = input_tensor[:, :, 2:3]

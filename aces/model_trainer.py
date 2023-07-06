@@ -14,13 +14,32 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import callbacks
 
-from aces.model import ModelBuilder
-from aces.dataio import DataIO
+from aces.model_builder import ModelBuilder
+from aces.data_processor import DataProcessor
 from aces.metrics import Utils
 
 
 class ModelTrainer:
+    """
+    A class for training deep learning models.
+
+    Attributes:
+        config: An object containing the configuration settings for model training.
+        model_builder: An instance of ModelBuilder for building the model.
+        build_model: A partial function for building the model with the specified model type.
+    """
     def __init__(self, config):
+        """
+        Initialize the ModelTrainer object.
+
+        Args:
+            config: An object containing the configuration settings for model training.
+
+        Attributes:
+            config: The configuration settings for model training.
+            model_builder: An instance of ModelBuilder for building the model.
+            build_model: A partial function for building the model with the specified model type.
+        """
         self.config = config
         self.model_builder = ModelBuilder(
             in_size=len(self.config.FEATURES),
@@ -31,6 +50,18 @@ class ModelTrainer:
         self.build_model = partial(self.model_builder.build_model, model_type=self.config.MODEL_TYPE)
 
     def train_model(self) -> None:
+        """
+        Train the model using the provided configuration settings.
+
+        This method performs the following steps:
+        1. Configures memory growth for TensorFlow.
+        2. Creates TensorFlow datasets for training, testing, and validation.
+        3. Builds and compiles the model.
+        4. Prepares the output directory for saving models and results.
+        5. Starts the training process.
+        6. Evaluates and prints validation metrics.
+        7. Saves training parameters, plots, and models.
+        """
         logging.info("****************************************************************************")
         print(f"****************************** Configure memory growth... ************************")
         self.configure_memory_growth()
@@ -43,7 +74,6 @@ class ModelTrainer:
         logging.info("****************************************************************************")
         logging.info("************************ preparing output directory... *********************")
         self.prepare_output_dir()
-        # self.get_file_paths()
         logging.info("****************************************************************************")
         logging.info("****************************** training model... ***************************")
         self.start_training()
@@ -55,6 +85,7 @@ class ModelTrainer:
     def prepare_output_dir(self) -> None:
         """
         Prepare the output directory for saving models and results.
+
         Creates a directory with a timestamped name and increments the version number if necessary.
         """
         today = datetime.date.today().strftime("%Y_%m_%d")
@@ -73,8 +104,13 @@ class ModelTrainer:
     def create_datasets(self, print_info: bool = False) -> None:
         """
         Create TensorFlow datasets for training, testing, and validation.
+
+        Args:
+            print_info: Flag indicating whether to print dataset information.
+
+        Prints information about the created datasets if print_info is set to True.
         """
-        self.TRAINING_DATASET = DataIO.get_dataset(
+        self.TRAINING_DATASET = DataProcessor.get_dataset(
             # self.config.TRAINING_FILES,
             f"{str(self.config.TRAINING_DIR)}/*",
             self.config.FEATURES,
@@ -83,7 +119,7 @@ class ModelTrainer:
             self.config.BATCH_SIZE,
             self.config.OUT_CLASS_NUM,
         ).repeat()
-        self.TESTING_DATASET = DataIO.get_dataset(
+        self.TESTING_DATASET = DataProcessor.get_dataset(
             # self.config.TESTING_FILES,
             f"{str(self.config.TESTING_DIR)}/*",
             self.config.FEATURES,
@@ -92,7 +128,7 @@ class ModelTrainer:
             1,
             self.config.OUT_CLASS_NUM,
         ).repeat()
-        self.VALIDATION_DATASET = DataIO.get_dataset(
+        self.VALIDATION_DATASET = DataProcessor.get_dataset(
             # self.config.VALIDATION_FILES,
             f"{str(self.config.VALIDATION_DIR)}/*",
             self.config.FEATURES,
@@ -104,13 +140,15 @@ class ModelTrainer:
 
         if print_info:
             logging.info("Printing dataset info:")
-            DataIO.print_dataset_info(self.TRAINING_DATASET, "Training")
-            DataIO.print_dataset_info(self.TESTING_DATASET, "Testing")
-            DataIO.print_dataset_info(self.VALIDATION_DATASET, "Validation")
+            DataProcessor.print_dataset_info(self.TRAINING_DATASET, "Training")
+            DataProcessor.print_dataset_info(self.TESTING_DATASET, "Testing")
+            DataProcessor.print_dataset_info(self.VALIDATION_DATASET, "Validation")
 
     def configure_memory_growth(self) -> None:
         """
         Configure TensorFlow to allocate GPU memory dynamically.
+
+        If GPUs are found, this method enables memory growth for each GPU.
         """
         if self.config.physical_devices:
             logging.info(f" > Found {len(self.config.physical_devices)} GPUs")
@@ -123,10 +161,24 @@ class ModelTrainer:
             logging.info(" > No GPUs found")
 
     def build_and_compile_model(self, print_model_summary: bool = True) -> None:
+        """
+        Build and compile the model.
+
+        Args:
+            print_model_summary: Flag indicating whether to print the model summary.
+
+        Builds and compiles the model using the provided configuration settings.
+        Prints the model summary if print_model_summary is set to True.
+        """
         self.model = self.build_model(**self.config.__dict__)
         if print_model_summary:  logging.info(self.model.summary())
 
     def start_training(self) -> None:
+        """
+        Start the training process.
+
+        Trains the model using the provided configuration settings and callbacks.
+        """
         model_checkpoint = callbacks.ModelCheckpoint(
             f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_CHECKPOINT_NAME}.h5",
             monitor=self.config.CALLBACK_PARAMETER,
@@ -173,6 +225,11 @@ class ModelTrainer:
         # logging.info(self.model.summary())
 
     def evaluate_and_print_val(self) -> None:
+        """
+        Evaluate and print validation metrics.
+
+        Evaluates the model on the validation dataset and prints the metrics.
+        """
         logging.info("************************************************")
         logging.info("************************************************")
         logging.info("Validation")
@@ -182,6 +239,11 @@ class ModelTrainer:
         logging.info()
 
     def save_parameters(self) -> None:
+        """
+        Save the training parameters to a text file.
+
+        Saves the training parameters used in the configuration settings to a text file.
+        """
         with open(f"{str(self.config.MODEL_SAVE_DIR)}/parameters.txt", "w") as f:
             f.write(f"MODEL_FUNCTION: {self.config.MODEL_FUNCTION}\n")
             f.write(f"TRAIN_SIZE: {self.config.TRAIN_SIZE}\n")
@@ -211,12 +273,22 @@ class ModelTrainer:
         f.close()
 
     def save_plots(self) -> None:
+        """
+        Save plots and model visualization.
+
+        Saves the model architecture plot, training history plot, and model object.
+       """
         keras.utils.plot_model(self.model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True)
         with open(f"{self.config.MODEL_SAVE_DIR}/model.pkl", "wb") as f:
             pickle.dump(self.history.history, f)
         Utils.plot_metrics(self.config.METRICS, self.history.history, self.history.epoch, self.config.MODEL_SAVE_DIR)
 
     def save_models(self) -> None:
+        """
+        Save the trained models.
+
+        Saves the trained models in different formats: h5 and tf formats.
+        """
         self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
         self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
         self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.h5", save_format="h5")

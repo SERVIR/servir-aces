@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 
+"""
+model_builder.py: Model Builder Class for Creating and Compiling Neural Network Models
+
+This module provides a `ModelBuilder` class that is responsible for creating and compiling neural network models.
+It includes methods for building and compiling models of different types, such as DNN, CNN, and U-Net, based on the
+provided specifications. The class also contains utility methods for constructing custom layers and defining metrics.
+"""
+
 import tensorflow as tf
 from tensorflow import keras
 
@@ -11,13 +19,60 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 class ModelBuilder:
+    """
+    ModelBuilder Class for Creating and Compiling Neural Network Models
+
+    This class provides methods for building and compiling neural network models of different types, such as DNN, CNN, and U-Net,
+    based on the provided specifications. It includes utility methods for constructing custom layers and defining metrics.
+
+    Attributes:
+        in_size (int): The input size of the models.
+        out_classes (int): The number of output classes for classification models.
+        optimizer (tf.keras.optimizers.Optimizer): The optimizer to use for model compilation.
+        loss (tf.keras.losses.Loss): The loss function to use for model compilation.
+
+    Methods:
+        build_model(model_type, **kwargs):
+            Builds and compiles a neural network model based on the provided model type.
+        build_and_compile_dnn_model(**kwargs):
+            Builds and compiles a Deep Neural Network (DNN) model.
+        build_and_compile_cnn_model(**kwargs):
+            Builds and compiles a Convolutional Neural Network (CNN) model.
+        build_and_compile_unet_model(**kwargs):
+            Builds and compiles a U-Net model.
+        _build_and_compile_unet_model(**kwargs):
+            Helper method for building and compiling a U-Net model.
+    """
+
     def __init__(self, in_size, out_classes, optimizer, loss):
+        """
+        Initialize ModelBuilder with input size, output classes, optimizer, and loss.
+
+        Args:
+            in_size (int): The input size of the models.
+            out_classes (int): The number of output classes for classification models.
+            optimizer (tf.keras.optimizers.Optimizer): The optimizer to use for model compilation.
+            loss (tf.keras.losses.Loss): The loss function to use for model compilation.
+        """
         self.in_size = in_size
         self.out_classes = out_classes
         self.optimizer = optimizer
         self.loss = loss
 
     def build_model(self, model_type, **kwargs):
+        """
+        Builds and compiles a neural network model based on the provided model type.
+
+        Args:
+            model_type (str): The type of the model to build ('dnn', 'cnn', 'unet').
+            **kwargs: Additional keyword arguments specific to the model type.
+
+        Returns:
+            keras.Model: The compiled neural network model.
+
+        Raises:
+            ValueError: If an invalid model type is provided.
+        """
         if model_type == 'dnn':
             return self.build_and_compile_dnn_model(**kwargs)
         elif model_type == 'cnn':
@@ -28,6 +83,15 @@ class ModelBuilder:
             raise ValueError(f"Invalid model type: {model_type}")
 
     def build_and_compile_dnn_model(self, **kwargs):
+        """
+        Builds and compiles a Deep Neural Network (DNN) model.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            keras.Model: The compiled DNN model.
+        """
         FINAL_ACTIVATION = kwargs.get('FINAL_ACTIVATION', 'sigmoid')
         INITIAL_BIAS = kwargs.get('INITIAL_BIAS', None)
         # DNN_DURING_ONLY = kwargs.get('DURING_ONLY', False)
@@ -72,6 +136,15 @@ class ModelBuilder:
         return model
 
     def build_and_compile_cnn_model(self, **kwargs):
+        """
+        Builds and compiles a Convolutional Neural Network (CNN) model.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            keras.Model: The compiled CNN model.
+        """
         inputs = keras.Input(shape=(128, 128, self.in_size))
         x = keras.layers.Conv2D(32, 3, activation='relu', name='convd-1')(inputs)
         x = keras.layers.BatchNormalization()(x)
@@ -111,6 +184,15 @@ class ModelBuilder:
         return model
 
     def build_and_compile_unet_model(self, **kwargs):
+        """
+        Builds and compiles a U-Net model.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            keras.Model: The compiled U-Net model.
+        """
         DISTRIBUTED_STRATEGY = kwargs.get("DISTRIBUTED_STRATEGY", None)
 
         if DISTRIBUTED_STRATEGY is not None:
@@ -121,6 +203,15 @@ class ModelBuilder:
             return self._build_and_compile_unet_model(**kwargs)
 
     def _build_and_compile_unet_model(self, **kwargs):
+        """
+        Helper method for building and compiling a U-Net model.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            keras.Model: The compiled U-Net model.
+        """
         inputs = keras.Input(shape=(None, None, self.in_size))
 
         input_features = rs.concatenate_features_for_cnn(inputs)

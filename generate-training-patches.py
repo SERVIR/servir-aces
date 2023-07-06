@@ -16,7 +16,7 @@ from typing import List
 
 from aces.ee_utils import EEUtils
 from aces.config import Config
-from aces.dataio import DataIO
+from aces.data_processor import DataProcessor
 
 # Before running this script, you need to authenticate to Google Cloud:
 # https://cloud.google.com/dataflow/docs/quickstarts/create-pipeline-python#before-you-begin
@@ -239,7 +239,7 @@ class TrainingDataGenerator:
                 | "Create range" >> beam.Create(range(0, self.sample_size, 1))
                 | "Yield sample points" >> beam.Map(TrainingDataGenerator.yield_sample_points, self.sample_locations_list, self.use_service_account)
                 | "Get patch" >> beam.Map(TrainingDataGenerator.get_training_patches, self.image, self.selectors, self.scale, self.kernel_size, self.use_service_account)
-                | "Filter patches" >> beam.Filter(DataIO.filter_good_patches)
+                | "Filter patches" >> beam.Filter(DataProcessor.filter_good_patches)
                 | "Serialize" >> beam.Map(TrainingDataGenerator.serialize)
                 | "Split dataset" >> beam.Partition(TrainingDataGenerator.split_dataset, 3, validation_ratio=self.validation_ratio, test_ratio=self.test_ratio)
             )

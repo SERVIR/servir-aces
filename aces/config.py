@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+"""
+ACES Configuration Module
+This module provides the configuration settings for the ACES project.
+"""
+
 from pathlib import Path
 import os
 import ast
@@ -15,7 +20,51 @@ load_dotenv('.env')
 
 
 class Config:
-    """Configuration class for the project."""
+    """
+    ACES Configuration Class
+
+    This class contains the configuration settings for the ACES project.
+
+    Attributes:
+        BASEDIR (str): The base directory for data I/O information.
+        DATADIR (str): The directory for data collection experiments.
+        MODEL_NAME (str): The name of the ACES model.
+        MODEL_CHECKPOINT_NAME (str): The name for model checkpoints.
+        LABELS (list): A list of labels used in the project.
+        PATCH_SHAPE (tuple): The shape of training patches.
+        TRAIN_SIZE (int): The size of the training dataset.
+        TEST_SIZE (int): The size of the testing dataset.
+        VAL_SIZE (int): The size of the validation dataset.
+        N_POS (int): The number of positive samples.
+        N_NEG (int): The number of negative samples.
+        BATCH_SIZE (int): The batch size for model training.
+        EPOCHS (int): The number of epochs for model training.
+        BUFFER_SIZE (int): The buffer size for shuffling the dataset.
+        RAMPUP_EPOCHS (int): The number of ramp-up epochs.
+        SUSTAIN_EPOCHS (int): The number of sustain epochs.
+        USE_ADJUSTED_LR (bool): Flag to use adjusted learning rate.
+        MAX_LR (float): The maximum learning rate.
+        MID_LR (float): The intermediate learning rate.
+        MIN_LR (float): The minimum learning rate.
+        LEARNING_RATE (float): The initial learning rate.
+        DROPOUT_RATE (float): The dropout rate for the model.
+        CALLBACK_PARAMETER (str): The parameter used for callbacks.
+        ACTIVATION_FN (str): The activation function for the model.
+        OPTIMIZER (str): The optimizer used for model training.
+        LOSS (str): The loss function used for model training.
+        MODEL_TYPE (str): The type of model (cnn, dnn, unet).
+        METRICS (str): The metrics used for model evaluation.
+        OUT_CLASS_NUM (int): The number of output classes.
+        PCA_COMPONENTS (int): The number of PCA components.
+        EE_USER (str): The Earth Engine username.
+        EE_OUPUT_ASSET (str): The Earth Engine output asset path.
+        EE_SERVICE_CREDENTIALS (str): The path to Earth Engine service account credentials.
+        GCS_PROJECT (str): The Google Cloud Storage project name.
+        GCS_BUCKET (str): The Google Cloud Storage bucket name.
+        GCS_EEIFIED_DIR (str): The directory for Earth Engineified data in GCS.
+        GCS_CHECKPOINT_DIR (str): The directory for model checkpoints in GCS.
+        FEATURES (str): The list of features used in the model.
+    """
 
     physical_devices = tf.config.list_physical_devices("GPU")
     DISTRIBUTED_STRATEGY = tf.distribute.MirroredStrategy() if len(physical_devices) > 1 else None
@@ -33,20 +82,6 @@ class Config:
     MODEL_CHECKPOINT_NAME: str = os.getenv('MODEL_CHECKPOINT_NAME')
 
     METRICS = os.getenv('METRICS').split('\n')
-
-    # today: str = datetime.date.today().strftime('%Y_%m_%d')
-    # iterator: int = 1
-    # while True:
-    #     model_dir_name: str = f'trial_{today}_V{iterator}'
-    #     self.MODEL_SAVE_DIR: Path = self.OUTPUT_DIR / model_dir_name
-    #     try:
-    #         os.mkdir(self.MODEL_SAVE_DIR)
-    #     except FileExistsError:
-    #         print(f'> {self.MODEL_SAVE_DIR} exists, creating another version...')
-    #         iterator += 1
-    #         continue
-    #     break
-    # print('***************************************************************************')
 
     FEATURES = os.getenv('FEATURES').split('\n')
     LABELS = ast.literal_eval(os.getenv('LABELS'))
