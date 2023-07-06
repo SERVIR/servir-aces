@@ -220,7 +220,7 @@ class ModelBuilder:
         y = keras.layers.Conv2D(32, 3, activation='relu', padding='same', name='conv2')(y)
         y = keras.layers.Conv2D(self.in_size, 3, activation='relu', padding='same', name='conv4')(y)
 
-        all_inputs = keras.layers.concatenate([inputs, y])
+        all_inputs = keras.layers.concatenate([inputs, y]) # inputs # 
 
         x = keras.layers.Conv2D(32, 3, strides=2, padding='same')(all_inputs)
         x = keras.layers.BatchNormalization()(x)
@@ -272,13 +272,13 @@ class ModelBuilder:
         model = keras.Model(inputs=inputs, outputs=outputs, name='unet')
 
         metrics_list = [
-            # Metrics.precision(),
-            # Metrics.recall(),
+            Metrics.precision(),
+            Metrics.recall(),
             keras.metrics.categorical_accuracy,
-            # Metrics.dice_coef,
-            # Metrics.f1_m,
+            Metrics.dice_coef,
+            Metrics.f1_m,
             keras.metrics.Accuracy(),
-            # Metrics.one_hot_io_u(self.out_classes),
+            Metrics.one_hot_io_u(self.out_classes),
         ]
 
         model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)

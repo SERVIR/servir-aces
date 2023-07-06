@@ -8,6 +8,9 @@ image segmentation. It includes metrics like recall, precision, F1-score, Dice c
 Additionally, it contains utility functions for plotting and visualizing model metrics during training.
 """
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
 import matplotlib.pyplot as plt
 
 from tensorflow import keras
@@ -221,7 +224,7 @@ class Metrics:
         Returns:
             True positives metric.
         """
-        return keras.metrics.TruePositives(name='tp')
+        return keras.metrics.TruePositives(name="tp")
     
     @staticmethod
     def false_positives():
@@ -231,7 +234,7 @@ class Metrics:
         Returns:
             False positives metric.
         """
-        return keras.metrics.FalsePositives(name='fp')
+        return keras.metrics.FalsePositives(name="fp")
     
     @staticmethod
     def true_negatives():
@@ -241,7 +244,7 @@ class Metrics:
         Returns:
             True negatives metric.
         """
-        return keras.metrics.TrueNegatives(name='tn')
+        return keras.metrics.TrueNegatives(name="tn")
     
     @staticmethod
     def false_negatives():
@@ -251,7 +254,7 @@ class Metrics:
         Returns:
             False negatives metric.
         """
-        return keras.metrics.FalseNegatives(name='fn')
+        return keras.metrics.FalseNegatives(name="fn")
     
     @staticmethod
     def binary_accuracy():
@@ -261,7 +264,7 @@ class Metrics:
         Returns:
             Binary accuracy metric.
         """
-        return keras.metrics.BinaryAccuracy(name='accuracy')
+        return keras.metrics.BinaryAccuracy(name="accuracy")
     
     # check difference between this and precision_m output
     @staticmethod
@@ -272,7 +275,7 @@ class Metrics:
         Returns:
             Precision metric.
         """
-        return keras.metrics.Precision(name='precision')
+        return keras.metrics.Precision(name="precision")
     
     @staticmethod
     def recall():
@@ -282,7 +285,7 @@ class Metrics:
         Returns:
             Recall metric.
         """
-        return keras.metrics.Recall(name='recall')
+        return keras.metrics.Recall(name="recall")
     
     @staticmethod
     def auc():
@@ -292,7 +295,7 @@ class Metrics:
         Returns:
             AUC metric.
         """
-        return keras.metrics.AUC(name='auc')
+        return keras.metrics.AUC(name="auc")
     
     @staticmethod
     def prc():
@@ -302,10 +305,10 @@ class Metrics:
         Returns:
             PRC metric.
         """
-        return keras.metrics.AUC(name='prc', curve='PR')
+        return keras.metrics.AUC(name="prc", curve="PR")
     
     @staticmethod
-    def one_hot_io_u(num_classes, name='one_hot_io_u'):
+    def one_hot_io_u(num_classes, name="one_hot_io_u"):
         """
         Create a metric for calculating Intersection over Union (IoU) using one-hot encoding.
 
@@ -333,22 +336,26 @@ class Utils:
         Args:
             metrics: List of metrics to plot.
             history: Training history containing metric values.
-            epoch: List of epochs.
+            epoch: Number of epochs.
             model_save_dir: Directory to save the plot.
 
         Returns:
             None.
         """
         fig, ax = plt.subplots(nrows=len(metrics), sharex=True, figsize=(15, len(metrics) * 6))
-        colors = ['#1f77b4', '#ff7f0e', 'red', 'green', 'purple', 'orange', 'brown', 'pink', 'gray', 'olive', 'cyan']
-
+        colors = ["#1f77b4", "#ff7f0e", "red", "green", "purple", "orange", "brown", "pink", "gray", "olive", "cyan"]
         for i, metric in enumerate(metrics):
-            ax[i].plot(history[metric], color=colors[i], label=f'Training {metric.upper()}')
-            ax[i].plot(history[f'val_{metric}'], linestyle=':', marker='o', markersize=3, color=colors[i], label=f'Validation {metric.upper()}')
-            ax[i].set_ylabel(metric.upper())
-            ax[i].legend()
+            try:
+                ax[i].plot(history[metric], color=colors[i], label=f"Training {metric.upper()}")
+                ax[i].plot(history[f"val_{metric}"], linestyle=":", marker="o", markersize=3, color=colors[i], label=f"Validation {metric.upper()}")
+                ax[i].set_ylabel(metric.upper())
+                ax[i].legend()
+            except Exception as e:
+                logging.info(f"Exception: {e}")
+                logging.info(f"Skipping {metric}.")
+                continue
 
-        ax[i].set_xticks(range(1, len(epoch) + 1, 4))
-        ax[i].set_xticklabels(range(1, len(epoch) + 1, 4))
-        ax[i].set_xlabel('Epoch')
-        fig.savefig(f"{model_save_dir}/training.png", dpi=700)
+        ax[i].set_xticks(range(1, epoch + 1, 4))
+        ax[i].set_xticklabels(range(1, epoch + 1, 4))
+        ax[i].set_xlabel("Epoch")
+        fig.savefig(f"{model_save_dir}/training.png", dpi=1000)

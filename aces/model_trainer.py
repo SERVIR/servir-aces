@@ -6,7 +6,7 @@ logging.basicConfig(level=logging.INFO)
 
 import os
 import datetime
-import glob
+import json
 import pickle
 from functools import partial
 
@@ -67,7 +67,7 @@ class ModelTrainer:
         self.configure_memory_growth()
         logging.info("****************************************************************************")
         logging.info("****************************** creating datasets... ************************")
-        self.create_datasets(print_info=True)
+        self.create_datasets(print_info=False)
         logging.info("****************************************************************************")
         logging.info("************************ building and compiling model... *******************")
         self.build_and_compile_model(print_model_summary=True)
@@ -77,10 +77,23 @@ class ModelTrainer:
         logging.info("****************************************************************************")
         logging.info("****************************** training model... ***************************")
         self.start_training()
+        logging.info("****************************************************************************")
+        logging.info("****************************** evaluating model... *************************")
         self.evaluate_and_print_val()
-        self.save_parameters()
+        logging.info("****************************************************************************")
+        logging.info("****************************** saving parameters... ************************")
+        ModelTrainer.save_parameters(**self.config.__dict__)
+        logging.info("****************************************************************************")
+        logging.info("*************** saving model config and history object... ******************")
+        self.save_history_object()
+        ModelTrainer.save_model_config(self.config.MODEL_SAVE_DIR, **self.model.get_config())
+        logging.info("****************************************************************************")
+        logging.info("****************************** saving plots... *****************************")
         self.save_plots()
+        logging.info("****************************************************************************")
+        logging.info("****************************** saving models... ****************************")
         self.save_models()
+        logging.info("****************************************************************************")
 
     def prepare_output_dir(self) -> None:
         """
@@ -233,43 +246,48 @@ class ModelTrainer:
         logging.info("************************************************")
         logging.info("************************************************")
         logging.info("Validation")
-        evaluate_results = self.model.evaluate(self.config.VALIDATION_DATASET)
+        evaluate_results = self.model.evaluate(self.VALIDATION_DATASET)
         for name, value in zip(self.model.metrics_names, evaluate_results):
             logging.info(f"{name}: {value}")
-        logging.info()
+        logging.info("\n")
 
-    def save_parameters(self) -> None:
+    @staticmethod
+    def save_parameters(**config) -> None:
         """
         Save the training parameters to a text file.
 
         Saves the training parameters used in the configuration settings to a text file.
         """
-        with open(f"{str(self.config.MODEL_SAVE_DIR)}/parameters.txt", "w") as f:
-            f.write(f"MODEL_FUNCTION: {self.config.MODEL_FUNCTION}\n")
-            f.write(f"TRAIN_SIZE: {self.config.TRAIN_SIZE}\n")
-            f.write(f"TEST_SIZE: {self.config.TEST_SIZE}\n")
-            f.write(f"VAL_SIZE: {self.config.VAL_SIZE}\n")
-            f.write(f"BATCH_SIZE: {self.config.BATCH_SIZE}\n")
-            f.write(f"EPOCHS: {self.config.EPOCHS}\n")
-            f.write(f"LOSS: {self.config.LOSS_TXT}\n")
-            f.write(f"BUFFER_SIZE: {self.config.BUFFER_SIZE}\n")
-            f.write(f"LEARNING_RATE: {self.config.LEARNING_RATE}\n")
-            if self.config.USE_ADJUSTED_LR:
-                f.write(f"USE_ADJUSTED_LR: {self.config.USE_ADJUSTED_LR}\n")
-                f.write(f"MAX_LR: {self.config.MAX_LR}\n")
-                f.write(f"MID_LR: {self.config.MID_LR}\n")
-                f.write(f"MIN_LR: {self.config.MIN_LR}\n")
-                f.write(f"RAMPUP_EPOCHS: {self.config.RAMPUP_EPOCHS}\n")
-                f.write(f"SUSTAIN_EPOCHS: {self.config.SUSTAIN_EPOCHS}\n")
-            f.write(f"DROPOUT_RATE: {self.config.DROPOUT_RATE}\n")
-            f.write(f"ACTIVATION_FN: {self.config.ACTIVATION_FN}\n")
-            f.write(f"FEATURES: {self.config.FEATURES}\n")
-            f.write(f"LABELS: {self.config.LABELS}\n")
-            f.write(f"PATCH_SHAPE: {self.config.PATCH_SHAPE}\n")
-            f.write(f"CALLBACK_PARAMETER: {self.config.CALLBACK_PARAMETER}\n")
-            f.write(f"MODEL_NAME: {self.config.MODEL_NAME}.h5\n")
-            f.write(f"MODEL_CHECKPOINT_NAME: {self.config.MODEL_CHECKPOINT_NAME}.h5\n")
-        
+        with open(f"{str(config.get('MODEL_SAVE_DIR'))}/parameters.txt", "w") as f:
+            f.write(f"TRAIN_SIZE: {config.get('TRAIN_SIZE')}\n")
+            f.write(f"TEST_SIZE: {config.get('TEST_SIZE')}\n")
+            f.write(f"VAL_SIZE: {config.get('VAL_SIZE')}\n")
+            f.write(f"BATCH_SIZE: {config.get('BATCH_SIZE')}\n")
+            f.write(f"EPOCHS: {config.get('EPOCHS')}\n")
+            f.write(f"LOSS: {config.get('LOSS_TXT')}\n")
+            f.write(f"BUFFER_SIZE: {config.get('BUFFER_SIZE')}\n")
+            f.write(f"LEARNING_RATE: {config.get('LEARNING_RATE')}\n")
+            if config.get('USE_ADJUSTED_LR'):
+                f.write(f"USE_ADJUSTED_LR: {config.get('USE_ADJUSTED_LR')}\n")
+                f.write(f"MAX_LR: {config.get('MAX_LR')}\n")
+                f.write(f"MID_LR: {config.get('MID_LR')}\n")
+                f.write(f"MIN_LR: {config.get('MIN_LR')}\n")
+                f.write(f"RAMPUP_EPOCHS: {config.get('RAMPUP_EPOCHS')}\n")
+                f.write(f"SUSTAIN_EPOCHS: {config.get('SUSTAIN_EPOCHS')}\n")
+            f.write(f"DROPOUT_RATE: {config.get('DROPOUT_RATE')}\n")
+            f.write(f"ACTIVATION_FN: {config.get('ACTIVATION_FN')}\n")
+            f.write(f"FEATURES: {config.get('FEATURES')}\n")
+            f.write(f"LABELS: {config.get('LABELS')}\n")
+            f.write(f"PATCH_SHAPE: {config.get('PATCH_SHAPE')}\n")
+            f.write(f"CALLBACK_PARAMETER: {config.get('CALLBACK_PARAMETER')}\n")
+            f.write(f"MODEL_NAME: {config.get('MODEL_NAME')}.h5\n")
+            f.write(f"MODEL_CHECKPOINT_NAME: {config.get('MODEL_CHECKPOINT_NAME')}.h5\n")        
+        f.close()
+
+    @staticmethod
+    def save_model_config(save_dir, **model_config) -> None:
+        with open(f"{save_dir}/config.json", "w") as f:
+            json.dump(model_config, f, indent=4)
         f.close()
 
     def save_plots(self) -> None:
@@ -277,11 +295,18 @@ class ModelTrainer:
         Save plots and model visualization.
 
         Saves the model architecture plot, training history plot, and model object.
-       """
+        """
+        logging.info(f"Saving plots and model visualization at {self.config.MODEL_SAVE_DIR}...")
         keras.utils.plot_model(self.model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True)
+        Utils.plot_metrics([key.replace("val_", "") for key in self.history.history.keys() if key.startswith("val_")],
+                           self.history.history, len(self.history.epoch), self.config.MODEL_SAVE_DIR)
+
+    def save_history_object(self) -> None:
+        """
+        Save the history object.
+        """
         with open(f"{self.config.MODEL_SAVE_DIR}/model.pkl", "wb") as f:
             pickle.dump(self.history.history, f)
-        Utils.plot_metrics(self.config.METRICS, self.history.history, self.history.epoch, self.config.MODEL_SAVE_DIR)
 
     def save_models(self) -> None:
         """
