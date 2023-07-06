@@ -198,7 +198,7 @@ class TrainingDataGenerator:
 if __name__ == "__main__":
     print("Program started..")
     generator = TrainingDataGenerator(use_service_account=True)
-    # generator.run_patch_generator()
+    generator.run_patch_generator()
     # generator.run_patch_generator_seed()
-    generator.run_point_generator()
+    # generator.run_point_generator()
     print("\nProgram completed.")
