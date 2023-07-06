@@ -265,7 +265,6 @@ class ModelTrainer:
             f.write(f"BATCH_SIZE: {config.get('BATCH_SIZE')}\n")
             f.write(f"EPOCHS: {config.get('EPOCHS')}\n")
             f.write(f"LOSS: {config.get('LOSS_TXT')}\n")
-            f.write(f"BUFFER_SIZE: {config.get('BUFFER_SIZE')}\n")
             f.write(f"LEARNING_RATE: {config.get('LEARNING_RATE')}\n")
             if config.get('USE_ADJUSTED_LR'):
                 f.write(f"USE_ADJUSTED_LR: {config.get('USE_ADJUSTED_LR')}\n")
