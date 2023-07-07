@@ -286,7 +286,7 @@ class Metrics:
             Recall metric.
         """
         return keras.metrics.Recall(name="recall")
-    
+
     @staticmethod
     def auc():
         """

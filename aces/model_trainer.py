@@ -10,10 +10,13 @@ import json
 import pickle
 from functools import partial
 
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from keras import callbacks
 
+from aces.config import Config
+from aces.metrics import Metrics
 from aces.model_builder import ModelBuilder
 from aces.data_processor import DataProcessor
 from aces.utils import Utils
@@ -28,7 +31,7 @@ class ModelTrainer:
         model_builder: An instance of ModelBuilder for building the model.
         build_model: A partial function for building the model with the specified model type.
     """
-    def __init__(self, config):
+    def __init__(self, config: Config, use_seed: bool = True, seed: int = 42):
         """
         Initialize the ModelTrainer object.
 
@@ -41,6 +44,23 @@ class ModelTrainer:
             build_model: A partial function for building the model with the specified model type.
         """
         self.config = config
+        self.use_seed = use_seed
+        self.seed = seed
+        # @FIXME: This isn't producing reproducable results
+        if self.use_seed:
+            # producable results
+            import random
+            logging.info(f"Using seed: {self.seed}")
+            tf.random.set_seed(self.seed)
+            np.random.seed(self.seed)
+            random.seed(2)
+
+        if self.config.LOSS == "custom_focal_tversky_loss":
+            self.config.LOSS = Metrics.focal_tversky_loss
+            self.LOSS_TXT = Metrics.focal_tversky_loss.__func__.__name__ # "focal_tversky_loss"
+        else:
+            self.config.LOSS_TXT = self.config.LOSS
+
         self.model_builder = ModelBuilder(
             in_size=len(self.config.FEATURES),
             out_classes=self.config.OUT_CLASS_NUM,
@@ -62,6 +82,9 @@ class ModelTrainer:
         6. Evaluates and prints validation metrics.
         7. Saves training parameters, plots, and models.
         """
+        logging.info("****************************************************************************")
+        logging.info("****************************** Clear Session... ****************************")
+        keras.backend.clear_session()
         logging.info("****************************************************************************")
         print(f"****************************** Configure memory growth... ************************")
         self.configure_memory_growth()
@@ -124,7 +147,6 @@ class ModelTrainer:
         Prints information about the created datasets if print_info is set to True.
         """
         self.TRAINING_DATASET = DataProcessor.get_dataset(
-            # self.config.TRAINING_FILES,
             f"{str(self.config.TRAINING_DIR)}/*",
             self.config.FEATURES,
             self.config.LABELS,
@@ -132,18 +154,18 @@ class ModelTrainer:
             self.config.BATCH_SIZE,
             self.config.OUT_CLASS_NUM,
         ).repeat()
-        self.TESTING_DATASET = DataProcessor.get_dataset(
-            # self.config.TESTING_FILES,
-            f"{str(self.config.TESTING_DIR)}/*",
+
+        self.VALIDATION_DATASET = DataProcessor.get_dataset(
+            f"{str(self.config.VALIDATION_DIR)}/*",
             self.config.FEATURES,
             self.config.LABELS,
             self.config.PATCH_SHAPE[0],
             1,
             self.config.OUT_CLASS_NUM,
         ).repeat()
-        self.VALIDATION_DATASET = DataProcessor.get_dataset(
-            # self.config.VALIDATION_FILES,
-            f"{str(self.config.VALIDATION_DIR)}/*",
+
+        self.TESTING_DATASET = DataProcessor.get_dataset(
+            f"{str(self.config.TESTING_DIR)}/*",
             self.config.FEATURES,
             self.config.LABELS,
             self.config.PATCH_SHAPE[0],
@@ -163,7 +185,9 @@ class ModelTrainer:
 
         If GPUs are found, this method enables memory growth for each GPU.
         """
-        if self.config.physical_devices:
+        physical_devices = tf.config.list_physical_devices("GPU")
+        self.config.physical_devices = physical_devices
+        if len(self.config.physical_devices):
             logging.info(f" > Found {len(self.config.physical_devices)} GPUs")
             try:
                 for device in self.config.physical_devices:
@@ -196,7 +220,7 @@ class ModelTrainer:
             f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_CHECKPOINT_NAME}.h5",
             monitor=self.config.CALLBACK_PARAMETER,
             save_best_only=True,
-            mode="max",
+            mode="auto",
             verbose=1,
             save_weights_only=True,
         )  # save best model
@@ -205,7 +229,7 @@ class ModelTrainer:
             monitor=self.config.CALLBACK_PARAMETER,
             patience=int(0.4 * self.config.EPOCHS),
             verbose=1,
-            mode="max",
+            mode="auto",
             restore_best_weights=True,
         )
         tensorboard = callbacks.TensorBoard(log_dir=str(self.config.MODEL_SAVE_DIR / "logs"), write_images=True)
@@ -221,8 +245,12 @@ class ModelTrainer:
         lr_callback = callbacks.LearningRateScheduler(lambda epoch: lr_scheduler(epoch), verbose=True)
 
         model_callbacks = [model_checkpoint, tensorboard]
+
         if self.config.USE_ADJUSTED_LR:
             model_callbacks.append(lr_callback)
+            
+        if self.config.EARLY_STOPPING:
+            model_callbacks.append(early_stopping)
 
         self.model_callbacks = model_callbacks
 
@@ -230,12 +258,10 @@ class ModelTrainer:
             x=self.TRAINING_DATASET,
             epochs=self.config.EPOCHS,
             steps_per_epoch=(self.config.TRAIN_SIZE // self.config.BATCH_SIZE),
-            validation_data=self.TESTING_DATASET,
-            validation_steps=(self.config.TEST_SIZE // self.config.BATCH_SIZE),
+            validation_data=self.VALIDATION_DATASET,
+            validation_steps=self.config.VAL_SIZE,
             callbacks=model_callbacks,
         )
-
-        # logging.info(self.model.summary())
 
     def evaluate_and_print_val(self) -> None:
         """
@@ -246,7 +272,7 @@ class ModelTrainer:
         logging.info("************************************************")
         logging.info("************************************************")
         logging.info("Validation")
-        evaluate_results = self.model.evaluate(self.VALIDATION_DATASET)
+        evaluate_results = self.model.evaluate(self.TESTING_DATASET, steps=self.config.TEST_SIZE)
         for name, value in zip(self.model.metrics_names, evaluate_results):
             logging.info(f"{name}: {value}")
         logging.info("\n")
@@ -317,4 +343,3 @@ class ModelTrainer:
         self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
         self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.h5", save_format="h5")
         self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.tf", save_format="tf")
-

@@ -8,6 +8,7 @@ The script uses TensorFlow to serialize the data into TFRecord format.
 """
 
 import apache_beam as beam
+from apache_beam.options.pipeline_options import PipelineOptions
 
 import ee
 
@@ -110,7 +111,8 @@ class TrainingDataGenerator:
         """
         Use Apache Beam to generate training, validation, and test patch data from the loaded data.
         """
-        with beam.Pipeline(options=Config.beam_options) as pipeline:
+        beam_options = PipelineOptions([], direct_num_workers=0, direct_running_mode="multi_processing", runner="DirectRunner")
+        with beam.Pipeline(options=beam_options) as pipeline:
             training_data, validation_data, test_data = (
                 pipeline
                 | "Create range" >> beam.Create(range(0, self.sample_size, 1))
@@ -137,7 +139,8 @@ class TrainingDataGenerator:
         Use Apache Beam to generate training, validation, and test patch data from the loaded data.
         """
         def _generate_data_seed(image, data, selectors, scale, kernel_size, use_service_account, output_path) -> None:
-            with beam.Pipeline(options=Config.beam_options) as pipeline:
+            beam_options = PipelineOptions([], direct_num_workers=0, direct_running_mode="multi_processing", runner="DirectRunner")
+            with beam.Pipeline(options=beam_options) as pipeline:
                 _ = (
                     pipeline
                     | "Create range" >> beam.Create(range(0, data.size().getInfo(), 1))

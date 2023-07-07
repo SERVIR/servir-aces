@@ -269,9 +269,6 @@ class ModelBuilder:
         metrics_list = [
             Metrics.precision(),
             Metrics.recall(),
-            keras.metrics.categorical_accuracy,
-            Metrics.dice_coef,
-            Metrics.f1_m,
             keras.metrics.Accuracy(),
             Metrics.one_hot_io_u(self.out_classes),
         ]

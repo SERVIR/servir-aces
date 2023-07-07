@@ -9,12 +9,6 @@ from pathlib import Path
 import os
 import ast
 
-from apache_beam.options.pipeline_options import PipelineOptions
-import tensorflow as tf
-from tensorflow import keras
-
-from aces.metrics import Metrics
-
 from dotenv import load_dotenv
 load_dotenv(".env")
 
@@ -61,10 +55,6 @@ class Config:
         GCS_CHECKPOINT_DIR (str): The directory for model checkpoints in GCS.
         FEATURES (str): The list of features used in the model.
     """
-
-    physical_devices = tf.config.list_physical_devices("GPU")
-    # DISTRIBUTED_STRATEGY = tf.distribute.MirroredStrategy() if len(physical_devices) > 1 else None
-
     BASEDIR = Path(os.getenv("BASEDIR"))
     DATADIR = BASEDIR / os.getenv("DATADIR")
 
@@ -81,6 +71,9 @@ class Config:
 
     FEATURES = os.getenv("FEATURES").split("\n")
     LABELS = ast.literal_eval(os.getenv("LABELS"))
+
+    USE_SEED = os.getenv("USE_SEED") == "True"
+    SEED = int(os.getenv("SEED"))
 
     # patch size for training
     PATCH_SHAPE = ast.literal_eval(os.getenv("PATCH_SHAPE"))
@@ -106,34 +99,22 @@ class Config:
     DROPOUT_RATE = float(os.getenv("DROPOUT_RATE"))
 
     LOSS = os.getenv("LOSS")
-    if LOSS == "custom_focal_tversky_loss":
-        LOSS = Metrics.focal_tversky_loss
-        LOSS_TXT = "focal_tversky_loss"
-    else:
-        LOSS = LOSS
-        LOSS_TXT = LOSS
 
     OPTIMIZER = os.getenv("OPTIMIZER")
-    if  OPTIMIZER == "custom":
-        OPTIMIZER = keras.optimizers.Adam(learning_rate=3E-4)
-    else:
-        OPTIMIZER = OPTIMIZER
 
     OUT_CLASS_NUM = int(os.getenv("OUT_CLASS_NUM"))
 
     ACTIVATION_FN = "sigmoid" if OUT_CLASS_NUM == 1 else "softmax"
     CALLBACK_PARAMETER = os.getenv("CALLBACK_PARAMETER")
+    
+    EARLY_STOPPING = os.getenv("EARLY_STOPPING") == "True"
 
     # cloud stuff
     GCS_PROJECT = os.getenv("GCS_PROJECT")
     GCS_BUCKET = os.getenv("GCS_BUCKET")
     EE_SERVICE_CREDENTIALS = os.getenv("EE_SERVICE_CREDENTIALS")
-    
-    beam_options = PipelineOptions([], direct_num_workers=0, direct_running_mode="multi_processing", runner="DirectRunner")
 
     def __init__(self) -> None:
-        self.physical_devices = Config.physical_devices
-
         self.BASEDIR = Config.BASEDIR
         self.DATADIR = Config.DATADIR
 
@@ -153,6 +134,9 @@ class Config:
         print(f"FEATURES: {self.FEATURES}")
         print(f"FEATURES: {len(self.FEATURES)}")
         self.LABELS = Config.LABELS
+
+        self.USE_SEED = Config.USE_SEED
+        self.SEED = Config.SEED
 
         # patch size for training
         self.PATCH_SHAPE = Config.PATCH_SHAPE
@@ -179,16 +163,16 @@ class Config:
         self.DROPOUT_RATE = Config.DROPOUT_RATE
 
         self.LOSS = Config.LOSS
-        self.LOSS_TXT = Config.LOSS_TXT
         self.OPTIMIZER = Config.OPTIMIZER
 
         self.OUT_CLASS_NUM = Config.OUT_CLASS_NUM
 
         self.ACTIVATION_FN = Config.ACTIVATION_FN
         self.CALLBACK_PARAMETER = Config.CALLBACK_PARAMETER
+        
+        self.EARLY_STOPPING = Config.EARLY_STOPPING
 
         # cloud stuff
         self.GCS_PROJECT = Config.GCS_PROJECT
         self.GCS_BUCKET = Config.GCS_BUCKET
         self.EE_SERVICE_CREDENTIALS = Config.EE_SERVICE_CREDENTIALS
-        self.beam_options = Config.beam_options
