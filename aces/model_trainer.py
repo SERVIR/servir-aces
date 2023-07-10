@@ -227,7 +227,7 @@ class ModelTrainer:
 
         early_stopping = callbacks.EarlyStopping(
             monitor=self.config.CALLBACK_PARAMETER,
-            patience=int(0.4 * self.config.EPOCHS),
+            patience=int(0.5 * self.config.EPOCHS),
             verbose=1,
             mode="auto",
             restore_best_weights=True,
@@ -272,7 +272,7 @@ class ModelTrainer:
         logging.info("************************************************")
         logging.info("************************************************")
         logging.info("Validation")
-        evaluate_results = self.model.evaluate(self.TESTING_DATASET, steps=self.config.TEST_SIZE)
+        evaluate_results = self.model.evaluate(self.TESTING_DATASET) # , steps=self.config.TEST_SIZE
         for name, value in zip(self.model.metrics_names, evaluate_results):
             logging.info(f"{name}: {value}")
         logging.info("\n")
@@ -291,7 +291,6 @@ class ModelTrainer:
             f.write(f"BATCH_SIZE: {config.get('BATCH_SIZE')}\n")
             f.write(f"EPOCHS: {config.get('EPOCHS')}\n")
             f.write(f"LOSS: {config.get('LOSS_TXT')}\n")
-            f.write(f"LEARNING_RATE: {config.get('LEARNING_RATE')}\n")
             if config.get('USE_ADJUSTED_LR'):
                 f.write(f"USE_ADJUSTED_LR: {config.get('USE_ADJUSTED_LR')}\n")
                 f.write(f"MAX_LR: {config.get('MAX_LR')}\n")

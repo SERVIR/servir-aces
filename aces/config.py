@@ -37,7 +37,6 @@ class Config:
         MAX_LR (float): The maximum learning rate.
         MID_LR (float): The intermediate learning rate.
         MIN_LR (float): The minimum learning rate.
-        LEARNING_RATE (float): The initial learning rate.
         DROPOUT_RATE (float): The dropout rate for the model.
         CALLBACK_PARAMETER (str): The parameter used for callbacks.
         ACTIVATION_FN (str): The activation function for the model.
@@ -92,7 +91,6 @@ class Config:
     SUSTAIN_EPOCHS = int(os.getenv("SUSTAIN_EPOCHS"))
 
     USE_ADJUSTED_LR = os.getenv("USE_ADJUSTED_LR") == "True"
-    LEARNING_RATE = float(os.getenv("LEARNING_RATE"))
     MAX_LR = float(os.getenv("MAX_LR"))
     MID_LR = float(os.getenv("MID_LR"))
     MIN_LR = float(os.getenv("MIN_LR"))
@@ -156,7 +154,6 @@ class Config:
         self.SUSTAIN_EPOCHS = Config.SUSTAIN_EPOCHS
 
         self.USE_ADJUSTED_LR = Config.USE_ADJUSTED_LR
-        self.LEARNING_RATE = Config.LEARNING_RATE
         self.MAX_LR = Config.MAX_LR
         self.MID_LR = Config.MID_LR
         self.MIN_LR = Config.MIN_LR

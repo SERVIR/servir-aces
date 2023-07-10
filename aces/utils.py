@@ -84,12 +84,12 @@ class EEUtils:
     @staticmethod
     def export_training_data(collection: ee.FeatureCollection, export_type: str="cloud", start_training=True, **params) -> None:
         if export_type == "cloud":
-            EEUtils._export_to_cloud_storage(collection, start_training, **params)
+            EEUtils._export_collection_to_cloud_storage(collection, start_training, **params)
         else:
             raise NotImplementedError("Only cloud export is currently supported.")
 
     @staticmethod
-    def _export_to_cloud_storage(collection, start_training, **kwargs) -> None:
+    def _export_collection_to_cloud_storage(collection, start_training, **kwargs) -> None:
         description = kwargs.get("description", "myExportTableTask")
         logging.info(f"Exporting training data to {description}..")
         training_task = ee.batch.Export.table.toCloudStorage(
@@ -101,6 +101,94 @@ class EEUtils:
             selectors=kwargs.get("selectors", collection.first().propertyNames().getInfo()),
         )
         if start_training: training_task.start()
+
+    @staticmethod
+    def export_image(image: ee.Image, export_type: str="asset", start_training=True, **params) -> None:
+        if export_type == "asset":
+            EEUtils._export_image_to_asset(image, start_training, **params)
+        else:
+            raise NotImplementedError("Only cloud export is currently supported.")
+
+    @staticmethod
+    def _export_image_to_asset(image, start_training, **kwargs) -> None:
+        asset_id = kwargs.get("asset_id", "")
+        logging.info(f"Exporting image to {asset_id}..")
+
+        training_task = ee.batch.Export.image.toAsset(
+            image=image,
+            description=kwargs.get("description", "myExportImageTask"),
+            assetId=asset_id,
+            region=kwargs.get("region", None),
+            scale=kwargs.get("scale", 30),
+            maxPixels=kwargs.get("max_pixels", 1E13),
+        )
+        if start_training: training_task.start()
+
+    @staticmethod
+    def country_bbox(country_name, max_error=100):
+        """Function to get a bounding box geometry of a country
+
+        args:
+            country_name (str): US-recognized country name
+            max_error (float,optional): The maximum amount of error tolerated when
+                performing any necessary reprojection. default = 100
+
+        returns:
+            ee.Geometry: geometry of country bounding box
+        """
+
+        all_countries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
+        return all_countries.filter(ee.Filter.eq("country_na", country_name))\
+                            .geometry(max_error).bounds(max_error)
+
+    @staticmethod
+    def get_image_collection_statistics(image_collection: ee.ImageCollection) -> ee.Image:
+        reducers = ee.Reducer.mean() \
+            .combine(reducer2=ee.Reducer.min(), sharedInputs=True) \
+                .combine(reducer2=ee.Reducer.max(), sharedInputs=True) \
+                    .combine(reducer2=ee.Reducer.stdDev(), sharedInputs=True) \
+                        .combine(reducer2=ee.Reducer.percentile([25, 50, 75], ['Q1', 'Q2', 'Q3']), sharedInputs=True)
+        reducer = image_collection.reduce(reducer=reducers)
+        return reducer.float()
+
+    @staticmethod
+    def calculate_planet_indices(image: ee.Image) -> ee.Image:
+        ndvi = image.normalizedDifference(['N', 'R']).rename('NDVI')
+        evi = image.expression (
+            "2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))", {
+                "NIR": image.select("N"),
+                "RED": image.select("R"),
+                "BLUE": image.select('B')
+            }).rename('EVI')
+        ndwi = image.normalizedDifference(['G', 'N']).rename('NDWI')
+        savi = image.expression('((NIR - RED) / (NIR + RED + 0.5))*(1.5)', {
+            "NIR": image.select("N"),
+            "RED": image.select("R")
+        }).rename('SAVI')
+        msavi2 = image.expression('(( (2*NIR + 1) - sqrt( ((2*NIR + 1) * (2*NIR + 1)) - 8 * (NIR - R) ) )) / 2', {
+            'NIR': image.select('N'),
+            'R': image.select('R')
+        }).rename('MSAVI2')
+
+        mtvi2 = image.expression('( 1.5*(1.2*(NIR - GREEN) - 2.5*(RED - GREEN)) ) / ( sqrt( ((2*NIR + 1) * (2*NIR + 1)) - (6*NIR - 5*sqrt(RED)) - 0.5 ) )', {
+            'NIR': image.select('N'),
+            'RED': image.select('R'),
+            'GREEN': image.select('G'),
+        }).rename('MTVI2')
+
+        vari = image.expression('(GREEN - RED) / (GREEN + RED - BLUE)', {
+            'GREEN': image.select('G'),
+            'RED': image.select('R'),
+            'BLUE': image.select('B'),
+        }).rename('VARI')
+
+        tgi = image.expression('( (120*(RED - BLUE)) - (190*(RED - GREEN)) ) / 2', {
+            'GREEN': image.select('G'),
+            'RED': image.select('R'),
+            'BLUE': image.select('B'),
+        }).rename('TGI')
+
+        return ndvi.addBands([ndwi, savi, msavi2, mtvi2, vari, tgi]).float()
 
     @staticmethod
     def sample_image_by_collection(image: ee.Image, collection: ee.FeatureCollection, **kwargs: dict) -> ee.FeatureCollection:
