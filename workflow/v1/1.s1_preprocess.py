@@ -66,7 +66,7 @@ s1_desc_filtered = s1_desc_filtered.collection.median().clip(region)
 s1_desc_filtered = s1_desc_filtered.set("system:time_start", ee.Date(start).millis(), "system:time_end", ee.Date(end).advance(-1, "day").millis());
 
 export_kwargs = {
-    "region": region,
+    "region": region.geometry().bounds().getInfo()["coordinates"],
     "scale": 10,
 }
 

@@ -7,6 +7,7 @@ import ee
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Union, List
+from aces import Config
 
 
 __all__ = ["EEUtils", "TFUtils", "Utils"]
@@ -31,7 +32,7 @@ class EEUtils:
         """
         import json
         service_account = json.load(open(key))
-        credentials = ee.ServiceAccountCredentials(service_account['client_email'], key)
+        credentials = ee.ServiceAccountCredentials(service_account["client_email"], key)
         return credentials
 
     @staticmethod
@@ -82,11 +83,26 @@ class EEUtils:
         return stats
 
     @staticmethod
-    def export_training_data(collection: ee.FeatureCollection, export_type: str="cloud", start_training=True, **params) -> None:
+    def export_collection_data(collection: ee.FeatureCollection, export_type: str="cloud", start_training=True, **params) -> None:
         if export_type == "cloud":
             EEUtils._export_collection_to_cloud_storage(collection, start_training, **params)
+        if export_type == "asset":
+            EEUtils._export_collection_to_asset(collection, start_training, **params)
         else:
             raise NotImplementedError("Only cloud export is currently supported.")
+
+
+    @staticmethod
+    def _export_collection_to_asset(collection, start_training, **kwargs) -> None:
+        asset_id = kwargs.get("asset_id", "myAssetId")
+        logging.info(f"Exporting training data to {asset_id}..")
+        training_task = ee.batch.Export.table.toAsset(
+            collection=collection,
+            description=kwargs.get("description", "myExportTableTask"),
+            assetId=asset_id,
+            selectors=kwargs.get("selectors", collection.first().propertyNames().getInfo()),
+        )
+        if start_training: training_task.start()
 
     @staticmethod
     def _export_collection_to_cloud_storage(collection, start_training, **kwargs) -> None:
@@ -147,48 +163,59 @@ class EEUtils:
             .combine(reducer2=ee.Reducer.min(), sharedInputs=True) \
                 .combine(reducer2=ee.Reducer.max(), sharedInputs=True) \
                     .combine(reducer2=ee.Reducer.stdDev(), sharedInputs=True) \
-                        .combine(reducer2=ee.Reducer.percentile([25, 50, 75], ['Q1', 'Q2', 'Q3']), sharedInputs=True)
+                        .combine(reducer2=ee.Reducer.percentile([25, 50, 75], ["Q1", "Q2", "Q3"]), sharedInputs=True)
         reducer = image_collection.reduce(reducer=reducers)
         return reducer.float()
 
     @staticmethod
     def calculate_planet_indices(image: ee.Image) -> ee.Image:
-        ndvi = image.normalizedDifference(['N', 'R']).rename('NDVI')
+        ndvi = image.normalizedDifference(["N", "R"]).rename("NDVI")
         evi = image.expression (
             "2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))", {
                 "NIR": image.select("N"),
                 "RED": image.select("R"),
-                "BLUE": image.select('B')
-            }).rename('EVI')
-        ndwi = image.normalizedDifference(['G', 'N']).rename('NDWI')
-        savi = image.expression('((NIR - RED) / (NIR + RED + 0.5))*(1.5)', {
+                "BLUE": image.select("B")
+            }).rename("EVI")
+        ndwi = image.normalizedDifference(["G", "N"]).rename("NDWI")
+        savi = image.expression("((NIR - RED) / (NIR + RED + 0.5))*(1.5)", {
             "NIR": image.select("N"),
             "RED": image.select("R")
-        }).rename('SAVI')
-        msavi2 = image.expression('(( (2*NIR + 1) - sqrt( ((2*NIR + 1) * (2*NIR + 1)) - 8 * (NIR - R) ) )) / 2', {
-            'NIR': image.select('N'),
-            'R': image.select('R')
-        }).rename('MSAVI2')
+        }).rename("SAVI")
+        msavi2 = image.expression("(( (2*NIR + 1) - sqrt( ((2*NIR + 1) * (2*NIR + 1)) - 8 * (NIR - R) ) )) / 2", {
+            "NIR": image.select("N"),
+            "R": image.select("R")
+        }).rename("MSAVI2")
 
-        mtvi2 = image.expression('( 1.5*(1.2*(NIR - GREEN) - 2.5*(RED - GREEN)) ) / ( sqrt( ((2*NIR + 1) * (2*NIR + 1)) - (6*NIR - 5*sqrt(RED)) - 0.5 ) )', {
-            'NIR': image.select('N'),
-            'RED': image.select('R'),
-            'GREEN': image.select('G'),
-        }).rename('MTVI2')
+        mtvi2 = image.expression("( 1.5*(1.2*(NIR - GREEN) - 2.5*(RED - GREEN)) ) / ( sqrt( ((2*NIR + 1) * (2*NIR + 1)) - (6*NIR - 5*sqrt(RED)) - 0.5 ) )", {
+            "NIR": image.select("N"),
+            "RED": image.select("R"),
+            "GREEN": image.select("G"),
+        }).rename("MTVI2")
 
-        vari = image.expression('(GREEN - RED) / (GREEN + RED - BLUE)', {
-            'GREEN': image.select('G'),
-            'RED': image.select('R'),
-            'BLUE': image.select('B'),
-        }).rename('VARI')
+        vari = image.expression("(GREEN - RED) / (GREEN + RED - BLUE)", {
+            "GREEN": image.select("G"),
+            "RED": image.select("R"),
+            "BLUE": image.select("B"),
+        }).rename("VARI")
 
-        tgi = image.expression('( (120*(RED - BLUE)) - (190*(RED - GREEN)) ) / 2', {
-            'GREEN': image.select('G'),
-            'RED': image.select('R'),
-            'BLUE': image.select('B'),
-        }).rename('TGI')
+        tgi = image.expression("( (120*(RED - BLUE)) - (190*(RED - GREEN)) ) / 2", {
+            "GREEN": image.select("G"),
+            "RED": image.select("R"),
+            "BLUE": image.select("B"),
+        }).rename("TGI")
 
         return ndvi.addBands([ndwi, savi, msavi2, mtvi2, vari, tgi]).float()
+
+    @staticmethod
+    def generate_stratified_samples(image: ee.Image, region: ee.Geometry, numPoints: int = 500, classBand: str = None, scale: int=30, seed: int=Config.SEED) -> ee.FeatureCollection:
+        # Add a latitude and longitude band.
+        return image.addBands(ee.Image.pixelLonLat()).stratifiedSample(
+            numPoints=numPoints,
+            classBand=classBand if classBand else "label",
+            scale=scale,
+            region=region,
+            seed=seed,
+        ).map(lambda f: f.setGeometry(ee.Geometry.Point([f.get("longitude"), f.get("latitude")])))
 
     @staticmethod
     def sample_image_by_collection(image: ee.Image, collection: ee.FeatureCollection, **kwargs: dict) -> ee.FeatureCollection:
@@ -229,13 +256,13 @@ class EEUtils:
             """Get the patch of pixels in the geometry as a Numpy array."""
             # Create the URL to download the band values of the patch of pixels.
             url = image.getDownloadURL({
-                'region': region,
-                'dimensions': [patch_size, patch_size],
-                'format': "NPY",
-                'bands': bands,
+                "region": region,
+                "dimensions": [patch_size, patch_size],
+                "format": "NPY",
+                "bands": bands,
             })
             # Download the pixel data. If we get "429: Too Many Requests" errors,
-            # it's safe to retry the request.
+            # it"s safe to retry the request.
             response = requests.get(url)
             if response.status_code == 429:
                 # The retry.Retry library only works with `google.api_core` exceptions.
@@ -252,23 +279,23 @@ class EEUtils:
 
             # Make a request object.
             request = {
-                'expression': image,
-                'fileFormat': 'NPY',
-                'bandIds': bands,
-                'grid': {
-                    'dimensions': {
-                        'width': patch_size,
-                        'height': patch_size
+                "expression": image,
+                "fileFormat": "NPY",
+                "bandIds": bands,
+                "grid": {
+                    "dimensions": {
+                        "width": patch_size,
+                        "height": patch_size
                     },
-                    'affineTransform': {
-                        'scaleX': scale_x,
-                        'shearX': 0,
-                        'translateX': coords[0],
-                        'shearY': 0,
-                        'scaleY': scale_y,
-                        'translateY': coords[1]
+                    "affineTransform": {
+                        "scaleX": scale_x,
+                        "shearX": 0,
+                        "translateX": coords[0],
+                        "shearY": 0,
+                        "scaleY": scale_y,
+                        "translateY": coords[1]
                     },
-                    'crsCode': 'EPSG:4326',
+                    "crsCode": "EPSG:4326",
                 },
             }
             response = ee.data.computePixels(request)
@@ -350,7 +377,7 @@ class Utils:
         Returns:
         bool: True if the patch has no NaN or infinite values, False otherwise.
         """
-        # the getdownload url has field names so we're using view here
+        # the getdownload url has field names so we"re using view here
         has_nan = np.isnan(np.sum(patch.view(np.float32)))
         has_inf = np.isinf(np.sum(patch.view(np.float32)))
         if has_nan or has_inf:
