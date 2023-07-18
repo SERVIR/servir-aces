@@ -153,6 +153,7 @@ class ModelTrainer:
             self.config.PATCH_SHAPE[0],
             self.config.BATCH_SIZE,
             self.config.OUT_CLASS_NUM,
+            **{**self.config.__dict__, "training": True},
         ).repeat()
 
         self.VALIDATION_DATASET = DataProcessor.get_dataset(
@@ -162,6 +163,7 @@ class ModelTrainer:
             self.config.PATCH_SHAPE[0],
             1,
             self.config.OUT_CLASS_NUM,
+            **self.config.__dict__,
         ).repeat()
 
         self.TESTING_DATASET = DataProcessor.get_dataset(
@@ -171,6 +173,7 @@ class ModelTrainer:
             self.config.PATCH_SHAPE[0],
             1,
             self.config.OUT_CLASS_NUM,
+            **self.config.__dict__,
         )
 
         if print_info:
@@ -272,7 +275,8 @@ class ModelTrainer:
         logging.info("************************************************")
         logging.info("************************************************")
         logging.info("Validation")
-        evaluate_results = self.model.evaluate(self.TESTING_DATASET) # , steps=self.config.TEST_SIZE
+        # Tip: You can remove steps=self.config.TEST_SIZE and match the TEST_SIZE from the env
+        evaluate_results = self.model.evaluate(self.TESTING_DATASET, steps=self.config.TEST_SIZE) # , steps=self.config.TEST_SIZE
         for name, value in zip(self.model.metrics_names, evaluate_results):
             logging.info(f"{name}: {value}")
         logging.info("\n")
@@ -304,6 +308,8 @@ class ModelTrainer:
             f.write(f"LABELS: {config.get('LABELS')}\n")
             f.write(f"PATCH_SHAPE: {config.get('PATCH_SHAPE')}\n")
             f.write(f"CALLBACK_PARAMETER: {config.get('CALLBACK_PARAMETER')}\n")
+            f.write(f"MODEL_TYPE: {config.get('MODEL_TYPE')}\n")
+            f.write(f"TRANSFORM_DATA: {config.get('TRANSFORM_DATA')}\n")
             f.write(f"MODEL_NAME: {config.get('MODEL_NAME')}.h5\n")
             f.write(f"MODEL_CHECKPOINT_NAME: {config.get('MODEL_CHECKPOINT_NAME')}.h5\n")        
         f.close()

@@ -62,9 +62,12 @@ class TrainingDataGenerator:
         self.sample_locations = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/ACES_2/paro_2021_all_class_samples")
         self.sample_locations = self.sample_locations.randomColumn("random", self.seed)
         self.training_sample_locations = self.sample_locations.filter(ee.Filter.gt("random", self.validation_ratio + self.test_ratio)) # > 0.4
+        print("Training sample size:", self.training_sample_locations.size().getInfo())
         self.validation_sample_locations = self.sample_locations.filter(ee.Filter.lte("random", self.validation_ratio)) # <= 0.2
+        print("Validation sample size:", self.validation_sample_locations.size().getInfo())
         self.test_sample_locations = self.sample_locations.filter(ee.Filter.And(ee.Filter.gt("random", self.validation_ratio),
                                                                ee.Filter.lte("random", self.validation_ratio + self.test_ratio))) # > 0.2 and <= 0.4
+        print("Test sample size:", self.test_sample_locations.size().getInfo())
         self.sample_size = self.sample_locations.size().getInfo()
         print("Sample size:", self.sample_size)
         self.sample_locations_list = self.sample_locations.toList(self.sample_size + self.grace)
@@ -162,19 +165,18 @@ class TrainingDataGenerator:
         """
         Use Apache Beam to generate training, validation, and test point data from the loaded data.
         """
-        sample_kwargs = { "properties": self.selectors, "scale": self.scale, "geometries": False }
-        training_sample_points = EEUtils.sample_image_by_collection(self.image, self.training_sample_locations, **sample_kwargs)
-        validation_sample_points = EEUtils.sample_image_by_collection(self.image, self.validation_sample_locations, **sample_kwargs)
-        test_sample_points = EEUtils.sample_image_by_collection(self.image, self.test_sample_locations, **sample_kwargs)
+        training_sample_points = EEUtils.sample_image(self.image, self.training_sample_locations, **Config.__dict__)
+        validation_sample_points = EEUtils.sample_image(self.image, self.validation_sample_locations, **Config.__dict__)
+        test_sample_points = EEUtils.sample_image(self.image, self.test_sample_locations, **Config.__dict__)
 
         training_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_training/training"
         validation_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_validation/validation"
         test_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_testing/testing"
 
         export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
-        EEUtils.export_training_data(training_sample_points, export_type="cloud", start_training=False, **{**export_kwargs, "file_prefix": training_file_prefix, "description": "Training"})
-        EEUtils.export_training_data(validation_sample_points, export_type="cloud", start_training=False, **{**export_kwargs, "file_prefix": validation_file_prefix, "description": "Validation"})
-        EEUtils.export_training_data(test_sample_points, export_type="cloud", start_training=False, **{**export_kwargs, "file_prefix": test_file_prefix, "description": "Test"})
+        EEUtils.export_collection_data(training_sample_points, export_type="cloud", start_training=False, **{**export_kwargs, "file_prefix": training_file_prefix, "description": "Training"})
+        EEUtils.export_collection_data(validation_sample_points, export_type="cloud", start_training=False, **{**export_kwargs, "file_prefix": validation_file_prefix, "description": "Validation"})
+        EEUtils.export_collection_data(test_sample_points, export_type="cloud", start_training=False, **{**export_kwargs, "file_prefix": test_file_prefix, "description": "Test"})
 
     def run_patch_generator(self) -> None:
         """
@@ -200,7 +202,7 @@ class TrainingDataGenerator:
 
 if __name__ == "__main__":
     print("Program started..")
-    generator = TrainingDataGenerator(use_service_account=True)
+    generator = TrainingDataGenerator(use_service_account=False)
     # generator.run_patch_generator()
     # generator.run_patch_generator_seed()
     generator.run_point_generator()

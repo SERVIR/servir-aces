@@ -37,17 +37,19 @@ class DataProcessor:
 
     @staticmethod
     @tf.autograph.experimental.do_not_convert
-    def get_single_sample(x):
+    def get_sum_tensor(records):
         """
         Get a single sample from a dataset.
 
         Parameters:
-        x: The input tensor.
+        records: The input tensor records.
 
         Returns:
         tf.Tensor: The single sample.
         """
-        return tf.numpy_function(lambda _: 1, inp=[x], Tout=tf.int64)
+        tensors = records.map(lambda x: tf.numpy_function(lambda _: 1, inp=[x], Tout=tf.int64), num_parallel_calls=tf.data.AUTOTUNE)
+        n_tensors = tensors.reduce(np.int64(0), lambda x, y: x + y).numpy()
+        return n_tensors
 
     @staticmethod
     def calculate_n_samples(**config):
@@ -72,25 +74,21 @@ class DataProcessor:
                                              .interleave(DataProcessor.create_tfrecord_from_file, num_parallel_calls=tf.data.AUTOTUNE)
         tf_training_records = tf_training_records.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
         tf_training_records = tf_training_records.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
-        d0_training_records = tf_training_records.map(DataProcessor.get_single_sample, num_parallel_calls=tf.data.AUTOTUNE)
-        n_training_records = d0_training_records.reduce(np.int64(0), lambda x, y: x + y).numpy()
+        n_training_records = DataProcessor.get_sum_tensor(tf_training_records)
 
         tf_testing_records = tf.data.Dataset.list_files(f"{str(config.get('TESTING_DIR'))}/*")\
                                             .interleave(DataProcessor.create_tfrecord_from_file, num_parallel_calls=tf.data.AUTOTUNE)
         tf_testing_records = tf_testing_records.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
         tf_testing_records = tf_testing_records.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
-        d0_testing_records = tf_testing_records.map(DataProcessor.get_single_sample, num_parallel_calls=tf.data.AUTOTUNE)
-        n_testing_records = d0_testing_records.reduce(np.int64(0), lambda x, y: x + y).numpy()
+        n_testing_records = DataProcessor.get_sum_tensor(tf_testing_records)
 
         tf_validation_records = tf.data.Dataset.list_files(f"{str(config.get('VALIDATION_DIR'))}/*")\
                                                .interleave(DataProcessor.create_tfrecord_from_file, num_parallel_calls=tf.data.AUTOTUNE)
         tf_validation_records = tf_validation_records.map(parser, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         tf_validation_records = tf_validation_records.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
-        d0_validation_records = tf_validation_records.map(DataProcessor.get_single_sample, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        n_validation_records = d0_validation_records.reduce(np.int64(0), lambda x, y: x + y).numpy()
+        n_validation_records = DataProcessor.get_sum_tensor(tf_validation_records)
 
         return n_training_records, n_testing_records, n_validation_records
-
 
     @staticmethod
     def print_dataset_info(dataset: tf.data.Dataset, dataset_name: str) -> None:
@@ -116,7 +114,7 @@ class DataProcessor:
 
     @staticmethod
     @tf.function
-    def random_transform(dataset: tf.Tensor) -> tf.Tensor:
+    def random_transform(dataset: tf.Tensor, label: tf.Tensor) -> tf.Tensor:
         """
         Apply random transformations to a dataset.
 
@@ -127,107 +125,31 @@ class DataProcessor:
         tf.Tensor: The transformed dataset.
         """
         x = tf.random.uniform(())
-
-        if x < 0.14:
-            return tf.concat([dataset, tf.image.flip_left_right(dataset)], 0)
-        elif tf.math.logical_and(x >= 0.14, x < 0.28):
-            return tf.concat([dataset, tf.image.flip_left_right(dataset)], 0)
-        elif tf.math.logical_and(x >= 0.28, x < 0.42):
-            return tf.concat([dataset, tf.image.flip_left_right(tf.image.flip_up_down(dataset))], 0)
-        elif tf.math.logical_and(x >= 0.42, x < 0.56):
-            return tf.concat([dataset, tf.image.rot90(dataset, k=1)], 0)
-        elif tf.math.logical_and(x >= 0.56, x < 0.70):
-            return tf.concat([dataset, tf.image.rot90(dataset, k=2)], 0)
-        elif tf.math.logical_and(x >= 0.70, x < 0.84):
-            return tf.concat([dataset, tf.image.rot90(dataset, k=3)], 0)
+        if x < 0.10:
+            dataset = tf.image.flip_left_right(dataset)
+            label = tf.image.flip_left_right(label)
+        elif tf.math.logical_and(x >= 0.10, x < 0.20):
+            dataset = tf.image.flip_up_down(dataset)
+            label = tf.image.flip_up_down(label)
+        elif tf.math.logical_and(x >= 0.20, x < 0.30):
+            dataset = tf.image.flip_left_right(tf.image.flip_up_down(dataset))
+            label = tf.image.flip_left_right(tf.image.flip_up_down(label))
+        elif tf.math.logical_and(x >= 0.30, x < 0.40):
+            dataset = tf.image.rot90(dataset, k=1)
+            label = tf.image.rot90(label, k=1)
+        elif tf.math.logical_and(x >= 0.40, x < 0.50):
+            dataset = tf.image.rot90(dataset, k=2)
+            label = tf.image.rot90(label, k=2)
+        elif tf.math.logical_and(x >= 0.50, x < 0.60):
+            dataset = tf.image.rot90(dataset, k=3)
+            label = tf.image.rot90(label, k=3)
+        elif tf.math.logical_and(x >= 0.60, x < 0.70):
+            dataset = tf.image.flip_left_right(tf.image.rot90(dataset, k=2))
+            label = tf.image.flip_left_right(tf.image.rot90(label, k=2))
         else:
-            return tf.concat([dataset, tf.image.flip_left_right(tf.image.rot90(dataset, k=2))], 0)
-
-    @staticmethod
-    @tf.function
-    def flip_inputs_up_down(inputs: tf.Tensor) -> tf.Tensor:
-        """
-        Flip the inputs of a dataset vertically.
-
-        Parameters:
-        inputs (tf.Tensor): The input dataset.
-
-        Returns:
-        tf.Tensor: The dataset with flipped inputs.
-        """
-        return tf.image.flip_up_down(inputs)
-
-    @staticmethod
-    @tf.function
-    def flip_inputs_left_right(inputs: tf.Tensor) -> tf.Tensor:
-        """
-        Flip the inputs of a dataset horizontally.
-
-        Parameters:
-        inputs (tf.Tensor): The input dataset.
-
-        Returns:
-        tf.Tensor: The dataset with flipped inputs.
-        """
-        return tf.image.flip_left_right(inputs)
-
-    @staticmethod
-    @tf.function
-    def transpose_inputs(inputs: tf.Tensor) -> tf.Tensor:
-        """
-        Transpose the inputs of a dataset.
-
-        Parameters:
-        inputs (tf.Tensor): The input dataset.
-
-        Returns:
-        tf.Tensor: The transposed dataset.
-        """
-        flip_up_down = tf.image.flip_up_down(inputs)
-        transpose = tf.image.flip_left_right(flip_up_down)
-        return transpose
-
-    @staticmethod
-    @tf.function
-    def rotate_inputs_90(inputs: tf.Tensor) -> tf.Tensor:
-        """
-        Rotate the inputs of a dataset by 90 degrees.
-
-        Parameters:
-        inputs (tf.Tensor): The input dataset.
-
-        Returns:
-        tf.Tensor: The dataset with rotated inputs.
-        """
-        return tf.image.rot90(inputs, k=1)
-
-    @staticmethod
-    @tf.function
-    def rotate_inputs_180(inputs: tf.Tensor) -> tf.Tensor:
-        """
-        Rotate the inputs of a dataset by 180 degrees.
-
-        Parameters:
-        inputs (tf.Tensor): The input dataset.
-
-        Returns:
-        tf.Tensor: The dataset with rotated inputs.
-        """
-        return tf.image.rot90(inputs, k=2)
-
-    @staticmethod
-    @tf.function
-    def rotate_inputs_270(inputs: tf.Tensor) -> tf.Tensor:
-        """
-        Rotate the inputs of a dataset by 270 degrees.
-
-        Parameters:
-        inputs (tf.Tensor): The input dataset.
-
-        Returns:
-        tf.Tensor: The dataset with rotated inputs.
-        """
-        return tf.image.rot90(inputs, k=3)
+            pass
+        
+        return dataset, label
 
     @staticmethod
     @tf.function
@@ -463,7 +385,7 @@ class DataProcessor:
         return dataset
 
     @staticmethod
-    def get_dataset(pattern: str, features: list, labels: list, patch_size: int, batch_size: int, n_classes: int = 1) -> tf.data.Dataset:
+    def get_dataset(pattern: str, features: list, labels: list, patch_size: int, batch_size: int, n_classes: int = 1, **kwargs) -> tf.data.Dataset:
         """
         Get a TFRecord dataset.
 
@@ -484,14 +406,31 @@ class DataProcessor:
         """
         logging.info(f"Loading dataset from {pattern}")
 
+        dataset = tf.data.Dataset.list_files(pattern).interleave(DataProcessor.create_tfrecord_from_file)
+
+        if kwargs.get("IS_DNN", False):
+            parser = partial(DataProcessor.parse_tfrecord_dnn, features=features, labels=labels)
+            tupler = partial(DataProcessor.to_tuple_dnn, depth=n_classes)
+
+            dataset = dataset.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
+            dataset = dataset.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+            dataset = dataset.shuffle(512)
+            dataset = dataset.batch(batch_size)
+            dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
+            return dataset
+
         parser = partial(DataProcessor.parse_tfrecord_multi_label, patch_size=patch_size, features=features, labels=labels)
         tupler = partial(DataProcessor.to_tuple_multi_label, depth=n_classes)
 
-        dataset = tf.data.Dataset.list_files(pattern).interleave(DataProcessor.create_tfrecord_from_file)
         dataset = dataset.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
+
         dataset = dataset.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        
         # dataset = dataset.cache()
         dataset = dataset.shuffle(512)
         dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
+        if kwargs.get("training", False) and kwargs.get("TRANSFORM_DATA", True):
+            logging.info("randomly transforming data")
+            dataset = dataset.map(DataProcessor.random_transform, num_parallel_calls=tf.data.AUTOTUNE)
         return dataset

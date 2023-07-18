@@ -83,14 +83,35 @@ class EEUtils:
         return stats
 
     @staticmethod
-    def export_collection_data(collection: ee.FeatureCollection, export_type: str="cloud", start_training=True, **params) -> None:
-        if export_type == "cloud":
-            EEUtils._export_collection_to_cloud_storage(collection, start_training, **params)
-        if export_type == "asset":
-            EEUtils._export_collection_to_asset(collection, start_training, **params)
-        else:
-            raise NotImplementedError("Only cloud export is currently supported.")
+    def export_collection_data(collection: ee.FeatureCollection, export_type: Union[list, str]="cloud", start_training=True, **params) -> None:
+        if isinstance(export_type, str):
+            export_type = [export_type]
 
+        for _type in export_type:
+            if _type == "cloud":
+                EEUtils._export_collection_to_cloud_storage(collection, start_training, **params)
+
+            if _type == "asset":
+                EEUtils._export_collection_to_asset(collection, start_training, **params)
+
+            if _type == "drive":
+                EEUtils._export_collection_to_drive(collection, start_training, **params)            
+
+            if _type not in ["cloud", "asset", "drive"]:
+                raise NotImplementedError("Currently supported export types are cloud, asset, and drive.")
+
+    @staticmethod
+    def _export_collection_to_drive(collection, start_training, **kwargs) -> None:
+        logging.info("Exporting training data to Google Drive..")
+        training_task = ee.batch.Export.table.toDrive(
+            collection=collection,
+            description=kwargs.get("description", "myExportTableTask"),
+            folder=kwargs.get("folder", "myFolder"),
+            fileNamePrefix=kwargs.get("file_prefix", "myExportTableTask"),
+            fileFormat=kwargs.get("file_format", "CSV"),
+            selectors=kwargs.get("selectors", collection.first().propertyNames().getInfo()),
+        )
+        if start_training: training_task.start()
 
     @staticmethod
     def _export_collection_to_asset(collection, start_training, **kwargs) -> None:
@@ -107,12 +128,14 @@ class EEUtils:
     @staticmethod
     def _export_collection_to_cloud_storage(collection, start_training, **kwargs) -> None:
         description = kwargs.get("description", "myExportTableTask")
-        logging.info(f"Exporting training data to {description}..")
+        bucket = kwargs.get("bucket", "myBucket")
+        file_prefix = kwargs.get("file_prefix") if kwargs.get("file_prefix") is not None else description
+        logging.info(f"Exporting training data to gs://{bucket}/{file_prefix}..")
         training_task = ee.batch.Export.table.toCloudStorage(
             collection=collection,
             description=description,
-            fileNamePrefix=kwargs.get("file_prefix") if kwargs.get("file_prefix") is not None else description,
-            bucket=kwargs.get("bucket", "myBucket"),
+            fileNamePrefix=file_prefix,
+            bucket=bucket,
             fileFormat=kwargs.get("file_format", "TFRecord"),
             selectors=kwargs.get("selectors", collection.first().propertyNames().getInfo()),
         )
@@ -207,25 +230,36 @@ class EEUtils:
         return ndvi.addBands([ndwi, savi, msavi2, mtvi2, vari, tgi]).float()
 
     @staticmethod
-    def generate_stratified_samples(image: ee.Image, region: ee.Geometry, numPoints: int = 500, classBand: str = None, scale: int=30, seed: int=Config.SEED) -> ee.FeatureCollection:
+    def generate_stratified_samples(image: ee.Image, region: ee.Geometry, numPoints: int = 500, classBand: str = None, scale: int=30, **kwargs) -> ee.FeatureCollection:
         # Add a latitude and longitude band.
         return image.addBands(ee.Image.pixelLonLat()).stratifiedSample(
             numPoints=numPoints,
             classBand=classBand if classBand else "label",
             scale=scale,
             region=region,
-            seed=seed,
+            seed=kwargs.get("seed", Config.SEED),
+            classValues=kwargs.get("class_values", None),
+            classPoints=kwargs.get("class_points", None),# [2000, 600, 600, 600]
         ).map(lambda f: f.setGeometry(ee.Geometry.Point([f.get("longitude"), f.get("latitude")])))
 
     @staticmethod
     def sample_image_by_collection(image: ee.Image, collection: ee.FeatureCollection, **kwargs: dict) -> ee.FeatureCollection:
-        return image.sampleRegions(
+        samples = image.sampleRegions(
             collection=collection,
             properties=kwargs.get("properties", collection.first().propertyNames().getInfo()),
             scale=kwargs.get("scale", None),
             geometries=kwargs.get("geometries", False),
             tileScale=kwargs.get("tile_scale", 1),
         )
+        return samples
+
+    @staticmethod
+    def sample_image(image: ee.Image, region: ee.FeatureCollection, **kwargs: dict) -> ee.FeatureCollection:
+        sample = image.sample(region=region,
+                              scale=kwargs.get("scale", Config.SCALE),
+                              seed=kwargs.get("seed", Config.SEED),
+                              geometries=kwargs.get("geometries", False))
+        return sample
 
     @staticmethod
     def beam_yield_sample_points(index, sample_locations: ee.List, use_service_account: bool = False) -> List:

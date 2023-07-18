@@ -84,6 +84,7 @@ class Config:
     VAL_SIZE = int(os.getenv("VAL_SIZE"))
     
     MODEL_TYPE = os.getenv("MODEL_TYPE")
+    IS_DNN = True if MODEL_TYPE == "dnn" else False
 
     BATCH_SIZE = int(os.getenv("BATCH_SIZE"))
     EPOCHS = int(os.getenv("EPOCHS"))
@@ -106,6 +107,7 @@ class Config:
     CALLBACK_PARAMETER = os.getenv("CALLBACK_PARAMETER")
     
     EARLY_STOPPING = os.getenv("EARLY_STOPPING") == "True"
+    TRANSFORM_DATA = os.getenv("TRANSFORM_DATA") == "True"
 
     # cloud stuff
     GCS_PROJECT = os.getenv("GCS_PROJECT")
@@ -144,8 +146,9 @@ class Config:
         self.TRAIN_SIZE = Config.TRAIN_SIZE
         self.TEST_SIZE = Config.TEST_SIZE
         self.VAL_SIZE = Config.VAL_SIZE
-        
+
         self.MODEL_TYPE = Config.MODEL_TYPE
+        self.IS_DNN = Config.IS_DNN
 
         self.BATCH_SIZE = Config.BATCH_SIZE
         print(f"BATCH_SIZE: {self.BATCH_SIZE}")
@@ -168,6 +171,7 @@ class Config:
         self.CALLBACK_PARAMETER = Config.CALLBACK_PARAMETER
         
         self.EARLY_STOPPING = Config.EARLY_STOPPING
+        self.TRANSFORM_DATA = Config.TRANSFORM_DATA
 
         # cloud stuff
         self.GCS_PROJECT = Config.GCS_PROJECT

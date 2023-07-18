@@ -8,6 +8,9 @@ It includes methods for building and compiling models of different types, such a
 provided specifications. The class also contains utility methods for constructing custom layers and defining metrics.
 """
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
 import tensorflow as tf
 from tensorflow import keras
 
@@ -89,12 +92,14 @@ class ModelBuilder:
         Returns:
             keras.Model: The compiled DNN model.
         """
-        FINAL_ACTIVATION = kwargs.get("FINAL_ACTIVATION", "sigmoid")
         INITIAL_BIAS = kwargs.get("INITIAL_BIAS", None)
+        logging.info(f"INITIAL_BIAS: {INITIAL_BIAS}")
         # DNN_DURING_ONLY = kwargs.get("DURING_ONLY", False)
 
         if INITIAL_BIAS is not None:
             INITIAL_BIAS = tf.keras.initializers.Constant(INITIAL_BIAS)
+        else:
+            INITIAL_BIAS = "zeros"
 
         inputs = keras.Input(shape=(None, self.in_size), name="input_layer")
 
@@ -117,15 +122,13 @@ class ModelBuilder:
         x = keras.layers.Dropout(0.2)(x)
         x = keras.layers.Dense(32, activation="relu")(x)
         x = keras.layers.Dropout(0.2)(x)
-        output = keras.layers.Dense(self.out_classes, activation=FINAL_ACTIVATION, bias_initializer=INITIAL_BIAS)(x)
+        output = keras.layers.Dense(self.out_classes, activation=kwargs.get("ACTIVATION_FN"), bias_initializer=INITIAL_BIAS)(x)
 
         model = keras.models.Model(inputs=inputs, outputs=output)
         metrics_list = [
             Metrics.precision(),
             Metrics.recall(),
-            keras.metrics.categorical_accuracy,
-            Metrics.dice_coef,
-            Metrics.f1_m,
+            keras.metrics.CategoricalAccuracy(),
             Metrics.one_hot_io_u(self.out_classes),
         ]
 
@@ -142,7 +145,6 @@ class ModelBuilder:
         Returns:
             keras.Model: The compiled CNN model.
         """
-        print(kwargs)
         inputs = keras.Input(shape=(kwargs.get("PATCH_SHAPE", 128)[0], kwargs.get("PATCH_SHAPE", 128)[0], self.in_size))
         x = keras.layers.Conv2D(32, 3, activation="relu", name="convd-1", padding="same")(inputs)
         x = keras.layers.BatchNormalization()(x)
@@ -162,7 +164,7 @@ class ModelBuilder:
         metrics_list = [
             Metrics.precision(),
             Metrics.recall(),
-            keras.metrics.Accuracy(),
+            keras.metrics.CategoricalAccuracy(),
             Metrics.one_hot_io_u(self.out_classes),
         ]
 
@@ -183,7 +185,7 @@ class ModelBuilder:
             with tf.distribute.MirroredStrategy().scope():
                 return self._build_and_compile_unet_model(**kwargs)
         else:
-            print("No distributed strategy found.")
+            logging.info("No distributed strategy found.")
             return self._build_and_compile_unet_model(**kwargs)
 
     def _build_and_compile_unet_model(self, **kwargs):
@@ -258,7 +260,7 @@ class ModelBuilder:
         metrics_list = [
             Metrics.precision(),
             Metrics.recall(),
-            keras.metrics.Accuracy(),
+            keras.metrics.CategoricalAccuracy(),
             Metrics.one_hot_io_u(self.out_classes),
         ]
 

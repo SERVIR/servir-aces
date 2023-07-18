@@ -72,21 +72,21 @@ img_sep = planet_asia.filterDate(ee.Date.fromYMD(year, 9, 1), ee.Date.fromYMD(ye
 rice_mosaic = ee.ImageCollection.fromImages(ee.List([img_apr, img_may, img_jun, img_jul, img_aug, img_sep])).median().mask(rice_zone)
 
 none_masked_region = rice_mosaic.select(["B", "G"]).int32().reduceToVectors(
-  reducer = ee.Reducer.firstNonNull(),
-  geometry = region_fc,
-  scale = 90,
-  bestEffort = True,
-  maxPixels = 1E13,
-  tileScale = 16
+    reducer = ee.Reducer.firstNonNull(),
+    geometry = region_fc,
+    scale = 90,
+    bestEffort = True,
+    maxPixels = 1E13,
+    tileScale = 16,
 )
 
 # Make the training dataset for k-means.
 kMeans_training = rice_mosaic.sample(
-  region = none_masked_region.geometry(),
-  scale = 5,
-  numPixels = 500,
-  seed = 20,
-  geometries = True,
+    region = none_masked_region.geometry(),
+    scale = 5,
+    numPixels = 500,
+    seed = 20,
+    geometries = True,
 )
 
 # Instantiate the clusterer and train it.
@@ -114,17 +114,24 @@ kMeans_cluster = kMeans_cluster.where(nlcms.eq(5), ee.Image(3)) # class 1 // riv
 kMeans_cluster = kMeans_cluster.where(nlcms.eq(4), ee.Image(1)) # class 4 // forest
 kMeans_cluster = kMeans_cluster.where(nlcms.eq(6), ee.Image(2)) # class 6 // built-up
 
+sample_kwargs = {
+    "class_values": [0, 1, 2, 3],
+    "class_points": [2000, 600, 600, 600],
+}
+
 stratified_points = EEUtils.generate_stratified_samples(
-  kMeans_cluster, none_masked_region.geometry(),
-  numPoints = 750,
-  classBand = "cluster",
+    kMeans_cluster, none_masked_region.geometry(),
+    numPoints = 750,
+    classBand = "cluster",
+    **sample_kwargs
 )
 
 print("number of points per class", stratified_points.aggregate_histogram("cluster").getInfo())
 
 export_kwargs = {
-  "asset_id": "projects/servir-sco-assets/assets/Bhutan/ACES_2/punakha_2021_all_class_samples_1",
-  "description": "punakha_2021_all_class_samples_1"
+    "asset_id": "projects/servir-sco-assets/assets/Bhutan/ACES_2/stratifiedPoints_punakha_2021",
+    "description": "stratifiedPoints_punakha_2021",
 }
 
 EEUtils.export_collection_data(stratified_points, export_type="asset", start_training=True, **export_kwargs)
+EEUtils.export_collection_data(stratified_points, export_type="drive", start_training=True, **export_kwargs)
