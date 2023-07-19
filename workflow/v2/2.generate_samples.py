@@ -133,5 +133,4 @@ export_kwargs = {
     "description": "stratifiedPoints_punakha_2021",
 }
 
-EEUtils.export_collection_data(stratified_points, export_type="asset", start_training=True, **export_kwargs)
-EEUtils.export_collection_data(stratified_points, export_type="drive", start_training=True, **export_kwargs)
+EEUtils.export_collection_data(stratified_points, export_type=["asset", "drive"], start_training=True, **export_kwargs)

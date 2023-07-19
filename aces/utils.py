@@ -3,6 +3,7 @@
 import logging
 logging.basicConfig(level=logging.INFO)
 
+import re, warnings
 import ee
 import numpy as np
 import matplotlib.pyplot as plt
@@ -57,7 +58,7 @@ class EEUtils:
                 ee.Initialize(credentials)
 
     @staticmethod
-    def calculate_min_max_statistics(image: ee.Image, geometry: ee.FeatureCollection, scale: int = 30) -> ee.Dictionary:
+    def calculate_avg_min_max_statistics(image: ee.Image, geometry: ee.FeatureCollection, scale: int = 30) -> ee.Dictionary:
         """
         Calculate min and max of an image over a specific region.
 
@@ -98,7 +99,7 @@ class EEUtils:
                 EEUtils._export_collection_to_drive(collection, start_training, **params)            
 
             if _type not in ["cloud", "asset", "drive"]:
-                raise NotImplementedError("Currently supported export types are cloud, asset, and drive.")
+                raise NotImplementedError(f"Currently supported export types are: {', '.join(_type)}")
 
     @staticmethod
     def _export_collection_to_drive(collection, start_training, **kwargs) -> None:
@@ -143,10 +144,55 @@ class EEUtils:
 
     @staticmethod
     def export_image(image: ee.Image, export_type: str="asset", start_training=True, **params) -> None:
-        if export_type == "asset":
-            EEUtils._export_image_to_asset(image, start_training, **params)
-        else:
-            raise NotImplementedError("Only cloud export is currently supported.")
+        if isinstance(export_type, str):
+            export_type = [export_type]
+
+        for _type in export_type:
+            if _type == "cloud":
+                EEUtils._export_image_to_cloud_storage(image, start_training, **params)
+
+            if _type == "asset":
+                EEUtils._export_image_to_asset(image, start_training, **params)          
+
+            if _type not in ["cloud", "asset"]:
+                raise NotImplementedError(f"Currently supported export types are: {', '.join(_type)}")
+
+    @staticmethod
+    def _export_image_to_cloud_storage(image, start_training, **kwargs) -> None:
+        description = kwargs.get("description", "myExportImageTask")
+        bucket = kwargs.get("bucket", "myBucket")
+        file_name_prefix = kwargs.get("file_name_prefix") if kwargs.get("file_name_prefix") is not None else description
+        region = kwargs.get("region", None)
+        if region is not None:
+            if isinstance(region, ee.FeatureCollection):
+                region = region.geometry()
+            elif isinstance(region, ee.Geometry):
+                region = region
+            else:
+                raise ValueError(f"region must be an ee.FeatureCollection or ee.Geometry object. Found {type(region)}")  
+
+        logging.info(f"Exporting training data to gs://{bucket}/{file_name_prefix}..")
+
+        params = {
+            "image": image,
+            "description": description,
+            "fileNamePrefix": file_name_prefix,
+            "bucket": kwargs.get("bucket", "myBucket"),
+            "fileFormat": kwargs.get("file_format", "GeoTIFF"),
+            "formatOptions": kwargs.get("format_options", None),
+            "region": region,
+            "scale": kwargs.get("scale", 1000),
+        }
+        keys = Utils.convert_camel_to_snake(list(params.keys()))
+        keys.remove("image")
+
+        for key in list(kwargs.keys()):
+            if key not in keys:
+                warnings.warn(f"Parameter {key} not found in kwargs. Double check your parameter name (camelCase vs snake_case)")
+
+        not_none_params = {k:v for k, v in params.items() if v is not None}
+        training_task = ee.batch.Export.image.toCloudStorage(**not_none_params)
+        if start_training: training_task.start()
 
     @staticmethod
     def _export_image_to_asset(image, start_training, **kwargs) -> None:
@@ -417,3 +463,11 @@ class Utils:
         if has_nan or has_inf:
             return False
         return True
+
+    @staticmethod
+    def convert_camel_to_snake(strings):
+        converted_strings = []
+        for string in strings:
+            converted_string = re.sub(r"(?<!^)(?=[A-Z])", "_", string).lower()
+            converted_strings.append(converted_string)
+        return converted_strings
