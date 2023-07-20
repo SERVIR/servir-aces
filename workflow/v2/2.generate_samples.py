@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 
 try:
-    from aces.config import Config
-    from aces.utils import EEUtils
+    from aces.ee_utils import EEUtils
 except ModuleNotFoundError:
     print("ModuleNotFoundError: Attempting to import from parent directory.")
     import os, sys
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-    from aces.config import Config
-    from aces.utils import EEUtils
+    from aces.ee_utils import EEUtils
 
 import ee
 

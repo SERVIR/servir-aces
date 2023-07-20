@@ -66,6 +66,9 @@ class Config:
     MODEL_NAME = os.getenv("MODEL_NAME")
     MODEL_CHECKPOINT_NAME = os.getenv("MODEL_CHECKPOINT_NAME")
     
+    MODEL_DIR = OUTPUT_DIR / os.getenv("MODEL_DIR_NAME")
+    print(f"MODEL_DIR: {MODEL_DIR}")
+
     SCALE = int(os.getenv("SCALE"))
 
     FEATURES = os.getenv("FEATURES").split("\n")
@@ -77,6 +80,11 @@ class Config:
     # patch size for training
     PATCH_SHAPE = ast.literal_eval(os.getenv("PATCH_SHAPE"))
     PATCH_SHAPE_SINGLE = PATCH_SHAPE[0]
+    KERNEL_BUFFER = os.getenv("KERNEL_BUFFER")
+    if KERNEL_BUFFER == "0":
+        KERNEL_BUFFER = None
+    else:
+        KERNEL_BUFFER = ast.literal_eval(KERNEL_BUFFER)
 
     # Sizes of the testing, and evaluation datasets
     TRAIN_SIZE = int(os.getenv("TRAIN_SIZE"))
@@ -109,10 +117,17 @@ class Config:
     EARLY_STOPPING = os.getenv("EARLY_STOPPING") == "True"
     TRANSFORM_DATA = os.getenv("TRANSFORM_DATA") == "True"
 
+    # EE settings
+    EE_SERVICE_CREDENTIALS = os.getenv("EE_SERVICE_CREDENTIALS")
+    EE_USER = os.getenv("EE_USER")
+    EE_OUTPUT_ASSET = os.getenv("EE_OUTPUT_ASSET")
+    OUTPUT_NAME = os.getenv("OUTPUT_NAME")
+
     # cloud stuff
     GCS_PROJECT = os.getenv("GCS_PROJECT")
     GCS_BUCKET = os.getenv("GCS_BUCKET")
-    EE_SERVICE_CREDENTIALS = os.getenv("EE_SERVICE_CREDENTIALS")
+    GCS_IMAGE_DIR = os.getenv("GCS_IMAGE_DIR")
+    GCS_IMAGE_PREFIX = os.getenv("GCS_IMAGE_PREFIX")
 
     def __init__(self) -> None:
         self.BASEDIR = Config.BASEDIR
@@ -127,6 +142,7 @@ class Config:
 
         self.MODEL_NAME = Config.MODEL_NAME
         self.MODEL_CHECKPOINT_NAME = Config.MODEL_CHECKPOINT_NAME
+        self.MODEL_DIR = Config.MODEL_DIR
         
         self.SCALE = Config.SCALE
 
@@ -141,6 +157,7 @@ class Config:
         # patch size for training
         self.PATCH_SHAPE = Config.PATCH_SHAPE
         self.PATCH_SHAPE_SINGLE = Config.PATCH_SHAPE_SINGLE
+        self.KERNEL_BUFFER = Config.KERNEL_BUFFER
 
         # Sizes of the testing, and evaluation datasets
         self.TRAIN_SIZE = Config.TRAIN_SIZE
@@ -173,7 +190,15 @@ class Config:
         self.EARLY_STOPPING = Config.EARLY_STOPPING
         self.TRANSFORM_DATA = Config.TRANSFORM_DATA
 
+        # EE settings
+        self.EE_SERVICE_CREDENTIALS = Config.EE_SERVICE_CREDENTIALS
+        self.EE_USER = Config.EE_USER
+        self.EE_OUTPUT_ASSET = Config.EE_OUTPUT_ASSET
+        self.OUTPUT_NAME = Config.OUTPUT_NAME
+
         # cloud stuff
         self.GCS_PROJECT = Config.GCS_PROJECT
         self.GCS_BUCKET = Config.GCS_BUCKET
         self.EE_SERVICE_CREDENTIALS = Config.EE_SERVICE_CREDENTIALS
+        self.GCS_IMAGE_DIR = Config.GCS_IMAGE_DIR
+        self.GCS_IMAGE_PREFIX = Config.GCS_IMAGE_PREFIX

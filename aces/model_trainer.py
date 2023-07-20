@@ -19,7 +19,7 @@ from aces.config import Config
 from aces.metrics import Metrics
 from aces.model_builder import ModelBuilder
 from aces.data_processor import DataProcessor
-from aces.utils import Utils
+from aces.utils import Utils, TFUtils
 
 
 class ModelTrainer:
@@ -87,7 +87,8 @@ class ModelTrainer:
         keras.backend.clear_session()
         logging.info("****************************************************************************")
         print(f"****************************** Configure memory growth... ************************")
-        self.configure_memory_growth()
+        physical_devices = TFUtils.configure_memory_growth()
+        self.config.physical_devices = physical_devices
         logging.info("****************************************************************************")
         logging.info("****************************** creating datasets... ************************")
         self.create_datasets(print_info=False)
@@ -181,24 +182,6 @@ class ModelTrainer:
             DataProcessor.print_dataset_info(self.TRAINING_DATASET, "Training")
             DataProcessor.print_dataset_info(self.TESTING_DATASET, "Testing")
             DataProcessor.print_dataset_info(self.VALIDATION_DATASET, "Validation")
-
-    def configure_memory_growth(self) -> None:
-        """
-        Configure TensorFlow to allocate GPU memory dynamically.
-
-        If GPUs are found, this method enables memory growth for each GPU.
-        """
-        physical_devices = tf.config.list_physical_devices("GPU")
-        self.config.physical_devices = physical_devices
-        if len(self.config.physical_devices):
-            logging.info(f" > Found {len(self.config.physical_devices)} GPUs")
-            try:
-                for device in self.config.physical_devices:
-                    tf.config.experimental.set_memory_growth(device, True)
-            except Exception as err:
-                logging.error(err)
-        else:
-            logging.info(" > No GPUs found")
 
     def build_and_compile_model(self, print_model_summary: bool = True) -> None:
         """

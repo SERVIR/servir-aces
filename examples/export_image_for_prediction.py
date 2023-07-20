@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 try:
-    from aces.utils import EEUtils
+    from aces.ee_utils import EEUtils
+    from aces.config import Config
 except ModuleNotFoundError:
     print("ModuleNotFoundError: Attempting to import from parent directory.")
     import os, sys
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-    from aces.utils import EEUtils
+    from aces.ee_utils import EEUtils
+    from aces.config import Config
 
 import ee
 
@@ -75,11 +77,14 @@ formatOptions = {
   "compressed": True
 }
 
+if Config.BUFFER_SIZE:
+    formatOptions["kernelSize"] = Config.BUFFER_SIZE
+
 # Setup the task
 image_export_options = {
-    "description": "image_punakha_bhutan_2021_",
-    "file_name_prefix": "images_punakha/unet_128x128/image_punakha_bhutan_2021_",
-    "bucket": "bhutan-aces",
+    "description": Config.GCS_IMAGE_DIR.split("/")[-1],
+    "file_name_prefix": f"{Config.GCS_IMAGE_DIR}/{Config.GCS_IMAGE_PREFIX}",
+    "bucket": Config.GCS_BUCKET,
     "scale": 5,
     "file_format": "TFRecord",
     "region": region_fc,

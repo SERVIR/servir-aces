@@ -13,13 +13,15 @@ from apache_beam.options.pipeline_options import PipelineOptions
 import ee
 
 try:
-    from aces.utils import EEUtils, TFUtils, Utils
+    from aces.ee_utils import EEUtils
+    from aces.utils import TFUtils, Utils
     from aces.config import Config
 except ModuleNotFoundError:
     print("ModuleNotFoundError: Attempting to import from parent directory.")
     import os, sys
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-    from aces.utils import EEUtils, TFUtils, Utils
+    from aces.ee_utils import EEUtils
+    from aces.utils import TFUtils, Utils
     from aces.config import Config
 
 # Before running this script, you need to authenticate to Google Cloud:
@@ -41,7 +43,7 @@ class TrainingDataGenerator:
         Parameters:
         include_after (bool): If True, includes "after" images in the generated data. Default is False.
         """
-        self.output_bucket = "bhutan-aces"
+        self.output_bucket = Config.GCS_BUCKET
         self.kernel_size = 128
         self.grace = 10
         self.scale = Config.SCALE
