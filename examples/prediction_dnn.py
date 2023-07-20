@@ -74,22 +74,9 @@ patch_height = mixer["patchDimensions"][1]
 patches = mixer["totalPatches"]
 patch_dimensions_flat = [patch_width * patch_height, 1]
 
-# Get set up for prediction.
-if Config.KERNEL_BUFFER:
-    x_buffer = Config.KERNEL_BUFFER[0] // 2
-    y_buffer = Config.KERNEL_BUFFER[1] // 2
-
-    buffered_shape = [
-        Config.PATCH_SHAPE[0] + Config.KERNEL_BUFFER[0],
-        Config.PATCH_SHAPE[1] + Config.KERNEL_BUFFER[1],
-    ]
-else:
-    x_buffer = 0
-    y_buffer = 0
-    buffered_shape = Config.PATCH_SHAPE
 
 image_columns = [
-    tf.io.FixedLenFeature(shape=buffered_shape, dtype=tf.float32) for k in Config.FEATURES
+    tf.io.FixedLenFeature(shape=patch_dimensions_flat, dtype=tf.float32) for k in Config.FEATURES
 ]
 
 image_features_dict = dict(zip(Config.FEATURES, image_columns))
@@ -97,68 +84,98 @@ image_features_dict = dict(zip(Config.FEATURES, image_columns))
 def parse_image(example_proto):
     return tf.io.parse_single_example(example_proto, image_features_dict)
 
-def toTupleImage(inputs):
-    inputsList = [inputs.get(key) for key in Config.FEATURES]
-    stacked = tf.stack(inputsList, axis=0)
-    stacked = tf.transpose(stacked, [1, 2, 0])
-    return stacked
 
 # Create a dataset from the TFRecord file(s) in Cloud Storage.
 image_dataset = tf.data.TFRecordDataset(image_files_list, compression_type="GZIP")
+
+# Parse the data into tensors, one long tensor per patch.
 image_dataset = image_dataset.map(parse_image, num_parallel_calls=5)
-image_dataset = image_dataset.map(toTupleImage).batch(1)
+
+# Break our long tensors into many little ones.
+image_dataset = image_dataset.flat_map(
+  lambda features: tf.data.Dataset.from_tensor_slices(features)
+)
+
+# Turn the dictionary in each record into a tuple without a label.
+image_dataset = image_dataset.map(
+  lambda data_dict: (tf.transpose(list(data_dict.values())), )
+)
+
+# for (None, in_shape)
+image_dataset = image_dataset.batch(patch_width * patch_height)
 
 # Perform inference.
 print("Running predictions...")
-print(f"patches: {patches}")
+# Run prediction in batches, with as many steps as there are patches.
 predictions = this_model.predict(image_dataset, steps=patches, verbose=1)
-print(f"predictions: {predictions.shape}")
 
+# Instantiate the writer.
 print("Writing predictions...")
 writer = tf.io.TFRecordWriter(OUTPUT_IMAGE_FILE)
 
-for i, prediction_patch in enumerate(predictions):
+# Every patch-worth of predictions we"ll dump an example into the output
+# file with a single feature that holds our predictions. Since our predictions
+# are already in the order of the exported data, the patches we create here
+# will also be in the right order.
+# patch = [[]]
+patch = [[], [], [], [], [], []]
+cur_patch = 1
+for i, prediction in enumerate(predictions):
+    patch[0].append(int(np.argmax(prediction)))
+    patch[1].append(prediction[0][0])
+    patch[2].append(prediction[0][1])
+    patch[3].append(prediction[0][2])
+    patch[4].append(prediction[0][3])
+    patch[5].append(prediction[0][4])
+
+
     if i == 0:
-        print(f"Starting with patch {i}...")
-        print(f"predictionPatch: {prediction_patch.shape}")
+        print(f"prediction.shape: {prediction.shape}")
 
-    if i % 50 == 0:
-        print(f"Writing patch {i}...")
+    if (len(patch[0]) == patch_width * patch_height):
+        if cur_patch % 100 == 0:
+            print("Done with patch " + str(cur_patch) + " of " + str(patches) + "...")
 
-    prediction_patch = prediction_patch[
-        x_buffer: x_buffer+Config.PATCH_SHAPE[0],
-        y_buffer: y_buffer+Config.PATCH_SHAPE[1]
-    ]
+        # example = tf.train.Example(
+        #     features=tf.train.Features(
+        #         feature={
+        #             "prediction": tf.train.Feature(
+        #                 float_list=tf.train.FloatList(
+        #                     value=patch[0])),
+        #         }
+        #     )
+        # )
 
-    example = tf.train.Example(
-        features=tf.train.Features(
-            feature={
-            "prediction": tf.train.Feature(
-                int64_list=tf.train.Int64List(
-                    value=np.argmax(prediction_patch, axis=-1).flatten())),
-            "cropland_etc": tf.train.Feature(
-                float_list=tf.train.FloatList(
-                    value=prediction_patch[:, :, 0:1].flatten())),
-            "rice": tf.train.Feature(
-                float_list=tf.train.FloatList(
-                    value=prediction_patch[:, :, 1:2].flatten())),
-            "forest": tf.train.Feature(
-                float_list=tf.train.FloatList(
-                    value=prediction_patch[:, :, 2:3].flatten())),
-            "urban": tf.train.Feature(
-                float_list=tf.train.FloatList(
-                    value=prediction_patch[:, :, 3:4].flatten())),
-            "others_etc": tf.train.Feature(
-                float_list=tf.train.FloatList(
-                    value=prediction_patch[:, :, 4:5].flatten())),
-            }
+        example = tf.train.Example(
+            features=tf.train.Features(
+                feature={
+                "prediction": tf.train.Feature(
+                    int64_list=tf.train.Int64List(
+                        value=patch[0])),
+                "cropland_etc": tf.train.Feature(
+                    float_list=tf.train.FloatList(
+                        value=patch[1])),
+                "rice": tf.train.Feature(
+                    float_list=tf.train.FloatList(
+                        value=patch[2])),
+                "forest": tf.train.Feature(
+                    float_list=tf.train.FloatList(
+                        value=patch[3])),
+                "urban": tf.train.Feature(
+                    float_list=tf.train.FloatList(
+                        value=patch[4])),
+                "others_etc": tf.train.Feature(
+                    float_list=tf.train.FloatList(
+                        value=patch[5])),
+                }
+            )
         )
-    )
 
-    i += 1
-
-    # Write the example.
-    writer.write(example.SerializeToString())
+        # Write the example to the file and clear our patch array so it"s ready for
+        # another batch of class ids
+        writer.write(example.SerializeToString())
+        patch = [[], [], [], [], [], []]
+        cur_patch += 1
 
 writer.close()
 
