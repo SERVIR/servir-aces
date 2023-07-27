@@ -7,7 +7,7 @@ try:
 except ModuleNotFoundError:
     print("ModuleNotFoundError: Attempting to import from parent directory.")
     import os, sys
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
     from aces.config import Config
     from aces.model_builder import ModelBuilder
@@ -26,6 +26,7 @@ if not os.path.exists(str(Config.MODEL_DIR / "prediction")): os.mkdir(str(Config
 OUTPUT_GCS_PATH = f"gs://{Config.GCS_BUCKET}/prediction/{Config.OUTPUT_NAME}.TFRecord"
 
 ls = f"sudo gsutil ls gs://{Config.GCS_BUCKET}/{Config.GCS_IMAGE_DIR}/"
+print(f"ls >> : {ls}")
 files_list = subprocess.check_output(ls, shell=True)
 files_list = files_list.decode("utf-8")
 files_list = files_list.split("\n")

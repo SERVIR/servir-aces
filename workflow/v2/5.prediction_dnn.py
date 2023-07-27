@@ -136,16 +136,6 @@ for i, prediction in enumerate(predictions):
         if cur_patch % 100 == 0:
             print("Done with patch " + str(cur_patch) + " of " + str(patches) + "...")
 
-        # example = tf.train.Example(
-        #     features=tf.train.Features(
-        #         feature={
-        #             "prediction": tf.train.Feature(
-        #                 float_list=tf.train.FloatList(
-        #                     value=patch[0])),
-        #         }
-        #     )
-        # )
-
         example = tf.train.Example(
             features=tf.train.Features(
                 feature={

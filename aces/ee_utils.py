@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Union, List
 from aces import Config
+from aces.utils import Utils
 import tensorflow as tf
 
 
@@ -183,6 +184,7 @@ class EEUtils:
             "formatOptions": kwargs.get("format_options", None),
             "region": region,
             "scale": kwargs.get("scale", 1000),
+            "maxPixels": kwargs.get("max_pixels", 1e10),
         }
         keys = Utils.convert_camel_to_snake(list(params.keys()))
         keys.remove("image")

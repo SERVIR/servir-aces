@@ -6,7 +6,7 @@ try:
 except ModuleNotFoundError:
     print("ModuleNotFoundError: Attempting to import from parent directory.")
     import os, sys
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
     from aces.ee_utils import EEUtils
     from aces.config import Config
@@ -16,7 +16,7 @@ import ee
 EEUtils.initialize_session(use_highvolume=True)
 
 country = "Bhutan"
-region = "Punakha"
+region = "Paro"
 year = 2021
 sensor = "planet"
 
@@ -35,7 +35,24 @@ name_region = {
     "Monggar": monggar
 }
 
+rice_zone = {
+    "Punakha": {
+        "min": 1000,
+        "max": 2600,
+    },
+    "Paro ": {
+        "min": 1500,
+        "max": 2600,
+    },
+}
+
 region_fc = name_region[region]
+
+# region_fc = ee.Geometry.Polygon(
+#         [[[89.29777557572515, 27.54982094226756],
+#           [89.29777557572515, 27.187608451375436],
+#           [89.54908783158453, 27.187608451375436],
+#           [89.54908783158453, 27.54982094226756]]], None, False);
 
 composite_before_paro = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_before")
 composite_during_paro = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_during")
@@ -67,6 +84,14 @@ composite_during = composite_during.select(bands)
 composite_before = composite_before.regexpRename("$(.*)", "_before")
 composite_during = composite_during.regexpRename("$(.*)", "_during")
 image = composite_before.addBands(composite_during).toFloat()
+
+
+dem = ee.Image("MERIT/DEM/v1_0_3") # ee.Image('USGS/SRTMGL1_003');
+dem = dem.clip(fc_country)
+riceZone = dem.gt(1000).And(dem.lte(2600))
+
+image = image.clip(region_fc).updateMask(riceZone)
+
 print("image", image.bandNames().getInfo())
 
 
@@ -77,8 +102,8 @@ formatOptions = {
   "compressed": True
 }
 
-if Config.BUFFER_SIZE:
-    formatOptions["kernelSize"] = Config.BUFFER_SIZE
+if Config.KERNEL_BUFFER:
+    formatOptions["kernelSize"] = Config.KERNEL_BUFFER
 
 # Setup the task
 image_export_options = {
@@ -87,8 +112,9 @@ image_export_options = {
     "bucket": Config.GCS_BUCKET,
     "scale": 5,
     "file_format": "TFRecord",
-    "region": region_fc,
+    # "region": image.geometry(),
     "format_options": formatOptions,
+    "max_pixels": 1e13,
 }
 
 EEUtils.export_image(image, export_type=["cloud"], start_training=True, **image_export_options)
