@@ -7,7 +7,7 @@ try:
 except ModuleNotFoundError:
     print("ModuleNotFoundError: Attempting to import from parent directory.")
     import os, sys
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
     from aces.config import Config
     from aces.model_builder import ModelBuilder

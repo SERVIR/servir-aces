@@ -48,6 +48,7 @@ rice_zone = {
 
 region_fc = name_region[region]
 
+# smaller example region
 # region_fc = ee.Geometry.Polygon(
 #         [[[89.29777557572515, 27.54982094226756],
 #           [89.29777557572515, 27.187608451375436],
@@ -97,7 +98,7 @@ print("image", image.bandNames().getInfo())
 
 # Specify patch and file dimensions.
 formatOptions = {
-  "patchDimensions": [128, 128],
+  "patchDimensions": [Config.PATCH_SHAPE_SINGLE, Config.PATCH_SHAPE_SINGLE],
   "maxFileSize": 104857600,
   "compressed": True
 }

@@ -11,6 +11,7 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 
 import ee
+import argparse
 
 try:
     from aces.ee_utils import EEUtils
@@ -44,7 +45,7 @@ class TrainingDataGenerator:
         include_after (bool): If True, includes "after" images in the generated data. Default is False.
         """
         self.output_bucket = Config.GCS_BUCKET
-        self.kernel_size = 128
+        self.kernel_size = Config.PATCH_SHAPE_SINGLE
         self.grace = 10
         self.scale = Config.SCALE
         self.include_after = include_after
@@ -90,7 +91,7 @@ class TrainingDataGenerator:
         self.srtm = ee.Image("USGS/SRTMGL1_003")
         self.slope = ee.Algorithms.Terrain(self.srtm).select("slope")
         
-        stats = EEUtils.calculate_min_max_statistics(self.srtm, self.paro, self.scale)
+        stats = EEUtils.calculate_avg_min_max_statistics(self.srtm, self.paro, self.scale)
         self.srtm = self.srtm.unitScale(stats.get("elevation_min"), stats.get("elevation_max"))
         self.slope = self.slope.unitScale(0, 90)
 
@@ -111,6 +112,49 @@ class TrainingDataGenerator:
         # Get scales out of the transform.
         self.scale_x = proj["transform"][0]
         self.scale_y = -proj["transform"][4]
+
+    def generate_training_neighborhood_data(self) -> None:
+        """
+        Use Apache Beam to generate training, validation, and test patch data from the loaded data.
+        """
+        from datetime import datetime
+        from uuid import uuid4
+        
+        export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
+        training_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training_"
+        validation_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation"
+        test_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing"
+        
+        def _generate_data(image, data, selectors, use_service_account, prefix):
+            if "training" in prefix:
+                description = "Training"
+            elif "validation" in prefix:
+                description = "Validation"
+            elif "testing" in prefix:
+                description = "Testing"
+            else:
+                description = "Unknown"
+            
+            print(f"{description} Data")
+
+            beam_options = PipelineOptions([], direct_num_workers=0, direct_running_mode="multi_processing", runner="DirectRunner")
+            with beam.Pipeline(options=beam_options) as pipeline:
+                _ = (
+                    pipeline
+                    | "Create range" >> beam.Create(range(0, data.size().getInfo(), 1))
+                    | "Yield sample points" >> beam.Map(EEUtils.beam_yield_sample_points, data.toList(data.size()), use_service_account)
+                    | "Get patch" >> beam.Map(EEUtils.beam_sample_neighbourhood, image, use_service_account)
+                    | "Write training data" >> beam.Map(EEUtils.beam_export_collection_to_cloud_storage, start_training=True,
+                                                        **{**export_kwargs,"file_prefix": f"{prefix}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_') + str(uuid4())}",
+                                                           "description": f"{description}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_') + str(uuid4())}",
+                                                           "selectors": selectors})
+                )
+
+        _generate_data(self.image, self.training_sample_locations, self.selectors, self.use_service_account, training_file_prefix)
+
+        _generate_data(self.image, self.validation_sample_locations, self.selectors, self.use_service_account, validation_file_prefix)
+            
+        _generate_data(self.image, self.test_sample_locations, self.selectors, self.use_service_account, test_file_prefix)
 
     def generate_training_patch_data(self) -> None:
         """
@@ -201,11 +245,42 @@ class TrainingDataGenerator:
         self.load_data()
         self.generate_training_point_data()
 
+    def run_neighborhood_generator(self) -> None:
+        """
+        Run the neighborhood training data generation process.
+        """
+        self.load_data()
+        self.generate_training_neighborhood_data()
+
 
 if __name__ == "__main__":
     print("Program started..")
+
+    # Initialize parser
+    parser = argparse.ArgumentParser()
+
+    # Adding optional argument
+    parser.add_argument("-m", "--mode", help="""Which mode to run? The available modes are: patch, point, neighborhood, patch_seed. \n
+                        use as python generate_training_data.py --mode patch \n
+                        or python generate_training_data.py --m point""")
+
+    # Read arguments from command line
+    mode = "neighborhood"
+    if parser.parse_args().mode:
+        mode = parser.parse_args().mode
+    else:
+        print("No mode specified, defaulting to neighborhood.")
+
     generator = TrainingDataGenerator(use_service_account=False)
-    # generator.run_patch_generator()
-    # generator.run_patch_generator_seed()
-    generator.run_point_generator()
+    if mode == "patch":
+        generator.run_patch_generator()
+    elif mode == "patch_seed":
+        generator.run_patch_generator_seed()
+    elif mode == "point":
+        generator.run_point_generator()
+    elif mode == "neighborhood":
+        generator.run_neighborhood_generator()
+    else:
+        print("Invalid mode specified.")
+
     print("\nProgram completed.")

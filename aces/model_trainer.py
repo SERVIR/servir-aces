@@ -213,7 +213,7 @@ class ModelTrainer:
 
         early_stopping = callbacks.EarlyStopping(
             monitor=self.config.CALLBACK_PARAMETER,
-            patience=int(0.5 * self.config.EPOCHS),
+            patience=int(0.4 * self.config.EPOCHS),
             verbose=1,
             mode="auto",
             restore_best_weights=True,

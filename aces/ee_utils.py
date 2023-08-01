@@ -145,6 +145,30 @@ class EEUtils:
         if start_training: training_task.start()
 
     @staticmethod
+    def beam_export_collection_to_cloud_storage(collection_index, start_training, **kwargs) -> None:
+        from aces.ee_utils import EEUtils
+        import ee
+        EEUtils.initialize_session(use_highvolume=True)
+
+        collection = ee.FeatureCollection(collection_index[0])
+        index = collection_index[1]
+
+        description = kwargs.get("description", "myExportTableTask")
+        bucket = kwargs.get("bucket", "myBucket")
+        file_prefix = kwargs.get("file_prefix") if kwargs.get("file_prefix") is not None else description
+        file_prefix = f"{file_prefix}_{index}"
+        logging.info(f"Exporting training data to gs://{bucket}/{file_prefix}..")
+        training_task = ee.batch.Export.table.toCloudStorage(
+            collection=collection,
+            description=description,
+            fileNamePrefix=file_prefix,
+            bucket=bucket,
+            fileFormat=kwargs.get("file_format", "TFRecord"),
+            selectors=kwargs.get("selectors", collection.first().propertyNames().getInfo()),
+        )
+        if start_training: training_task.start()
+
+    @staticmethod
     def export_image(image: ee.Image, export_type: str="asset", start_training=True, **params) -> None:
         if isinstance(export_type, str):
             export_type = [export_type]
@@ -318,11 +342,44 @@ class EEUtils:
         EEUtils.initialize_session(use_highvolume=True, key=Config.EE_SERVICE_CREDENTIALS if use_service_account else None)
         print(f"Yielding Index: {index} of {sample_locations.size().getInfo() - 1}")
         point = ee.Feature(sample_locations.get(index)).geometry().getInfo()
-        return point["coordinates"]
+        return point["coordinates"], index
+
+    @staticmethod
+    def beam_sample_neighbourhood(coords_index, image, use_service_account: bool = False):
+        from aces.ee_utils import EEUtils
+        from aces.config import Config
+        import ee
+        EEUtils.initialize_session(use_highvolume=True, key=Config.EE_SERVICE_CREDENTIALS if use_service_account else None)
+
+        coords = coords_index[0]
+        index = coords_index[1]
+
+        def get_kernel(kernel_size) -> ee.Kernel:
+            eelist = ee.List.repeat(1, kernel_size)
+            lists = ee.List.repeat(eelist, kernel_size)
+            kernel = ee.Kernel.fixed(kernel_size, kernel_size, lists)
+            return kernel
+
+        def create_neighborhood(kernel) -> ee.Image:
+            return image.neighborhoodToArray(kernel)
+
+        def sample_data(image, points) -> ee.FeatureCollection:
+            return image.sample(
+                region=points,
+                scale=Config.SCALE,
+                tileScale=16,
+                geometries=False
+            )
+
+        image_kernel = get_kernel(Config.PATCH_SHAPE_SINGLE)
+        neighborhood = create_neighborhood(image_kernel)
+        training_data = sample_data(neighborhood, ee.Geometry.Point(coords))
+        return training_data, index
+
 
     @staticmethod
     def beam_get_training_patches(coords: List[float], image: ee.Image, bands: List[str] = [],
-                             scale: int = 5, patch_size: int = 128, use_service_account: bool = False) -> np.ndarray:
+                                  scale: int = 5, patch_size: int = 128, use_service_account: bool = False) -> np.ndarray:
         """Get a training patch centered on the coordinates."""
         from aces.ee_utils import EEUtils
         from aces.config import Config
@@ -352,7 +409,6 @@ class EEUtils:
                 raise exceptions.TooManyRequests(response.text)
                 # Still raise any other exceptions to make sure we got valid data.
             response.raise_for_status()
-
             # Load the NumPy file data and return it as a NumPy array.
             return np.load(io.BytesIO(response.content), allow_pickle=True)
 
