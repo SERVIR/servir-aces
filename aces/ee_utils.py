@@ -335,7 +335,7 @@ class EEUtils:
         return sample
 
     @staticmethod
-    def beam_yield_sample_points(index, sample_locations: ee.List, use_service_account: bool = False) -> List:
+    def beam_yield_sample_points_with_index(index, sample_locations: ee.List, use_service_account: bool = False) -> List:
         from aces.ee_utils import EEUtils
         from aces.config import Config
         import ee
@@ -343,6 +343,16 @@ class EEUtils:
         print(f"Yielding Index: {index} of {sample_locations.size().getInfo() - 1}")
         point = ee.Feature(sample_locations.get(index)).geometry().getInfo()
         return point["coordinates"], index
+
+    @staticmethod
+    def beam_yield_sample_points(index, sample_locations: ee.List, use_service_account: bool = False) -> List:
+        from aces.ee_utils import EEUtils
+        from aces.config import Config
+        import ee
+        EEUtils.initialize_session(use_highvolume=True, key=Config.EE_SERVICE_CREDENTIALS if use_service_account else None)
+        print(f"Yielding Index: {index} of {sample_locations.size().getInfo() - 1}")
+        point = ee.Feature(sample_locations.get(index)).geometry().getInfo()
+        return point["coordinates"]
 
     @staticmethod
     def beam_sample_neighbourhood(coords_index, image, use_service_account: bool = False):

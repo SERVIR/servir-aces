@@ -20,7 +20,7 @@ try:
 except ModuleNotFoundError:
     print("ModuleNotFoundError: Attempting to import from parent directory.")
     import os, sys
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
     from aces.ee_utils import EEUtils
     from aces.utils import TFUtils, Utils
     from aces.config import Config
@@ -142,7 +142,7 @@ class TrainingDataGenerator:
                 _ = (
                     pipeline
                     | "Create range" >> beam.Create(range(0, data.size().getInfo(), 1))
-                    | "Yield sample points" >> beam.Map(EEUtils.beam_yield_sample_points, data.toList(data.size()), use_service_account)
+                    | "Yield sample points" >> beam.Map(EEUtils.beam_yield_sample_points_with_index, data.toList(data.size()), use_service_account)
                     | "Get patch" >> beam.Map(EEUtils.beam_sample_neighbourhood, image, use_service_account)
                     | "Write training data" >> beam.Map(EEUtils.beam_export_collection_to_cloud_storage, start_training=True,
                                                         **{**export_kwargs,"file_prefix": f"{prefix}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_') + str(uuid4())}",
