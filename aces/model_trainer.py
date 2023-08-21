@@ -91,7 +91,7 @@ class ModelTrainer:
         self.config.physical_devices = physical_devices
         logging.info("****************************************************************************")
         logging.info("****************************** creating datasets... ************************")
-        self.create_datasets(print_info=False)
+        self.create_datasets(print_info=True)
         logging.info("****************************************************************************")
         logging.info("************************ building and compiling model... *******************")
         self.build_and_compile_model(print_model_summary=True)
@@ -128,7 +128,7 @@ class ModelTrainer:
         today = datetime.date.today().strftime("%Y_%m_%d")
         iterator = 1
         while True:
-            self.model_dir_name = f"trial_{self.config.MODEL_TYPE}_{today}_V{iterator}"
+            self.model_dir_name = f"trial_{self.config.MODEL_TYPE}_{today}_v{iterator}"
             self.config.MODEL_SAVE_DIR = self.config.OUTPUT_DIR / self.model_dir_name
             try:
                 os.mkdir(self.config.MODEL_SAVE_DIR)
@@ -213,7 +213,7 @@ class ModelTrainer:
 
         early_stopping = callbacks.EarlyStopping(
             monitor=self.config.CALLBACK_PARAMETER,
-            patience=int(0.4 * self.config.EPOCHS),
+            patience=int(0.3 * self.config.EPOCHS),
             verbose=1,
             mode="auto",
             restore_best_weights=True,
@@ -329,5 +329,5 @@ class ModelTrainer:
         """
         self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
         self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
-        self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.h5", save_format="h5")
-        self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.tf", save_format="tf")
+        # self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.h5", save_format="h5")
+        # self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.tf", save_format="tf")

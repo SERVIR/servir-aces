@@ -111,7 +111,7 @@ image_export_options = {
     "description": Config.GCS_IMAGE_DIR.split("/")[-1],
     "file_name_prefix": f"{Config.GCS_IMAGE_DIR}/{Config.GCS_IMAGE_PREFIX}",
     "bucket": Config.GCS_BUCKET,
-    "scale": 5,
+    "scale": Config.SCALE,
     "file_format": "TFRecord",
     # "region": image.geometry(),
     "format_options": formatOptions,

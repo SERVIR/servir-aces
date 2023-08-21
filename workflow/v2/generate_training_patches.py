@@ -62,7 +62,8 @@ class TrainingDataGenerator:
         self.l1 = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/BT_Admin_1")
         self.paro = self.l1.filter(ee.Filter.eq("ADM1_EN", "Paro"))
 
-        self.sample_locations = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/ACES_2/paro_2021_all_class_samples")
+        # self.sample_locations = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/ACES_2/paro_2021_all_class_samples")
+        self.sample_locations = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/ACES_2/paro_2021_all_class_samples_clipped")
         self.sample_locations = self.sample_locations.randomColumn("random", self.seed)
         self.training_sample_locations = self.sample_locations.filter(ee.Filter.gt("random", self.validation_ratio + self.test_ratio)) # > 0.4
         print("Training sample size:", self.training_sample_locations.size().getInfo())
@@ -121,9 +122,9 @@ class TrainingDataGenerator:
         from uuid import uuid4
         
         export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
-        training_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training_"
-        validation_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation"
-        test_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing"
+        training_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_training/training_"
+        validation_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_validation/validation"
+        test_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_testing/testing"
         
         def _generate_data(image, data, selectors, use_service_account, prefix):
             if "training" in prefix:
@@ -145,7 +146,7 @@ class TrainingDataGenerator:
                     | "Yield sample points" >> beam.Map(EEUtils.beam_yield_sample_points_with_index, data.toList(data.size()), use_service_account)
                     | "Get patch" >> beam.Map(EEUtils.beam_sample_neighbourhood, image, use_service_account)
                     | "Write training data" >> beam.Map(EEUtils.beam_export_collection_to_cloud_storage, start_training=True,
-                                                        **{**export_kwargs,"file_prefix": f"{prefix}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_') + str(uuid4())}",
+                                                        **{**export_kwargs, "file_prefix": f"{prefix}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_') + str(uuid4())}",
                                                            "description": f"{description}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_') + str(uuid4())}",
                                                            "selectors": selectors})
                 )
@@ -195,17 +196,18 @@ class TrainingDataGenerator:
                     | "Create range" >> beam.Create(range(0, data.size().getInfo(), 1))
                     | "Yield sample points" >> beam.Map(EEUtils.beam_yield_sample_points, data.toList(data.size()), use_service_account)
                     | "Get patch" >> beam.Map(EEUtils.beam_get_training_patches, image, selectors, scale, kernel_size, use_service_account)
+                    | "Filter patches" >> beam.Filter(Utils.filter_good_patches)
                     | "Serialize" >> beam.Map(TFUtils.beam_serialize)
                     | "Write training data" >> beam.io.WriteToTFRecord(output_path, file_name_suffix=".tfrecord.gz")
                 )
         _generate_data_seed(self.image, self.training_sample_locations, self.selectors, self.scale, self.kernel_size,
-                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training")
+                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_training/training")
 
         _generate_data_seed(self.image, self.validation_sample_locations, self.selectors, self.scale, self.kernel_size,
-                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation")
+                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_validation/validation")
             
         _generate_data_seed(self.image, self.test_sample_locations, self.selectors, self.scale, self.kernel_size,
-                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing")
+                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_testing/testing")
 
     def generate_training_point_data(self) -> None:
         """
@@ -220,9 +222,9 @@ class TrainingDataGenerator:
         test_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_testing/testing"
 
         export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
-        EEUtils.export_collection_data(training_sample_points, export_type="cloud", start_training=False, **{**export_kwargs, "file_prefix": training_file_prefix, "description": "Training"})
-        EEUtils.export_collection_data(validation_sample_points, export_type="cloud", start_training=False, **{**export_kwargs, "file_prefix": validation_file_prefix, "description": "Validation"})
-        EEUtils.export_collection_data(test_sample_points, export_type="cloud", start_training=False, **{**export_kwargs, "file_prefix": test_file_prefix, "description": "Test"})
+        EEUtils.export_collection_data(training_sample_points, export_type="cloud", start_training=True, **{**export_kwargs, "file_prefix": training_file_prefix, "description": "Training"})
+        EEUtils.export_collection_data(validation_sample_points, export_type="cloud", start_training=True, **{**export_kwargs, "file_prefix": validation_file_prefix, "description": "Validation"})
+        EEUtils.export_collection_data(test_sample_points, export_type="cloud", start_training=True, **{**export_kwargs, "file_prefix": test_file_prefix, "description": "Test"})
 
     def run_patch_generator(self) -> None:
         """

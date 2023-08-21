@@ -103,9 +103,9 @@ class DataProcessor:
         for inputs, outputs in dataset.take(1):
             try:
                 logging.info(f"inputs: {inputs.dtype.name} {inputs.shape}")
-                print(inputs)
+                logging.info(inputs)
                 logging.info(f"outputs: {outputs.dtype.name} {outputs.shape}")
-                print(outputs)
+                logging.info(outputs)
             except:
                 logging.info(f" > inputs:")
                 for name, values in inputs.items():

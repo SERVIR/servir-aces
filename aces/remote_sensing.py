@@ -217,15 +217,15 @@ class RemoteSensingFeatures:
         ndwi_during = RemoteSensingFeatures.normalized_difference(green_during, nir_during, name="ndwi_during")
         savi_before = RemoteSensingFeatures.savi(nir_before, red_before, name="savi_before")
         savi_during = RemoteSensingFeatures.savi(nir_during, red_during, name="savi_during")
-        msavi_before = RemoteSensingFeatures.msavi(nir_before, red_before, name="msavi_before")
-        msavi_during = RemoteSensingFeatures.msavi(nir_during, red_during, name="msavi_during")
+        # msavi_before = RemoteSensingFeatures.msavi(nir_before, red_before, name="msavi_before")
+        # msavi_during = RemoteSensingFeatures.msavi(nir_during, red_during, name="msavi_during")
         mtvi2_before = RemoteSensingFeatures.mtvi2(nir_before, red_before, green_before, name="mtvi2_before")
         mtvi2_during = RemoteSensingFeatures.mtvi2(nir_during, red_during, green_during, name="mtvi2_during")
         # vari is not used because the computation gave some nan values
         # vari_before = RemoteSensingFeatures.vari(green_before, red_before, blue_before, name="vari_before")
         # vari_during = RemoteSensingFeatures.vari(green_during, red_during, blue_during, name="vari_during")
-        tgi_before = RemoteSensingFeatures.tgi(green_before, red_before, blue_before, name="tgi_before")
-        tgi_during = RemoteSensingFeatures.tgi(green_during, red_during, blue_during, name="tgi_during")
+        # tgi_before = RemoteSensingFeatures.tgi(green_before, red_before, blue_before, name="tgi_before")
+        # tgi_during = RemoteSensingFeatures.tgi(green_during, red_during, blue_during, name="tgi_during")
 
         red_diff1 = RemoteSensingFeatures.diff_band(red_before, red_during, name="diff1")
         green_diff1 = RemoteSensingFeatures.diff_band(green_before, green_during, name="diff2")
@@ -234,7 +234,7 @@ class RemoteSensingFeatures:
 
         return keras.layers.concatenate(
             [ndvi_before, ndvi_during, evi_before, evi_during, ndwi_before, ndwi_during, savi_before, savi_during,
-             msavi_before, msavi_during, mtvi2_before, mtvi2_during, tgi_before, tgi_during,
+             mtvi2_before, mtvi2_during,
              red_diff1, green_diff1, blue_diff1, nir_diff1],
             name="input_features"
         )

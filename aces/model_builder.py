@@ -103,16 +103,19 @@ class ModelBuilder:
 
         inputs = keras.Input(shape=(None, self.in_size), name="input_layer")
 
-        input_features = rs.concatenate_features_for_dnn(inputs)
-
+        # input_features = rs.concatenate_features_for_dnn(inputs)
         # Create a custom input layer that accepts 4 channels
-        y = keras.layers.Conv1D(64, 3, activation="relu", padding="same", name="conv1")(input_features)
-        y = keras.layers.MaxPooling1D(2, padding="same")(y)
-        y = keras.layers.Conv1D(32, 3, activation="relu", padding="same", name="conv2")(y)
-        y = keras.layers.MaxPooling1D(2, padding="same")(y)
-        y = keras.layers.Conv1D(self.in_size, 2, activation="relu", padding="same", name="conv4")(y)
+        # y = keras.layers.Conv1D(64, 3, activation="relu", padding="same", name="conv1")(input_features)
+        # y = keras.layers.MaxPooling1D(2, padding="same")(y)
+        # y = keras.layers.Conv1D(32, 3, activation="relu", padding="same", name="conv2")(y)
+        # y = keras.layers.MaxPooling1D(2, padding="same")(y)
+        # y = keras.layers.Conv1D(self.in_size, 2, activation="relu", padding="same", name="conv4")(y)
+        # all_inputs = keras.layers.concatenate([inputs, y])
 
-        all_inputs = keras.layers.concatenate([inputs, y])
+        # input_features = rs.concatenate_features_for_dnn(inputs)
+        # all_inputs = keras.layers.concatenate([inputs, input_features])
+        
+        all_inputs = inputs
 
         x = keras.layers.Dense(256, activation="relu")(all_inputs)
         x = keras.layers.Dropout(0.2)(x)
@@ -202,13 +205,17 @@ class ModelBuilder:
 
         input_features = rs.concatenate_features_for_cnn(inputs)
 
-        y = keras.layers.Conv2D(64, 3, activation="relu", padding="same", name="conv1")(input_features)
-        y = keras.layers.Conv2D(32, 3, activation="relu", padding="same", name="conv2")(y)
+        y = keras.layers.Conv2D(32, 3, activation="relu", padding="same", name="conv1")(input_features)
+        # y = keras.layers.Conv2D(32, 3, activation="relu", padding="same", name="conv2")(y)
+        y = keras.layers.BatchNormalization()(y)
+        y = keras.layers.Activation("relu")(y)
         y = keras.layers.Conv2D(self.in_size, 3, activation="relu", padding="same", name="conv4")(y)
+        y = keras.layers.BatchNormalization()(y)
+        y = keras.layers.Activation("relu")(y)
 
-        all_inputs = keras.layers.concatenate([inputs, y]) # inputs # 
+        all_inputs = keras.layers.concatenate([inputs, y])
 
-        x = keras.layers.Conv2D(32, 3, strides=2, padding="same")(all_inputs)
+        x = keras.layers.Conv2D(32, 3, strides=2, padding="same")(inputs) # all_inputs
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.Activation("relu")(x)
 
@@ -216,28 +223,24 @@ class ModelBuilder:
 
         l2_regularizer = keras.regularizers.l2(0.001)
 
-        for filters in [64, 128]:
+        for filters in [64, 128, 256]:
             x = keras.layers.Activation("relu")(x)
-            x = keras.layers.SeparableConv2D(filters, 3, padding="same", depthwise_initializer="he_normal",
-                                              bias_initializer="he_normal", depthwise_regularizer=l2_regularizer)(x)
+            x = keras.layers.SeparableConv2D(filters, 3, padding="same")(x)
             x = keras.layers.BatchNormalization()(x)
 
             x = keras.layers.Activation("relu")(x)
-            x = keras.layers.SeparableConv2D(filters, 3, padding="same", depthwise_initializer="he_normal",
-                                              bias_initializer="he_normal", depthwise_regularizer=l2_regularizer)(x)
+            x = keras.layers.SeparableConv2D(filters, 3, padding="same")(x)
             x = keras.layers.BatchNormalization()(x)
 
             x = keras.layers.MaxPooling2D(3, strides=2, padding="same")(x)
 
-            residual = keras.layers.Conv2D(filters, 1, strides=2, padding="same", bias_initializer="he_normal",
-                                           kernel_initializer="he_normal", bias_regularizer=l2_regularizer,
-                                           kernel_regularizer=l2_regularizer)(
+            residual = keras.layers.Conv2D(filters, 1, strides=2, padding="same")(
                 previous_block_activation
             )
             x = keras.layers.add([x, residual])
             previous_block_activation = x
 
-        for filters in [128, 64, 32]:
+        for filters in [256, 128, 64, 32]:
             x = keras.layers.Activation("relu")(x)
             x = keras.layers.Conv2DTranspose(filters, 3, padding="same")(x)
             x = keras.layers.BatchNormalization()(x)

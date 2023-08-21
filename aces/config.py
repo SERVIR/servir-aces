@@ -66,7 +66,9 @@ class Config:
     MODEL_NAME = os.getenv("MODEL_NAME")
     MODEL_CHECKPOINT_NAME = os.getenv("MODEL_CHECKPOINT_NAME")
     
-    MODEL_DIR = OUTPUT_DIR / os.getenv("MODEL_DIR_NAME")
+    MODEL_DIR_NAME = os.getenv("MODEL_DIR_NAME")
+
+    MODEL_DIR = OUTPUT_DIR / MODEL_DIR_NAME
     print(f"MODEL_DIR: {MODEL_DIR}")
 
     SCALE = int(os.getenv("SCALE"))
@@ -128,6 +130,9 @@ class Config:
     GCS_BUCKET = os.getenv("GCS_BUCKET")
     GCS_IMAGE_DIR = os.getenv("GCS_IMAGE_DIR")
     GCS_IMAGE_PREFIX = os.getenv("GCS_IMAGE_PREFIX")
+    GCS_VERTEX_MODEL_SAVE_DIR = os.getenv("GCS_VERTEX_MODEL_SAVE_DIR")
+    GCS_REGION = os.getenv("GCS_REGION")
+    GCS_VERTEX_CONTAINER_IMAGE = os.getenv("GCS_VERTEX_CONTAINER_IMAGE")
 
     def __init__(self) -> None:
         self.BASEDIR = Config.BASEDIR
@@ -142,6 +147,7 @@ class Config:
 
         self.MODEL_NAME = Config.MODEL_NAME
         self.MODEL_CHECKPOINT_NAME = Config.MODEL_CHECKPOINT_NAME
+        self.MODEL_DIR_NAME = Config.MODEL_DIR_NAME
         self.MODEL_DIR = Config.MODEL_DIR
         
         self.SCALE = Config.SCALE
@@ -202,3 +208,7 @@ class Config:
         self.EE_SERVICE_CREDENTIALS = Config.EE_SERVICE_CREDENTIALS
         self.GCS_IMAGE_DIR = Config.GCS_IMAGE_DIR
         self.GCS_IMAGE_PREFIX = Config.GCS_IMAGE_PREFIX
+
+        self.GCS_VERTEX_MODEL_SAVE_DIR = Config.GCS_VERTEX_MODEL_SAVE_DIR
+        self.GCS_REGION = Config.GCS_REGION
+        self.GCS_VERTEX_CONTAINER_IMAGE = Config.GCS_VERTEX_CONTAINER_IMAGE
