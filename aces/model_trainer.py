@@ -17,7 +17,7 @@ from keras import callbacks
 
 from aces.config import Config
 from aces.metrics import Metrics
-from aces.model_builder import ModelBuilder
+from aces.model_builder import ModelBuilder, DeSerializeInput, ReSerializeOutput
 from aces.data_processor import DataProcessor
 from aces.utils import Utils, TFUtils
 
@@ -62,12 +62,13 @@ class ModelTrainer:
             self.config.LOSS_TXT = self.config.LOSS
 
         self.model_builder = ModelBuilder(
-            in_size=len(self.config.FEATURES),
+            features=self.config.FEATURES,
             out_classes=self.config.OUT_CLASS_NUM,
             optimizer=self.config.OPTIMIZER,
             loss=self.config.LOSS
         )
-        self.build_model = partial(self.model_builder.build_model, model_type=self.config.MODEL_TYPE)
+        self.build_model = partial(self.model_builder.build_model, model_type=self.config.MODEL_TYPE,
+                                   **{"FOR_AI_PLATFORM": self.config.USE_AI_PLATFORM})
 
     def train_model(self) -> None:
         """
@@ -92,15 +93,27 @@ class ModelTrainer:
         logging.info("****************************************************************************")
         logging.info("****************************** creating datasets... ************************")
         self.create_datasets(print_info=True)
-        logging.info("****************************************************************************")
-        logging.info("************************ building and compiling model... *******************")
-        self.build_and_compile_model(print_model_summary=True)
+
+        if self.config.USE_AI_PLATFORM:
+            if self.config.IS_DNN:
+                logging.info("****************************************************************************")
+                logging.info("******* building and compiling model for ai platform... ********************")
+                self.build_and_compile_model_ai_platform()
+        else:
+            logging.info("****************************************************************************")
+            logging.info("************************ building and compiling model... *******************")
+            self.build_and_compile_model(print_model_summary=True)
+
         logging.info("****************************************************************************")
         logging.info("************************ preparing output directory... *********************")
         self.prepare_output_dir()
         logging.info("****************************************************************************")
         logging.info("****************************** training model... ***************************")
         self.start_training()
+
+        if self.config.USE_AI_PLATFORM:
+            logging.info(self.model.summary())
+
         logging.info("****************************************************************************")
         logging.info("****************************** evaluating model... *************************")
         self.evaluate_and_print_val()
@@ -110,7 +123,10 @@ class ModelTrainer:
         logging.info("****************************************************************************")
         logging.info("*************** saving model config and history object... ******************")
         self.save_history_object()
-        ModelTrainer.save_model_config(self.config.MODEL_SAVE_DIR, **self.model.get_config())
+        if self.config.USE_AI_PLATFORM:
+            ModelTrainer.save_model_config(self.config.MODEL_SAVE_DIR, **self._model.get_config())
+        else:
+            ModelTrainer.save_model_config(self.config.MODEL_SAVE_DIR, **self.model.get_config())
         logging.info("****************************************************************************")
         logging.info("****************************** saving plots... *****************************")
         self.save_plots()
@@ -195,6 +211,21 @@ class ModelTrainer:
         """
         self.model = self.build_model(**self.config.__dict__)
         if print_model_summary:  logging.info(self.model.summary())
+
+    def build_and_compile_model_ai_platform(self) -> None:
+        """
+        Build and compile the model.
+
+        Args:
+            print_model_summary: Flag indicating whether to print the model summary.
+
+        Builds and compiles the model using the provided configuration settings.
+        Prints the model summary if print_model_summary is set to True.
+        """
+        model, wrapped_model = self.build_model(**self.config.__dict__)
+        print(model.summary())
+        self._model = model
+        self.model = wrapped_model
 
     def start_training(self) -> None:
         """
@@ -327,7 +358,21 @@ class ModelTrainer:
 
         Saves the trained models in different formats: h5 and tf formats.
         """
-        self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
-        self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
-        # self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.h5", save_format="h5")
-        # self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.tf", save_format="tf")
+        if self.config.USE_AI_PLATFORM:
+            input_deserializer = DeSerializeInput()
+            output_deserializer = ReSerializeOutput()
+            serialized_inputs = {
+                b: tf.keras.Input(shape=[], dtype="string", name=b) for b in self.config.FEATURES
+            }
+            updated_model_input = input_deserializer(serialized_inputs)
+            updated_model = self.model(updated_model_input)
+            updated_model = output_deserializer(updated_model)
+            updated_model = tf.keras.Model(serialized_inputs, updated_model)
+            keras.utils.plot_model(updated_model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True)
+            # updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
+            updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
+        else:
+            self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
+            self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
+            # self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.h5", save_format="h5")
+            # self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.tf", save_format="tf")

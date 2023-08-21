@@ -9,14 +9,15 @@ except ModuleNotFoundError:
 
     from aces.config import Config
 
-# import json
 import os
 import tensorflow as tf
 import subprocess
 
 
 # Load the trained model
-this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_NAME}.h5")
+# h5 won't work with vertex ai
+# this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_NAME}.h5")
+this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_NAME}.tf")
 print(this_model.summary())
 
 # Save the trained model in the google cloud storage bucket

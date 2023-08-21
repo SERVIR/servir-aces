@@ -133,6 +133,8 @@ class Config:
     GCS_VERTEX_MODEL_SAVE_DIR = os.getenv("GCS_VERTEX_MODEL_SAVE_DIR")
     GCS_REGION = os.getenv("GCS_REGION")
     GCS_VERTEX_CONTAINER_IMAGE = os.getenv("GCS_VERTEX_CONTAINER_IMAGE")
+    
+    USE_AI_PLATFORM = os.getenv("USE_AI_PLATFORM") == "True"
 
     def __init__(self) -> None:
         self.BASEDIR = Config.BASEDIR
@@ -212,3 +214,5 @@ class Config:
         self.GCS_VERTEX_MODEL_SAVE_DIR = Config.GCS_VERTEX_MODEL_SAVE_DIR
         self.GCS_REGION = Config.GCS_REGION
         self.GCS_VERTEX_CONTAINER_IMAGE = Config.GCS_VERTEX_CONTAINER_IMAGE
+
+        self.USE_AI_PLATFORM = Config.USE_AI_PLATFORM

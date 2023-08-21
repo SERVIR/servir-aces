@@ -44,7 +44,7 @@ class ModelBuilder:
             Helper method for building and compiling a U-Net model.
     """
 
-    def __init__(self, in_size, out_classes, optimizer, loss):
+    def __init__(self, features, out_classes, optimizer, loss):
         """
         Initialize ModelBuilder with input size, output classes, optimizer, and loss.
 
@@ -54,7 +54,8 @@ class ModelBuilder:
             optimizer (tf.keras.optimizers.Optimizer): The optimizer to use for model compilation.
             loss (tf.keras.losses.Loss): The loss function to use for model compilation.
         """
-        self.in_size = in_size
+        self.features = features
+        self.in_size = len(features)
         self.out_classes = out_classes
         self.optimizer = optimizer
         self.loss = loss
@@ -74,7 +75,10 @@ class ModelBuilder:
             ValueError: If an invalid model type is provided.
         """
         if model_type == "dnn":
-            return self.build_and_compile_dnn_model(**kwargs)
+            if kwargs.get("FOR_AI_PLATFORM", False):
+                return self.build_and_compile_dnn_model_for_ai_platform(**kwargs)
+            else:
+                return self.build_and_compile_dnn_model(**kwargs)
         elif model_type == "cnn":
             return self.build_and_compile_cnn_model(**kwargs)
         elif model_type == "unet":
@@ -137,6 +141,65 @@ class ModelBuilder:
 
         model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
         return model
+
+
+    def build_and_compile_dnn_model_for_ai_platform(self, **kwargs):
+        """
+        Builds and compiles a Deep Neural Network (DNN) model.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            keras.Model: The compiled DNN model.
+        """
+        INITIAL_BIAS = kwargs.get("INITIAL_BIAS", None)
+        logging.info(f"INITIAL_BIAS: {INITIAL_BIAS}")
+        # DNN_DURING_ONLY = kwargs.get("DURING_ONLY", False)
+
+        if INITIAL_BIAS is not None:
+            INITIAL_BIAS = tf.keras.initializers.Constant(INITIAL_BIAS)
+        else:
+            INITIAL_BIAS = "zeros"
+
+        inputs = keras.Input(shape=(1, 1, self.in_size), name="input_layer")
+
+        # input_features = rs.concatenate_features_for_dnn(inputs)
+        # Create a custom input layer that accepts 4 channels
+        # y = keras.layers.Conv1D(64, 3, activation="relu", padding="same", name="conv1")(input_features)
+        # y = keras.layers.MaxPooling1D(2, padding="same")(y)
+        # y = keras.layers.Conv1D(32, 3, activation="relu", padding="same", name="conv2")(y)
+        # y = keras.layers.MaxPooling1D(2, padding="same")(y)
+        # y = keras.layers.Conv1D(self.in_size, 2, activation="relu", padding="same", name="conv4")(y)
+        # all_inputs = keras.layers.concatenate([inputs, y])
+
+        # input_features = rs.concatenate_features_for_dnn(inputs)
+        # all_inputs = keras.layers.concatenate([inputs, input_features])
+        
+        all_inputs = inputs
+
+        x = keras.layers.Conv2D(256, (1, 1), activation="relu")(all_inputs)
+        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Conv2D(128, (1, 1), activation="relu")(x)
+        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Conv2D(64, (1, 1), activation="relu")(x)
+        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Conv2D(32, (1, 1), activation="relu")(x)
+        x = keras.layers.Dropout(0.2)(x)
+        output = keras.layers.Conv2D(self.out_classes, (1, 1), activation=kwargs.get("ACTIVATION_FN"), bias_initializer=INITIAL_BIAS)(x)
+
+        model = keras.models.Model(inputs=inputs, outputs=output)
+
+        wrapped_model = ModelWrapper(PreprocessingPointModel(self.features), model)
+
+        metrics_list = [
+            Metrics.precision(),
+            Metrics.recall(),
+            keras.metrics.CategoricalAccuracy(),
+            Metrics.one_hot_io_u(self.out_classes),
+        ]
+        wrapped_model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
+        return model, wrapped_model
 
     def build_and_compile_cnn_model(self, **kwargs):
         """
@@ -269,3 +332,81 @@ class ModelBuilder:
 
         model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
         return model
+
+
+# A Layer to stack and reshape the input tensors.
+class PreprocessingPatchModel(keras.layers.Layer):
+    def __init__(self, in_features, **kwargs):
+        self.in_features = in_features
+        super(PreprocessingPatchModel, self).__init__(**kwargs)
+
+    def call(self, features_dict):
+        # (None, H, W, 1) -> (None, H, W, P)
+        return tf.concat([features_dict[b] for b in self.in_features], axis=3)
+
+    def get_config(self):
+        config = super().get_config()
+        return config
+
+
+# A Layer to stack and reshape the input tensors.
+class PreprocessingPointModel(keras.layers.Layer):
+    def __init__(self, in_features, **kwargs):
+        self.in_features = in_features
+        super(PreprocessingPointModel, self).__init__(**kwargs)
+
+    def call(self, features_dict):
+        # (None, 1, 1, 1) -> (None, 1, 1, P)
+        concat_features = tf.concat([features_dict[b] for b in self.in_features], axis=3)
+        return concat_features
+
+    def get_config(self):
+        config = super().get_config()
+        return config
+
+
+# A Model that wraps the base model with the preprocessing layer.
+class ModelWrapper(keras.Model):
+    def __init__(self, preprocessing, backbone, **kwargs):
+        super().__init__(**kwargs)
+        self.preprocessing = preprocessing
+        self.backbone = backbone
+
+    def call(self, features_dict):
+        x = self.preprocessing(features_dict)
+        return self.backbone(x)
+
+    def get_config(self):
+        config = super().get_config()
+        return config
+
+class DeSerializeInput(tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs_dict):
+        return {
+            k: tf.map_fn(lambda x: tf.io.parse_tensor(x, tf.float32),
+                        tf.io.decode_base64(v),
+                        fn_output_signature=tf.float32)
+            for (k, v) in inputs_dict.items()
+        }
+
+    def get_config(self):
+        config = super().get_config()
+        return config
+
+
+class ReSerializeOutput(tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, output_tensor):
+        return tf.map_fn(lambda x: tf.io.encode_base64(tf.io.serialize_tensor(x)),
+                        output_tensor,
+                        fn_output_signature=tf.string)
+
+    def get_config(self):
+        config = super().get_config()
+        return config
+

@@ -281,6 +281,23 @@ class DataProcessor:
         return tf.transpose(list(dataset.values())), tf.one_hot(indices=label, depth=depth)
 
     @staticmethod
+    def to_tuple_dnn_ai_platform(dataset: dict, label: tf.Tensor, depth: int = 1) -> tuple:
+        """
+        Convert a dataset for DNN models to a tuple of features and one-hot encoded labels.
+
+        Parameters:
+        dataset (dict): The input dataset.
+        label (tf.Tensor): The label.
+        depth (int, optional): The depth of one-hot encoding. Default is 1.
+
+        Returns:
+        tuple: A tuple containing the features and one-hot encoded labels.
+        """
+          # (1) -> (1, 1, 1)
+        return ({k: [[v]] for k, v in dataset.items()}, tf.expand_dims(tf.one_hot(label, depth), axis=0))
+
+
+    @staticmethod
     @tf.function
     def parse_tfrecord_multi_label(example_proto: tf.data.Dataset, patch_size: int, features: list = None, labels: list = None) -> tuple:
         """
@@ -409,8 +426,12 @@ class DataProcessor:
         dataset = tf.data.Dataset.list_files(pattern).interleave(DataProcessor.create_tfrecord_from_file)
 
         if kwargs.get("IS_DNN", False):
-            parser = partial(DataProcessor.parse_tfrecord_dnn, features=features, labels=labels)
-            tupler = partial(DataProcessor.to_tuple_dnn, depth=n_classes)
+            if kwargs.get("USE_AI_PLATFORM", False):
+                parser = partial(DataProcessor.parse_tfrecord_dnn, features=features, labels=labels)
+                tupler = partial(DataProcessor.to_tuple_dnn_ai_platform, depth=n_classes)
+            else:
+                parser = partial(DataProcessor.parse_tfrecord_dnn, features=features, labels=labels)
+                tupler = partial(DataProcessor.to_tuple_dnn, depth=n_classes)
 
             dataset = dataset.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
             dataset = dataset.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
