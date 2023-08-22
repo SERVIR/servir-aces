@@ -68,7 +68,8 @@ class ModelTrainer:
             loss=self.config.LOSS
         )
         self.build_model = partial(self.model_builder.build_model, model_type=self.config.MODEL_TYPE,
-                                   **{"FOR_AI_PLATFORM": self.config.USE_AI_PLATFORM})
+                                   **{"FOR_AI_PLATFORM": self.config.USE_AI_PLATFORM,
+                                      "DERIVE_FEATURES": self.config.DERIVE_FEATURES})
 
     def train_model(self) -> None:
         """
@@ -223,7 +224,7 @@ class ModelTrainer:
         Prints the model summary if print_model_summary is set to True.
         """
         model, wrapped_model = self.build_model(**self.config.__dict__)
-        print(model.summary())
+        logging.info(model.summary())
         self._model = model
         self.model = wrapped_model
 
@@ -234,12 +235,12 @@ class ModelTrainer:
         Trains the model using the provided configuration settings and callbacks.
         """
         model_checkpoint = callbacks.ModelCheckpoint(
-            f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_CHECKPOINT_NAME}.h5",
+            f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_CHECKPOINT_NAME}.tf",
             monitor=self.config.CALLBACK_PARAMETER,
             save_best_only=True,
             mode="auto",
             verbose=1,
-            save_weights_only=True,
+            save_weights_only=False,
         )  # save best model
 
         early_stopping = callbacks.EarlyStopping(
@@ -361,9 +362,15 @@ class ModelTrainer:
         if self.config.USE_AI_PLATFORM:
             input_deserializer = DeSerializeInput()
             output_deserializer = ReSerializeOutput()
-            serialized_inputs = {
-                b: tf.keras.Input(shape=[], dtype="string", name=b) for b in self.config.FEATURES
-            }
+            if self.config.DERIVE_FEATURES:
+                serialized_inputs = {
+                    b: tf.keras.Input(shape=[], dtype="string", name=b) for b in self.config.FEATURES + self.config.ADDED_FEATURES
+                }
+            else:
+                serialized_inputs = {
+                    b: tf.keras.Input(shape=[], dtype="string", name=b) for b in self.config.FEATURES
+                }
+            print(f"serialized_inputs: {serialized_inputs}")
             updated_model_input = input_deserializer(serialized_inputs)
             updated_model = self.model(updated_model_input)
             updated_model = output_deserializer(updated_model)

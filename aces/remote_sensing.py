@@ -282,3 +282,48 @@ class RemoteSensingFeatures:
              msavi_before, msavi_during, mtvi2_before, mtvi2_during, vari_before, vari_during, tgi_before, tgi_during],
             name="input_features"
         )
+
+    @staticmethod
+    def derive_features_for_dnn(features_dict: dict, added_features: list = []) -> dict:
+        """
+        Concatenate remote sensing features for Deep Neural Network (DNN) input.
+
+        Args:
+            input_tensor: A TensorFlow tensor representing the input remote sensing data.
+
+        Returns:
+            A TensorFlow tensor representing the concatenated features for DNN input.
+
+        """
+        red_before = features_dict["red_before"]
+        green_before = features_dict["green_before"]
+        blue_before = features_dict["blue_before"]
+        nir_before = features_dict["nir_before"]
+        red_during = features_dict["red_during"]
+        green_during = features_dict["green_during"]
+        blue_during = features_dict["blue_during"]
+        nir_during = features_dict["nir_during"]
+
+        feature_col = {
+            "ndvi_before": RemoteSensingFeatures.normalized_difference(nir_before, red_before, name="ndvi_before"),
+            "ndvi_during": RemoteSensingFeatures.normalized_difference(nir_during, red_during, name="ndvi_during"),
+            "evi_before": RemoteSensingFeatures.evi(nir_before, red_before, blue_before, name="evi_before"),
+            "evi_during": RemoteSensingFeatures.evi(nir_during, red_during, blue_during, name="evi_during"),
+            "ndwi_before": RemoteSensingFeatures.normalized_difference(green_before, nir_before, name="ndwi_before"),
+            "ndwi_during": RemoteSensingFeatures.normalized_difference(green_during, nir_during, name="ndwi_during"),
+            "savi_before": RemoteSensingFeatures.savi(nir_before, red_before, name="savi_before"),
+            "savi_during": RemoteSensingFeatures.savi(nir_during, red_during, name="savi_during"),
+            "msavi_before": RemoteSensingFeatures.msavi(nir_before, red_before, name="msavi_before"),
+            "msavi_during": RemoteSensingFeatures.msavi(nir_during, red_during, name="msavi_during"),
+            "mtvi2_before": RemoteSensingFeatures.mtvi2(nir_before, red_before, green_before, name="mtvi2_before"),
+            "mtvi2_during": RemoteSensingFeatures.mtvi2(nir_during, red_during, green_during, name="mtvi2_during"),
+            "vari_before": RemoteSensingFeatures.vari(green_before, red_before, blue_before, name="vari_before"),
+            "vari_during": RemoteSensingFeatures.vari(green_during, red_during, blue_during, name="vari_during"),
+            "tgi_before": RemoteSensingFeatures.tgi(green_before, red_before, blue_before, name="tgi_before"),
+            "tgi_during": RemoteSensingFeatures.tgi(green_during, red_during, blue_during, name="tgi_during"),
+        }
+
+        for feature in added_features:
+            features_dict[feature] = feature_col[feature]
+
+        return features_dict

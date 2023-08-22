@@ -74,6 +74,7 @@ class Config:
     SCALE = int(os.getenv("SCALE"))
 
     FEATURES = os.getenv("FEATURES").split("\n")
+    ADDED_FEATURES = os.getenv("ADDED_FEATURES").split("\n")
     LABELS = ast.literal_eval(os.getenv("LABELS"))
 
     USE_SEED = os.getenv("USE_SEED") == "True"
@@ -118,6 +119,7 @@ class Config:
     
     EARLY_STOPPING = os.getenv("EARLY_STOPPING") == "True"
     TRANSFORM_DATA = os.getenv("TRANSFORM_DATA") == "True"
+    DERIVE_FEATURES = os.getenv("DERIVE_FEATURES") == "True"
 
     # EE settings
     EE_SERVICE_CREDENTIALS = os.getenv("EE_SERVICE_CREDENTIALS")
@@ -157,6 +159,7 @@ class Config:
         self.FEATURES = Config.FEATURES
         print(f"FEATURES: {self.FEATURES}")
         print(f"FEATURES: {len(self.FEATURES)}")
+        self.ADDED_FEATURES = Config.ADDED_FEATURES
         self.LABELS = Config.LABELS
 
         self.USE_SEED = Config.USE_SEED
@@ -197,6 +200,7 @@ class Config:
         
         self.EARLY_STOPPING = Config.EARLY_STOPPING
         self.TRANSFORM_DATA = Config.TRANSFORM_DATA
+        self.DERIVE_FEATURES = Config.DERIVE_FEATURES
 
         # EE settings
         self.EE_SERVICE_CREDENTIALS = Config.EE_SERVICE_CREDENTIALS

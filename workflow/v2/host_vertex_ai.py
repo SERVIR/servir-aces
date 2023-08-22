@@ -17,6 +17,10 @@ import subprocess
 # Load the trained model
 # h5 won't work with vertex ai
 # this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_NAME}.h5")
+
+# modelcheckpoint is the best model
+# modelname is the last model
+# this_model = tf.saved_model.load(f"{str(Config.MODEL_DIR)}/{Config.MODEL_NAME}.tf")
 this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_NAME}.tf")
 print(this_model.summary())
 

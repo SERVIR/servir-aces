@@ -74,8 +74,9 @@ class ModelBuilder:
         Raises:
             ValueError: If an invalid model type is provided.
         """
+        FOR_AI_PLATFORM = kwargs.get("FOR_AI_PLATFORM", False)
         if model_type == "dnn":
-            if kwargs.get("FOR_AI_PLATFORM", False):
+            if FOR_AI_PLATFORM:
                 return self.build_and_compile_dnn_model_for_ai_platform(**kwargs)
             else:
                 return self.build_and_compile_dnn_model(**kwargs)
@@ -156,29 +157,21 @@ class ModelBuilder:
         INITIAL_BIAS = kwargs.get("INITIAL_BIAS", None)
         logging.info(f"INITIAL_BIAS: {INITIAL_BIAS}")
         # DNN_DURING_ONLY = kwargs.get("DURING_ONLY", False)
+        
+        DERIVE_FEATURES = kwargs.get("DERIVE_FEATURES", False)
+        ADDED_FEATURES = kwargs.get("ADDED_FEATURES", [])
 
         if INITIAL_BIAS is not None:
             INITIAL_BIAS = tf.keras.initializers.Constant(INITIAL_BIAS)
         else:
             INITIAL_BIAS = "zeros"
 
+        if DERIVE_FEATURES:
+            self.in_size = len(self.features) + len(ADDED_FEATURES)
+
         inputs = keras.Input(shape=(1, 1, self.in_size), name="input_layer")
 
-        # input_features = rs.concatenate_features_for_dnn(inputs)
-        # Create a custom input layer that accepts 4 channels
-        # y = keras.layers.Conv1D(64, 3, activation="relu", padding="same", name="conv1")(input_features)
-        # y = keras.layers.MaxPooling1D(2, padding="same")(y)
-        # y = keras.layers.Conv1D(32, 3, activation="relu", padding="same", name="conv2")(y)
-        # y = keras.layers.MaxPooling1D(2, padding="same")(y)
-        # y = keras.layers.Conv1D(self.in_size, 2, activation="relu", padding="same", name="conv4")(y)
-        # all_inputs = keras.layers.concatenate([inputs, y])
-
-        # input_features = rs.concatenate_features_for_dnn(inputs)
-        # all_inputs = keras.layers.concatenate([inputs, input_features])
-        
-        all_inputs = inputs
-
-        x = keras.layers.Conv2D(256, (1, 1), activation="relu")(all_inputs)
+        x = keras.layers.Conv2D(256, (1, 1), activation="relu")(inputs)
         x = keras.layers.Dropout(0.2)(x)
         x = keras.layers.Conv2D(128, (1, 1), activation="relu")(x)
         x = keras.layers.Dropout(0.2)(x)
@@ -190,7 +183,7 @@ class ModelBuilder:
 
         model = keras.models.Model(inputs=inputs, outputs=output)
 
-        wrapped_model = ModelWrapper(PreprocessingPointModel(self.features), model)
+        wrapped_model = ModelWrapper(PreprocessingPointModel(self.features, derive_features=DERIVE_FEATURES, added_features=ADDED_FEATURES), model)
 
         metrics_list = [
             Metrics.precision(),
@@ -351,14 +344,23 @@ class PreprocessingPatchModel(keras.layers.Layer):
 
 # A Layer to stack and reshape the input tensors.
 class PreprocessingPointModel(keras.layers.Layer):
-    def __init__(self, in_features, **kwargs):
-        self.in_features = in_features
+    def __init__(self, in_features, derive_features=False, added_features=[],**kwargs):
+        self.derive_features = derive_features
+        if self.derive_features:
+            self.in_features = in_features + added_features
+        else:
+            self.in_features = in_features
+        self.added_features = added_features
         super(PreprocessingPointModel, self).__init__(**kwargs)
 
-    def call(self, features_dict):
+    def call(self, inputs):
+        # does not allow modification of inputs; so make a copy before adding more features
+        features_dict = inputs.copy()
+        if self.derive_features:
+            features_dict = rs.derive_features_for_dnn(features_dict, self.added_features)
         # (None, 1, 1, 1) -> (None, 1, 1, P)
-        concat_features = tf.concat([features_dict[b] for b in self.in_features], axis=3)
-        return concat_features
+        features_dict = tf.concat([features_dict[b] for b in self.in_features], axis=3)
+        return features_dict
 
     def get_config(self):
         config = super().get_config()
@@ -380,6 +382,7 @@ class ModelWrapper(keras.Model):
         config = super().get_config()
         return config
 
+@tf.autograph.experimental.do_not_convert
 class DeSerializeInput(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -387,8 +390,8 @@ class DeSerializeInput(tf.keras.layers.Layer):
     def call(self, inputs_dict):
         return {
             k: tf.map_fn(lambda x: tf.io.parse_tensor(x, tf.float32),
-                        tf.io.decode_base64(v),
-                        fn_output_signature=tf.float32)
+                         tf.io.decode_base64(v),
+                         fn_output_signature=tf.float32)
             for (k, v) in inputs_dict.items()
         }
 
@@ -397,16 +400,16 @@ class DeSerializeInput(tf.keras.layers.Layer):
         return config
 
 
+@tf.autograph.experimental.do_not_convert
 class ReSerializeOutput(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def call(self, output_tensor):
         return tf.map_fn(lambda x: tf.io.encode_base64(tf.io.serialize_tensor(x)),
-                        output_tensor,
-                        fn_output_signature=tf.string)
+                         output_tensor,
+                         fn_output_signature=tf.string)
 
     def get_config(self):
         config = super().get_config()
         return config
-
