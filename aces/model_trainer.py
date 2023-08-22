@@ -172,12 +172,7 @@ class ModelTrainer:
             self.config.BATCH_SIZE,
             self.config.OUT_CLASS_NUM,
             **{**self.config.__dict__, "training": True},
-        )
-
-        if self.config.DERIVE_FEATURES:
-            self.TRAINING_DATASET = self.TRAINING_DATASET.map(AddExtraFeatures(self.config.ADDED_FEATURES), num_parallel_calls=tf.data.AUTOTUNE)
-        
-        self.TRAINING_DATASET = self.TRAINING_DATASET.batch(self.config.BATCH_SIZE).repeat()
+        ).repeat()
 
         self.VALIDATION_DATASET = DataProcessor.get_dataset(
             f"{str(self.config.VALIDATION_DIR)}/*",
@@ -187,12 +182,7 @@ class ModelTrainer:
             1,
             self.config.OUT_CLASS_NUM,
             **self.config.__dict__,
-        )
-
-        if self.config.DERIVE_FEATURES:
-            self.VALIDATION_DATASET = self.VALIDATION_DATASET.map(AddExtraFeatures(self.config.ADDED_FEATURES), num_parallel_calls=tf.data.AUTOTUNE)
-        
-        self.VALIDATION_DATASET = self.VALIDATION_DATASET.batch(1).repeat()
+        ).repeat()
 
         self.TESTING_DATASET = DataProcessor.get_dataset(
             f"{str(self.config.TESTING_DIR)}/*",
@@ -203,11 +193,6 @@ class ModelTrainer:
             self.config.OUT_CLASS_NUM,
             **self.config.__dict__,
         )
-        
-        if self.config.DERIVE_FEATURES:
-            self.TESTING_DATASET = self.TESTING_DATASET.map(AddExtraFeatures(self.config.ADDED_FEATURES), num_parallel_calls=tf.data.AUTOTUNE)
-        
-        self.TESTING_DATASET = self.TESTING_DATASET.batch(1)
 
         if print_info:
             logging.info("Printing dataset info:")
@@ -391,16 +376,11 @@ class ModelTrainer:
 
         Saves the trained models in different formats: h5 and tf formats.
         """
-        input_deserializer = DeSerializeInput()
+        input_deserializer = DeSerializeInput(self.config.FEATURES)
         output_deserializer = ReSerializeOutput()
-        if Config.DERIVE_FEATURES:
-            serialized_inputs = {
-                b: tf.keras.Input(shape=[], dtype="string", name=b) for b in Config.FEATURES + Config.ADDED_FEATURES
-            }
-        else:
-            serialized_inputs = {
-                b: tf.keras.Input(shape=[], dtype="string", name=b) for b in Config.FEATURES
-            }
+        serialized_inputs = {
+            b: tf.keras.Input(shape=[], dtype="string", name=b) for b in self.config.FEATURES
+        }
         updated_model_input = input_deserializer(serialized_inputs)
         updated_model = self.model(updated_model_input)
         updated_model = output_deserializer(updated_model)

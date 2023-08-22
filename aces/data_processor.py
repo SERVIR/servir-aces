@@ -436,7 +436,7 @@ class DataProcessor:
             dataset = dataset.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
             dataset = dataset.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
             dataset = dataset.shuffle(512)
-            # dataset = dataset.batch(batch_size)
+            dataset = dataset.batch(batch_size)
             dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
             return dataset
 

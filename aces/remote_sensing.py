@@ -233,7 +233,7 @@ class RemoteSensingFeatures:
         nir_diff1 = RemoteSensingFeatures.diff_band(nir_before, nir_during, name="diff4")
 
         return keras.layers.concatenate(
-            [ndvi_before, ndvi_during, evi_before, evi_during, ndwi_before, ndwi_during, savi_before, savi_during,
+            [input_tensor, ndvi_before, ndvi_during, evi_before, evi_during, ndwi_before, ndwi_during, savi_before, savi_during,
              mtvi2_before, mtvi2_during,
              red_diff1, green_diff1, blue_diff1, nir_diff1],
             name="input_features"
@@ -251,14 +251,14 @@ class RemoteSensingFeatures:
             A TensorFlow tensor representing the concatenated features for DNN input.
 
         """
-        red_before = input_tensor[:, :, 0:1]
-        green_before = input_tensor[:, :, 1:2]
-        blue_before = input_tensor[:, :, 2:3]
-        nir_before = input_tensor[:, :, 3:4]
-        red_during = input_tensor[:, :, 4:5]
-        green_during = input_tensor[:, :, 5:6]
-        blue_during = input_tensor[:, :, 6:7]
-        nir_during = input_tensor[:, :, 7:8]
+        red_before = input_tensor[:, :, :, 0:1]
+        green_before = input_tensor[:, :, :, 1:2]
+        blue_before = input_tensor[:, :, :, 2:3]
+        nir_before = input_tensor[:, :, :, 3:4]
+        red_during = input_tensor[:, :, :, 4:5]
+        green_during = input_tensor[:, :, :, 5:6]
+        blue_during = input_tensor[:, :, :, 6:7]
+        nir_during = input_tensor[:, :, :, 7:8]
 
         ndvi_before = RemoteSensingFeatures.normalized_difference(nir_before, red_before, name="ndvi_before")
         ndvi_during = RemoteSensingFeatures.normalized_difference(nir_during, red_during, name="ndvi_during")
@@ -278,7 +278,7 @@ class RemoteSensingFeatures:
         tgi_during = RemoteSensingFeatures.tgi(green_during, red_during, blue_during, name="tgi_during")
 
         return keras.layers.concatenate(
-            [ndvi_before, ndvi_during, evi_before, evi_during, ndwi_before, ndwi_during, savi_before, savi_during,
+            [input_tensor, ndvi_before, ndvi_during, evi_before, evi_during, ndwi_before, ndwi_during, savi_before, savi_during,
              msavi_before, msavi_during, mtvi2_before, mtvi2_during, vari_before, vari_during, tgi_before, tgi_during],
             name="input_features"
         )

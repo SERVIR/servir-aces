@@ -166,10 +166,12 @@ class ModelBuilder:
         else:
             INITIAL_BIAS = "zeros"
 
-        if DERIVE_FEATURES:
-            self.in_size = len(self.features) + len(ADDED_FEATURES)
+        inputs_main = keras.Input(shape=(1, 1, self.in_size), name="input_layer")
 
-        inputs = keras.Input(shape=(1, 1, self.in_size), name="input_layer")
+        if DERIVE_FEATURES:
+            inputs = rs.concatenate_features_for_dnn(inputs_main)
+        else:
+            inputs = inputs_main
 
         x = keras.layers.Conv2D(256, (1, 1), activation="relu")(inputs)
         x = keras.layers.Dropout(0.2)(x)
@@ -181,9 +183,9 @@ class ModelBuilder:
         x = keras.layers.Dropout(0.2)(x)
         output = keras.layers.Conv2D(self.out_classes, (1, 1), activation=kwargs.get("ACTIVATION_FN"), bias_initializer=INITIAL_BIAS)(x)
 
-        model = keras.models.Model(inputs=inputs, outputs=output)
+        model = keras.models.Model(inputs=inputs_main, outputs=output)
 
-        wrapped_model = ModelWrapper(PreprocessingPointModel(self.features, derive_features=DERIVE_FEATURES, added_features=ADDED_FEATURES), model)
+        wrapped_model = ModelWrapper(PreprocessingPointModel(self.features), model)
 
         metrics_list = [
             Metrics.precision(),
@@ -355,12 +357,8 @@ class PreprocessingPatchModel(keras.layers.Layer):
 
 # A Layer to stack and reshape the input tensors.
 class PreprocessingPointModel(keras.layers.Layer):
-    def __init__(self, in_features, derive_features=False, added_features=[], **kwargs):
-        self.derive_features = derive_features
-        if self.derive_features:
-            self.in_features = in_features + added_features
-        else:
-            self.in_features = in_features
+    def __init__(self, in_features, **kwargs):
+        self.in_features = in_features
         super(PreprocessingPointModel, self).__init__(**kwargs)
 
     def call(self, features_dict):
@@ -389,16 +387,18 @@ class ModelWrapper(keras.Model):
 
 @tf.autograph.experimental.do_not_convert
 class DeSerializeInput(tf.keras.layers.Layer):
-    def __init__(self, **kwargs):
+    def __init__(self, in_features, **kwargs):
+        self.in_features = in_features
         super().__init__(**kwargs)
 
     def call(self, inputs_dict):
-        return {
+        deserialize = {
             k: tf.map_fn(lambda x: tf.io.parse_tensor(x, tf.float32),
                          tf.io.decode_base64(v),
                          fn_output_signature=tf.float32)
-            for (k, v) in inputs_dict.items()
+            for (k, v) in inputs_dict.items() if k in self.in_features
         }
+        return deserialize
 
     def get_config(self):
         config = super().get_config()
