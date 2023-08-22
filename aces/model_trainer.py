@@ -17,7 +17,7 @@ from keras import callbacks
 
 from aces.config import Config
 from aces.metrics import Metrics
-from aces.model_builder import ModelBuilder, DeSerializeInput, ReSerializeOutput
+from aces.model_builder import ModelBuilder, DeSerializeInput, ReSerializeOutput, AddExtraFeatures
 from aces.data_processor import DataProcessor
 from aces.utils import Utils, TFUtils
 
@@ -172,7 +172,12 @@ class ModelTrainer:
             self.config.BATCH_SIZE,
             self.config.OUT_CLASS_NUM,
             **{**self.config.__dict__, "training": True},
-        ).repeat()
+        )
+
+        if self.config.DERIVE_FEATURES:
+            self.TRAINING_DATASET = self.TRAINING_DATASET.map(AddExtraFeatures(self.config.ADDED_FEATURES), num_parallel_calls=tf.data.AUTOTUNE)
+        
+        self.TRAINING_DATASET = self.TRAINING_DATASET.batch(self.config.BATCH_SIZE).repeat()
 
         self.VALIDATION_DATASET = DataProcessor.get_dataset(
             f"{str(self.config.VALIDATION_DIR)}/*",
@@ -182,7 +187,12 @@ class ModelTrainer:
             1,
             self.config.OUT_CLASS_NUM,
             **self.config.__dict__,
-        ).repeat()
+        )
+
+        if self.config.DERIVE_FEATURES:
+            self.VALIDATION_DATASET = self.VALIDATION_DATASET.map(AddExtraFeatures(self.config.ADDED_FEATURES), num_parallel_calls=tf.data.AUTOTUNE)
+        
+        self.VALIDATION_DATASET = self.VALIDATION_DATASET.batch(1).repeat()
 
         self.TESTING_DATASET = DataProcessor.get_dataset(
             f"{str(self.config.TESTING_DIR)}/*",
@@ -193,6 +203,11 @@ class ModelTrainer:
             self.config.OUT_CLASS_NUM,
             **self.config.__dict__,
         )
+        
+        if self.config.DERIVE_FEATURES:
+            self.TESTING_DATASET = self.TESTING_DATASET.map(AddExtraFeatures(self.config.ADDED_FEATURES), num_parallel_calls=tf.data.AUTOTUNE)
+        
+        self.TESTING_DATASET = self.TESTING_DATASET.batch(1)
 
         if print_info:
             logging.info("Printing dataset info:")
@@ -360,26 +375,35 @@ class ModelTrainer:
         Saves the trained models in different formats: h5 and tf formats.
         """
         if self.config.USE_AI_PLATFORM:
-            input_deserializer = DeSerializeInput()
-            output_deserializer = ReSerializeOutput()
-            if self.config.DERIVE_FEATURES:
-                serialized_inputs = {
-                    b: tf.keras.Input(shape=[], dtype="string", name=b) for b in self.config.FEATURES + self.config.ADDED_FEATURES
-                }
-            else:
-                serialized_inputs = {
-                    b: tf.keras.Input(shape=[], dtype="string", name=b) for b in self.config.FEATURES
-                }
-            print(f"serialized_inputs: {serialized_inputs}")
-            updated_model_input = input_deserializer(serialized_inputs)
-            updated_model = self.model(updated_model_input)
-            updated_model = output_deserializer(updated_model)
-            updated_model = tf.keras.Model(serialized_inputs, updated_model)
-            keras.utils.plot_model(updated_model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True)
-            # updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
+            updated_model = self.serialize_model()
+            if not issubclass(self.model.__class__, keras.Model):
+                # Saving the model to HDF5 format requires the model to be a Functional model or a Sequential model
+                updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
             updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
         else:
-            self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
+            if not issubclass(self.model.__class__, keras.Model):
+                self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
             self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
-            # self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.h5", save_format="h5")
-            # self.model.save_weights(f"{str(self.config.MODEL_SAVE_DIR)}/modelWeights.tf", save_format="tf")
+
+    def serialize_model(self) -> tf.keras.Model:
+        """
+        Serialize and save the trained models.
+
+        Saves the trained models in different formats: h5 and tf formats.
+        """
+        input_deserializer = DeSerializeInput()
+        output_deserializer = ReSerializeOutput()
+        if Config.DERIVE_FEATURES:
+            serialized_inputs = {
+                b: tf.keras.Input(shape=[], dtype="string", name=b) for b in Config.FEATURES + Config.ADDED_FEATURES
+            }
+        else:
+            serialized_inputs = {
+                b: tf.keras.Input(shape=[], dtype="string", name=b) for b in Config.FEATURES
+            }
+        updated_model_input = input_deserializer(serialized_inputs)
+        updated_model = self.model(updated_model_input)
+        updated_model = output_deserializer(updated_model)
+        updated_model = tf.keras.Model(serialized_inputs, updated_model)
+        keras.utils.plot_model(updated_model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True)
+        return updated_model

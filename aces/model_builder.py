@@ -327,6 +327,17 @@ class ModelBuilder:
         return model
 
 
+
+class AddExtraFeatures(tf.keras.layers.Layer):
+    def __init__(self, added_features):
+        super().__init__()
+        self.added_features = added_features
+
+    def call(self, features_dict, labels):
+        features_dict = rs.derive_features_for_dnn(features_dict, self.added_features)
+        return features_dict, labels
+
+
 # A Layer to stack and reshape the input tensors.
 class PreprocessingPatchModel(keras.layers.Layer):
     def __init__(self, in_features, **kwargs):
@@ -344,23 +355,17 @@ class PreprocessingPatchModel(keras.layers.Layer):
 
 # A Layer to stack and reshape the input tensors.
 class PreprocessingPointModel(keras.layers.Layer):
-    def __init__(self, in_features, derive_features=False, added_features=[],**kwargs):
+    def __init__(self, in_features, derive_features=False, added_features=[], **kwargs):
         self.derive_features = derive_features
         if self.derive_features:
             self.in_features = in_features + added_features
         else:
             self.in_features = in_features
-        self.added_features = added_features
         super(PreprocessingPointModel, self).__init__(**kwargs)
 
-    def call(self, inputs):
-        # does not allow modification of inputs; so make a copy before adding more features
-        features_dict = inputs.copy()
-        if self.derive_features:
-            features_dict = rs.derive_features_for_dnn(features_dict, self.added_features)
+    def call(self, features_dict):
         # (None, 1, 1, 1) -> (None, 1, 1, P)
-        features_dict = tf.concat([features_dict[b] for b in self.in_features], axis=3)
-        return features_dict
+        return tf.concat([features_dict[b] for b in self.in_features], axis=3)
 
     def get_config(self):
         config = super().get_config()
