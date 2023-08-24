@@ -300,7 +300,17 @@ class EEUtils:
             "BLUE": image.select("B"),
         }).rename("TGI")
 
-        return ndvi.addBands([ndwi, savi, msavi2, mtvi2, vari, tgi]).float()
+        return ndvi.addBands([evi, ndwi, savi, msavi2, mtvi2, vari, tgi]).float()
+
+    @staticmethod
+    def calculate_evi(image: ee.Image) -> ee.Image:
+        evi = image.expression (
+            "2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))", {
+                "NIR": image.select("nir"),
+                "RED": image.select("red"),
+                "BLUE": image.select("blue")
+            }).rename("EVI")
+        return evi.float()
 
     @staticmethod
     def generate_stratified_samples(image: ee.Image, region: ee.Geometry, numPoints: int = 500, classBand: str = None, scale: int=30, **kwargs) -> ee.FeatureCollection:

@@ -75,6 +75,7 @@ class Config:
 
     FEATURES = os.getenv("FEATURES").split("\n")
     ADDED_FEATURES = os.getenv("ADDED_FEATURES").split("\n")
+    USE_ELEVATION = os.getenv("USE_ELEVATION") == "True"
     LABELS = ast.literal_eval(os.getenv("LABELS"))
 
     USE_SEED = os.getenv("USE_SEED") == "True"
@@ -157,9 +158,8 @@ class Config:
         self.SCALE = Config.SCALE
 
         self.FEATURES = Config.FEATURES
-        print(f"FEATURES: {self.FEATURES}")
-        print(f"FEATURES: {len(self.FEATURES)}")
         self.ADDED_FEATURES = Config.ADDED_FEATURES
+        self.USE_ELEVATION = Config.USE_ELEVATION
         self.LABELS = Config.LABELS
 
         self.USE_SEED = Config.USE_SEED

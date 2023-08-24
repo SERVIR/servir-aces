@@ -84,6 +84,21 @@ class TrainingDataGenerator:
         self.composite_before = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_before")
         
         self.composite_during = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_during")
+        
+        # evi_before = EEUtils.calculate_evi(self.composite_before)
+        # evi_during = EEUtils.calculate_evi(self.composite_during)
+        # evi_after = EEUtils.calculate_evi(self.composite_after)
+        
+        # self.composite_before = self.composite_before.addBands(evi_before)
+        # self.composite_during = self.composite_during.addBands(evi_during)
+        # self.composite_after = self.composite_after.addBands(evi_after)
+
+        original_bands = self.composite_before.bandNames().getInfo()
+        lowercase_bands = [band.lower() for band in original_bands]
+
+        self.composite_before = self.composite_before.select(original_bands, lowercase_bands)
+        self.composite_after = self.composite_after.select(original_bands, lowercase_bands)
+        self.composite_during = self.composite_during.select(original_bands, lowercase_bands)
 
         self.composite_before = self.composite_before.regexpRename("$(.*)", "_before")
         self.composite_after = self.composite_after.regexpRename("$(.*)", "_after")
@@ -91,20 +106,23 @@ class TrainingDataGenerator:
 
         self.srtm = ee.Image("USGS/SRTMGL1_003")
         self.slope = ee.Algorithms.Terrain(self.srtm).select("slope")
-        
+
         stats = EEUtils.calculate_avg_min_max_statistics(self.srtm, self.paro, self.scale)
-        self.srtm = self.srtm.unitScale(stats.get("elevation_min"), stats.get("elevation_max"))
-        self.slope = self.slope.unitScale(0, 90)
+        self.srtm = self.srtm.unitScale(stats.get("elevation_min"), stats.get("elevation_max")).rename("elevation")
+        self.slope = self.slope.unitScale(0, 90).rename("slope")
 
         if self.include_after:
             self.image = self.composite_before.addBands(self.composite_during).addBands(self.composite_after).toFloat()
-            self.image = self.image.select(Config.FEATURES)
-            self.image = self.image.addBands(self.label).toFloat()
         else:
             self.image = self.composite_before.addBands(self.composite_during).toFloat()
-            self.image = self.image.select(Config.FEATURES)
-            self.image = self.image.addBands(self.label).toFloat()
-        
+
+        if Config.USE_ELEVATION:
+            self.image = self.image.addBands(self.srtm).addBands(self.slope).toFloat()
+            Config.FEATURES.extend(["elevation", "slope"])
+
+        self.image = self.image.select(Config.FEATURES)
+        self.image = self.image.addBands(self.label).toFloat()
+
         print("Image bands:", self.image.bandNames().getInfo())
         self.selectors = self.image.bandNames().getInfo()
 
@@ -217,9 +235,9 @@ class TrainingDataGenerator:
         validation_sample_points = EEUtils.sample_image(self.image, self.validation_sample_locations, **Config.__dict__)
         test_sample_points = EEUtils.sample_image(self.image, self.test_sample_locations, **Config.__dict__)
 
-        training_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_training/training"
-        validation_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_validation/validation"
-        test_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}_testing/testing"
+        training_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}{'_with_elevation' if Config.USE_ELEVATION else ''}_training/training"
+        validation_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}{'_with_elevation' if Config.USE_ELEVATION else ''}_validation/validation"
+        test_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}{'_with_elevation' if Config.USE_ELEVATION else ''}_testing/testing"
 
         export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
         EEUtils.export_collection_data(training_sample_points, export_type="cloud", start_training=True, **{**export_kwargs, "file_prefix": training_file_prefix, "description": "Training"})
