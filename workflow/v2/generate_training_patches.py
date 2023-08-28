@@ -40,7 +40,7 @@ class TrainingDataGenerator:
     def __init__(self, include_after: bool = False, use_service_account: bool = False):
         """
         Constructor for the TrainingDataGenerator class.
-        
+
         Parameters:
         include_after (bool): If True, includes "after" images in the generated data. Default is False.
         """
@@ -82,16 +82,16 @@ class TrainingDataGenerator:
         self.composite_after = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_after")
 
         self.composite_before = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_before")
-        
+
         self.composite_during = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_during")
-        
-        # evi_before = EEUtils.calculate_evi(self.composite_before)
-        # evi_during = EEUtils.calculate_evi(self.composite_during)
-        # evi_after = EEUtils.calculate_evi(self.composite_after)
-        
-        # self.composite_before = self.composite_before.addBands(evi_before)
-        # self.composite_during = self.composite_during.addBands(evi_during)
-        # self.composite_after = self.composite_after.addBands(evi_after)
+
+        evi_before = EEUtils.calculate_evi(self.composite_before)
+        evi_during = EEUtils.calculate_evi(self.composite_during)
+        evi_after = EEUtils.calculate_evi(self.composite_after)
+
+        self.composite_before = self.composite_before.addBands(evi_before)
+        self.composite_during = self.composite_during.addBands(evi_during)
+        self.composite_after = self.composite_after.addBands(evi_after)
 
         original_bands = self.composite_before.bandNames().getInfo()
         lowercase_bands = [band.lower() for band in original_bands]
@@ -104,20 +104,27 @@ class TrainingDataGenerator:
         self.composite_after = self.composite_after.regexpRename("$(.*)", "_after")
         self.composite_during = self.composite_during.regexpRename("$(.*)", "_during")
 
-        self.srtm = ee.Image("USGS/SRTMGL1_003")
-        self.slope = ee.Algorithms.Terrain(self.srtm).select("slope")
+        self.sentinel1_asc_before_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Ascending2021/s1AscBefore")
+        self.sentinel1_asc_during_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Ascending2021/s1AscDuring")
 
-        stats = EEUtils.calculate_avg_min_max_statistics(self.srtm, self.paro, self.scale)
-        self.srtm = self.srtm.unitScale(stats.get("elevation_min"), stats.get("elevation_max")).rename("elevation")
-        self.slope = self.slope.unitScale(0, 90).rename("slope")
+        self.sentinel1_desc_before_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Descending2021/s1DescBefore")
+        self.sentinel1_desc_during_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Descending2021/s1DescDuring")
+
+        self.elevation = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/elevationParo")
+        self.slope = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/slopeParo")
 
         if self.include_after:
             self.image = self.composite_before.addBands(self.composite_during).addBands(self.composite_after).toFloat()
         else:
             self.image = self.composite_before.addBands(self.composite_during).toFloat()
 
+        if Config.USE_S1:
+            self.image = self.image.addBands(self.sentinel1_asc_before_composite).addBands(self.sentinel1_asc_during_composite).addBands(self.sentinel1_desc_before_composite).addBands(self.sentinel1_desc_during_composite).toFloat()
+            Config.FEATURES.extend(["vv_asc_before", "vh_asc_before", "s1_ratio_asc_before", "s1_ndratio_asc_before", "vv_asc_during", "vh_asc_during", "s1_ratio_asc_during", "s1_ndratio_asc_during",
+                                    "vv_desc_before", "vh_desc_before", "s1_ratio_desc_before", "s1_ndratio_desc_before", "vv_desc_during", "vh_desc_during", "s1_ratio_desc_during", "s1_ndratio_desc_during"])
+
         if Config.USE_ELEVATION:
-            self.image = self.image.addBands(self.srtm).addBands(self.slope).toFloat()
+            self.image = self.image.addBands(self.elevation).addBands(self.slope).toFloat()
             Config.FEATURES.extend(["elevation", "slope"])
 
         self.image = self.image.select(Config.FEATURES)
@@ -138,12 +145,21 @@ class TrainingDataGenerator:
         """
         from datetime import datetime
         from uuid import uuid4
-        
+
         export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
-        training_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_training/training_"
-        validation_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_validation/validation"
-        test_file_prefix = f"experiments_paro_neighbour_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_testing/testing"
-        
+
+        file_prefix = f"experiments_neighbour_{self.kernel_size}x{self.kernel_size}"
+
+        if Config.USE_S1:
+            file_prefix += "_s1"
+
+        if Config.USE_ELEVATION:
+            file_prefix += "_elevation"
+
+        training_file_prefix = f"{file_prefix}_training/training"
+        testing_file_prefix = f"{file_prefix}_testing/testing"
+        validation_file_prefix = f"{file_prefix}_validation/validation"
+
         def _generate_data(image, data, selectors, use_service_account, prefix):
             if "training" in prefix:
                 description = "Training"
@@ -153,7 +169,7 @@ class TrainingDataGenerator:
                 description = "Testing"
             else:
                 description = "Unknown"
-            
+
             print(f"{description} Data")
 
             beam_options = PipelineOptions([], direct_num_workers=0, direct_running_mode="multi_processing", runner="DirectRunner")
@@ -164,16 +180,16 @@ class TrainingDataGenerator:
                     | "Yield sample points" >> beam.Map(EEUtils.beam_yield_sample_points_with_index, data.toList(data.size()), use_service_account)
                     | "Get patch" >> beam.Map(EEUtils.beam_sample_neighbourhood, image, use_service_account)
                     | "Write training data" >> beam.Map(EEUtils.beam_export_collection_to_cloud_storage, start_training=True,
-                                                        **{**export_kwargs, "file_prefix": f"{prefix}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_') + str(uuid4())}",
-                                                           "description": f"{description}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_') + str(uuid4())}",
+                                                        **{**export_kwargs, "file_prefix": f"{prefix}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_')}",
+                                                           "description": f"{description}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_')}",
                                                            "selectors": selectors})
                 )
 
         _generate_data(self.image, self.training_sample_locations, self.selectors, self.use_service_account, training_file_prefix)
 
         _generate_data(self.image, self.validation_sample_locations, self.selectors, self.use_service_account, validation_file_prefix)
-            
-        _generate_data(self.image, self.test_sample_locations, self.selectors, self.use_service_account, test_file_prefix)
+
+        _generate_data(self.image, self.test_sample_locations, self.selectors, self.use_service_account, testing_file_prefix)
 
     def generate_training_patch_data(self) -> None:
         """
@@ -218,14 +234,28 @@ class TrainingDataGenerator:
                     | "Serialize" >> beam.Map(TFUtils.beam_serialize)
                     | "Write training data" >> beam.io.WriteToTFRecord(output_path, file_name_suffix=".tfrecord.gz")
                 )
-        _generate_data_seed(self.image, self.training_sample_locations, self.selectors, self.scale, self.kernel_size,
-                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_training/training")
 
-        _generate_data_seed(self.image, self.validation_sample_locations, self.selectors, self.scale, self.kernel_size,
-                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_validation/validation")
-            
-        _generate_data_seed(self.image, self.test_sample_locations, self.selectors, self.scale, self.kernel_size,
-                            self.use_service_account, f"gs://{self.output_bucket}/experiments_paro_seed_{self.kernel_size}x{self.kernel_size}_before_during_clipped{'_after' if self.include_after else ''}_testing/testing")
+        output_path = f"gs://{self.output_bucket}/experiments_neighbour_{self.kernel_size}x{self.kernel_size}"
+
+        if Config.USE_S1:
+            output_path += "_s1"
+
+        if Config.USE_ELEVATION:
+            output_path += "_elevation"
+
+        training_output_path = f"{output_path}_training/training"
+        testing_output_path = f"{output_path}_testing/testing"
+        validation_output_path = f"{output_path}_validation/validation"
+
+        print("Training output path:", training_output_path)
+        print("Testing output path:", testing_output_path)
+        print("Validation output path:", validation_output_path)
+
+        _generate_data_seed(self.image, self.training_sample_locations, self.selectors, self.scale, self.kernel_size, self.use_service_account, training_output_path)
+
+        _generate_data_seed(self.image, self.validation_sample_locations, self.selectors, self.scale, self.kernel_size, self.use_service_account, validation_output_path)
+
+        _generate_data_seed(self.image, self.test_sample_locations, self.selectors, self.scale, self.kernel_size, self.use_service_account, testing_output_path)
 
     def generate_training_point_data(self) -> None:
         """

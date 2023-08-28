@@ -98,7 +98,7 @@ class EEUtils:
                 EEUtils._export_collection_to_asset(collection, start_training, **params)
 
             if _type == "drive":
-                EEUtils._export_collection_to_drive(collection, start_training, **params)            
+                EEUtils._export_collection_to_drive(collection, start_training, **params)
 
             if _type not in ["cloud", "asset", "drive"]:
                 raise NotImplementedError(f"Currently supported export types are: {', '.join(_type)}")
@@ -178,7 +178,7 @@ class EEUtils:
                 EEUtils._export_image_to_cloud_storage(image, start_training, **params)
 
             if _type == "asset":
-                EEUtils._export_image_to_asset(image, start_training, **params)          
+                EEUtils._export_image_to_asset(image, start_training, **params)
 
             if _type not in ["cloud", "asset"]:
                 raise NotImplementedError(f"Currently supported export types are: {', '.join(_type)}")
@@ -195,7 +195,7 @@ class EEUtils:
             elif isinstance(region, ee.Geometry):
                 region = region
             else:
-                raise ValueError(f"region must be an ee.FeatureCollection or ee.Geometry object. Found {type(region)}")  
+                raise ValueError(f"region must be an ee.FeatureCollection or ee.Geometry object. Found {type(region)}")
 
         logging.info(f"Exporting training data to gs://{bucket}/{file_name_prefix}..")
 
@@ -311,6 +311,14 @@ class EEUtils:
                 "BLUE": image.select("blue")
             }).rename("EVI")
         return evi.float()
+
+    @staticmethod
+    def calculate_s1_indices(image: ee.Image) -> ee.Image:
+        VV = image.select("VV").rename("vv")
+        VH = image.select("VH").rename("vh")
+        ratio = VV.divide(VH).rename("s1_ratio")
+        ndratio = VV.subtract(VH).divide(VV.add(VH)).rename("s1_ndratio")
+        return VV.addBands([VH, ratio, ndratio]).float()
 
     @staticmethod
     def generate_stratified_samples(image: ee.Image, region: ee.Geometry, numPoints: int = 500, classBand: str = None, scale: int=30, **kwargs) -> ee.FeatureCollection:

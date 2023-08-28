@@ -65,7 +65,7 @@ class Config:
 
     MODEL_NAME = os.getenv("MODEL_NAME")
     MODEL_CHECKPOINT_NAME = os.getenv("MODEL_CHECKPOINT_NAME")
-    
+
     MODEL_DIR_NAME = os.getenv("MODEL_DIR_NAME")
 
     MODEL_DIR = OUTPUT_DIR / MODEL_DIR_NAME
@@ -76,6 +76,7 @@ class Config:
     FEATURES = os.getenv("FEATURES").split("\n")
     ADDED_FEATURES = os.getenv("ADDED_FEATURES").split("\n")
     USE_ELEVATION = os.getenv("USE_ELEVATION") == "True"
+    USE_S1 = os.getenv("USE_S1") == "True"
     LABELS = ast.literal_eval(os.getenv("LABELS"))
 
     USE_SEED = os.getenv("USE_SEED") == "True"
@@ -94,7 +95,7 @@ class Config:
     TRAIN_SIZE = int(os.getenv("TRAIN_SIZE"))
     TEST_SIZE = int(os.getenv("TEST_SIZE"))
     VAL_SIZE = int(os.getenv("VAL_SIZE"))
-    
+
     MODEL_TYPE = os.getenv("MODEL_TYPE")
     IS_DNN = True if MODEL_TYPE == "dnn" else False
 
@@ -117,7 +118,7 @@ class Config:
 
     ACTIVATION_FN = "sigmoid" if OUT_CLASS_NUM == 1 else "softmax"
     CALLBACK_PARAMETER = os.getenv("CALLBACK_PARAMETER")
-    
+
     EARLY_STOPPING = os.getenv("EARLY_STOPPING") == "True"
     TRANSFORM_DATA = os.getenv("TRANSFORM_DATA") == "True"
     DERIVE_FEATURES = os.getenv("DERIVE_FEATURES") == "True"
@@ -136,7 +137,7 @@ class Config:
     GCS_VERTEX_MODEL_SAVE_DIR = os.getenv("GCS_VERTEX_MODEL_SAVE_DIR")
     GCS_REGION = os.getenv("GCS_REGION")
     GCS_VERTEX_CONTAINER_IMAGE = os.getenv("GCS_VERTEX_CONTAINER_IMAGE")
-    
+
     USE_AI_PLATFORM = os.getenv("USE_AI_PLATFORM") == "True"
 
     def __init__(self) -> None:
@@ -154,12 +155,13 @@ class Config:
         self.MODEL_CHECKPOINT_NAME = Config.MODEL_CHECKPOINT_NAME
         self.MODEL_DIR_NAME = Config.MODEL_DIR_NAME
         self.MODEL_DIR = Config.MODEL_DIR
-        
+
         self.SCALE = Config.SCALE
 
         self.FEATURES = Config.FEATURES
         self.ADDED_FEATURES = Config.ADDED_FEATURES
         self.USE_ELEVATION = Config.USE_ELEVATION
+        self.USE_S1 = Config.USE_S1
         self.LABELS = Config.LABELS
 
         self.USE_SEED = Config.USE_SEED
@@ -197,7 +199,7 @@ class Config:
 
         self.ACTIVATION_FN = Config.ACTIVATION_FN
         self.CALLBACK_PARAMETER = Config.CALLBACK_PARAMETER
-        
+
         self.EARLY_STOPPING = Config.EARLY_STOPPING
         self.TRANSFORM_DATA = Config.TRANSFORM_DATA
         self.DERIVE_FEATURES = Config.DERIVE_FEATURES

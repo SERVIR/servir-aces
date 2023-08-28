@@ -127,7 +127,7 @@ export_kwargs = {
 }
 
 EEUtils.export_image(before_composite, export_type="asset",
-                     **{**export_kwargs, "asset_id": f"projects/servir-sco-assets/assets/Bhutan/ACES_2/{region}_Composite_{year}/composite_before", 
+                     **{**export_kwargs, "asset_id": f"projects/servir-sco-assets/assets/Bhutan/ACES_2/{region}_Composite_{year}/composite_before",
                      "description": f"{year}_composite_before"}
                     )
 EEUtils.export_image(during_composite, export_type="asset",
