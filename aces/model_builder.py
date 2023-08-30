@@ -83,7 +83,10 @@ class ModelBuilder:
         elif model_type == "cnn":
             return self.build_and_compile_cnn_model(**kwargs)
         elif model_type == "unet":
-            return self.build_and_compile_unet_model(**kwargs)
+            if FOR_AI_PLATFORM:
+                return self.build_and_compile_unet_model_for_ai_platform(**kwargs)
+            else:
+                return self.build_and_compile_unet_model(**kwargs)
         else:
             raise ValueError(f"Invalid model type: {model_type}")
 
@@ -99,7 +102,6 @@ class ModelBuilder:
         """
         INITIAL_BIAS = kwargs.get("INITIAL_BIAS", None)
         logging.info(f"INITIAL_BIAS: {INITIAL_BIAS}")
-        # DNN_DURING_ONLY = kwargs.get("DURING_ONLY", False)
 
         if INITIAL_BIAS is not None:
             INITIAL_BIAS = tf.keras.initializers.Constant(INITIAL_BIAS)
@@ -108,21 +110,7 @@ class ModelBuilder:
 
         inputs = keras.Input(shape=(None, self.in_size), name="input_layer")
 
-        # input_features = rs.concatenate_features_for_dnn(inputs)
-        # Create a custom input layer that accepts 4 channels
-        # y = keras.layers.Conv1D(64, 3, activation="relu", padding="same", name="conv1")(input_features)
-        # y = keras.layers.MaxPooling1D(2, padding="same")(y)
-        # y = keras.layers.Conv1D(32, 3, activation="relu", padding="same", name="conv2")(y)
-        # y = keras.layers.MaxPooling1D(2, padding="same")(y)
-        # y = keras.layers.Conv1D(self.in_size, 2, activation="relu", padding="same", name="conv4")(y)
-        # all_inputs = keras.layers.concatenate([inputs, y])
-
-        # input_features = rs.concatenate_features_for_dnn(inputs)
-        # all_inputs = keras.layers.concatenate([inputs, input_features])
-        
-        all_inputs = inputs
-
-        x = keras.layers.Dense(256, activation="relu")(all_inputs)
+        x = keras.layers.Dense(256, activation="relu")(inputs)
         x = keras.layers.Dropout(0.2)(x)
         x = keras.layers.Dense(128, activation="relu")(x)
         x = keras.layers.Dropout(0.2)(x)
@@ -157,9 +145,10 @@ class ModelBuilder:
         INITIAL_BIAS = kwargs.get("INITIAL_BIAS", None)
         logging.info(f"INITIAL_BIAS: {INITIAL_BIAS}")
         # DNN_DURING_ONLY = kwargs.get("DURING_ONLY", False)
-        
+
+        print("comes here ai platform")
+
         DERIVE_FEATURES = kwargs.get("DERIVE_FEATURES", False)
-        ADDED_FEATURES = kwargs.get("ADDED_FEATURES", [])
 
         if INITIAL_BIAS is not None:
             INITIAL_BIAS = tf.keras.initializers.Constant(INITIAL_BIAS)
@@ -232,6 +221,38 @@ class ModelBuilder:
         model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
         return model
 
+    def build_and_compile_unet_model_for_ai_platform(self, **kwargs):
+        """
+        Builds and compiles a U-Net model.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            keras.Model: The compiled U-Net model.
+        """
+        if len(kwargs.get("physical_devices")) > 0:
+            with tf.distribute.MirroredStrategy().scope():
+                return self._build_and_compile_unet_model_for_ai_plaform(**kwargs)
+        else:
+            logging.info("No distributed strategy found.")
+            return self._build_and_compile_unet_model(**kwargs)
+
+    def _build_and_compile_unet_model_for_ai_plaform(self, **kwargs):
+        """
+        Helper method for building and compiling a U-Net model.
+        """
+        model = self._build_and_compile_unet_model(**kwargs)
+        wrapped_model = ModelWrapper(PreprocessingPatchModel(self.features), model)
+        metrics_list = [
+            Metrics.precision(),
+            Metrics.recall(),
+            keras.metrics.CategoricalAccuracy(),
+            Metrics.one_hot_io_u(self.out_classes),
+        ]
+        wrapped_model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
+        return model, wrapped_model
+
     def build_and_compile_unet_model(self, **kwargs):
         """
         Builds and compiles a U-Net model.
@@ -244,10 +265,26 @@ class ModelBuilder:
         """
         if len(kwargs.get("physical_devices")) > 0:
             with tf.distribute.MirroredStrategy().scope():
-                return self._build_and_compile_unet_model(**kwargs)
+                model = self._build_and_compile_unet_model(**kwargs)
+                metrics_list = [
+                    Metrics.precision(),
+                    Metrics.recall(),
+                    keras.metrics.CategoricalAccuracy(),
+                    Metrics.one_hot_io_u(self.out_classes),
+                ]
+                model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
+                return model
         else:
             logging.info("No distributed strategy found.")
-            return self._build_and_compile_unet_model(**kwargs)
+            model = self._build_and_compile_unet_model(**kwargs)
+            metrics_list = [
+                Metrics.precision(),
+                Metrics.recall(),
+                keras.metrics.CategoricalAccuracy(),
+                Metrics.one_hot_io_u(self.out_classes),
+            ]
+            model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
+            return model
 
     def _build_and_compile_unet_model(self, **kwargs):
         """
@@ -261,19 +298,17 @@ class ModelBuilder:
         """
         inputs = keras.Input(shape=(None, None, self.in_size))
 
-        input_features = rs.concatenate_features_for_cnn(inputs)
+        DERIVE_FEATURES = kwargs.get("DERIVE_FEATURES", False)
 
-        y = keras.layers.Conv2D(32, 3, activation="relu", padding="same", name="conv1")(input_features)
-        # y = keras.layers.Conv2D(32, 3, activation="relu", padding="same", name="conv2")(y)
-        y = keras.layers.BatchNormalization()(y)
-        y = keras.layers.Activation("relu")(y)
-        y = keras.layers.Conv2D(self.in_size, 3, activation="relu", padding="same", name="conv4")(y)
-        y = keras.layers.BatchNormalization()(y)
-        y = keras.layers.Activation("relu")(y)
+        print(f"DERIVE_FEATURES: {DERIVE_FEATURES}")
 
-        all_inputs = keras.layers.concatenate([inputs, y])
+        if DERIVE_FEATURES:
+            input_features = rs.concatenate_features_for_cnn(inputs)
+        else:
+            input_features = inputs
 
-        x = keras.layers.Conv2D(32, 3, strides=2, padding="same")(inputs) # all_inputs
+
+        x = keras.layers.Conv2D(32, 3, strides=2, padding="same")(input_features)
         x = keras.layers.BatchNormalization()(x)
         x = keras.layers.Activation("relu")(x)
 
@@ -318,14 +353,84 @@ class ModelBuilder:
 
         model = keras.Model(inputs=inputs, outputs=outputs, name="unet")
 
-        metrics_list = [
-            Metrics.precision(),
-            Metrics.recall(),
-            keras.metrics.CategoricalAccuracy(),
-            Metrics.one_hot_io_u(self.out_classes),
-        ]
+        return model
 
-        model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
+    def _build_and_compile_vanilla_unet_model(self, **kwargs):
+        """
+        Helper method for building and compiling a U-Net model.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            keras.Model: The compiled U-Net model.
+        """
+        inputs = keras.Input(shape=(None, None, self.in_size))
+
+        DERIVE_FEATURES = kwargs.get("DERIVE_FEATURES", False)
+
+        print(f"DERIVE_FEATURES: {DERIVE_FEATURES}")
+
+        if DERIVE_FEATURES:
+            input_features = rs.concatenate_features_for_cnn(inputs)
+        else:
+            input_features = inputs
+
+        c1 = keras.layers.Conv2D(16, (3, 3), padding="same")(input_features)
+        c1 = keras.layers.BatchNormalization()(c1)
+        c1 = keras.layers.Activation("relu")(c1)
+        p1 = keras.layers.MaxPooling2D((2, 2))(c1)
+
+        c2 = keras.layers.Conv2D(32, (3, 3), padding="same")(p1)
+        c2 = keras.layers.BatchNormalization()(c2)
+        c2 = keras.layers.Activation("relu")(c2)
+        p2 = keras.layers.MaxPooling2D((2, 2))(c2)
+
+        c3 = keras.layers.Conv2D(64, (3, 3), padding="same")(p2)
+        c3 = keras.layers.BatchNormalization()(c3)
+        c3 = keras.layers.Activation("relu")(c3)
+        p3 = keras.layers.MaxPooling2D((2, 2))(c3)
+
+        c4 = keras.layers.Conv2D(128, (3, 3), padding="same")(p3)
+        c4 = keras.layers.BatchNormalization()(c4)
+        c4 = keras.layers.Activation("relu")(c4)
+        p4 = keras.layers.MaxPooling2D((2, 2))(c4)
+
+        c5 = keras.layers.Conv2D(256, (3, 3), padding="same")(p4)
+        c5 = keras.layers.BatchNormalization()(c5)
+        c5 = keras.layers.Activation("relu")(c5)
+
+        # Decoder
+        u6 = keras.layers.UpSampling2D((2, 2))(c5)
+        u6 = keras.layers.Conv2D(128, (3, 3), padding="same")(u6)
+        u6 = keras.layers.BatchNormalization()(u6)
+        u6 = keras.layers.Activation("relu")(u6)
+        u6 = keras.layers.Add()([u6, c4])
+
+        u7 = keras.layers.UpSampling2D((2, 2))(u6)
+        u7 = keras.layers.Conv2D(64, (3, 3), padding="same")(u7)
+        u7 = keras.layers.BatchNormalization()(u7)
+        u7 = keras.layers.Activation("relu")(u7)
+        u7 = keras.layers.Add()([u7, c3])
+
+        u8 = keras.layers.UpSampling2D((2, 2))(u7)
+        u8 = keras.layers.Conv2D(32, (3, 3), padding="same")(u8)
+        u8 = keras.layers.BatchNormalization()(u8)
+        u8 = keras.layers.Activation("relu")(u8)
+        u8 = keras.layers.Add()([u8, c2])
+
+        u9 = keras.layers.UpSampling2D((2, 2))(u8)
+        u9 = keras.layers.Conv2D(16, (3, 3), padding="same")(u9)
+        u9 = keras.layers.BatchNormalization()(u9)
+        u9 = keras.layers.Activation("relu")(u9)
+        u9 = keras.layers.Add()([u9, c1])
+
+        # Output Layer
+        output_layer = keras.layers.Conv2D(self.out_classes, 3, activation=kwargs.get("ACTIVATION_FN"), padding="same", name="final_conv")(u9)
+
+        # Build Model
+        model = keras.Model(inputs=inputs, outputs=output_layer, name="vanilla_unet")
+
         return model
 
 

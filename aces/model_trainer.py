@@ -96,10 +96,9 @@ class ModelTrainer:
         self.create_datasets(print_info=True)
 
         if self.config.USE_AI_PLATFORM:
-            if self.config.IS_DNN:
-                logging.info("****************************************************************************")
-                logging.info("******* building and compiling model for ai platform... ********************")
-                self.build_and_compile_model_ai_platform()
+            logging.info("****************************************************************************")
+            logging.info("******* building and compiling model for ai platform... ********************")
+            self.build_and_compile_model_ai_platform()
         else:
             logging.info("****************************************************************************")
             logging.info("************************ building and compiling model... *******************")
@@ -142,18 +141,25 @@ class ModelTrainer:
 
         Creates a directory with a timestamped name and increments the version number if necessary.
         """
-        today = datetime.date.today().strftime("%Y_%m_%d")
-        iterator = 1
-        while True:
-            self.model_dir_name = f"trial_{self.config.MODEL_TYPE}_{today}_v{iterator}"
-            self.config.MODEL_SAVE_DIR = self.config.OUTPUT_DIR / self.model_dir_name
-            try:
-                os.mkdir(self.config.MODEL_SAVE_DIR)
-            except FileExistsError:
-                logging.info(f"> {self.config.MODEL_SAVE_DIR} exists, creating another version...")
-                iterator += 1
-                continue
-            break
+        if not self.config.AUTO_MODEL_DIR_NAME:
+            self.config.MODEL_SAVE_DIR = self.config.OUTPUT_DIR / self.config.MODEL_DIR_NAME
+            logging.info(f"> Saving models and results at {self.config.MODEL_SAVE_DIR}...")
+            os.mkdir(self.config.MODEL_SAVE_DIR)
+        else:
+            today = datetime.date.today().strftime("%Y_%m_%d")
+            iterator = 1
+            while True:
+                model_dir_name = f"trial_{self.config.MODEL_TYPE}_{today}_v{iterator}"
+                self.config.MODEL_SAVE_DIR = self.config.OUTPUT_DIR / model_dir_name
+                try:
+                    os.mkdir(self.config.MODEL_SAVE_DIR)
+                except FileExistsError:
+                    logging.info(f"> {self.config.MODEL_SAVE_DIR} exists, creating another version...")
+                    iterator += 1
+                    continue
+                else:
+                    logging.info(f"> Saving models and results at {self.config.MODEL_SAVE_DIR}...")
+                    break
 
     def create_datasets(self, print_info: bool = False) -> None:
         """
@@ -266,7 +272,7 @@ class ModelTrainer:
 
         if self.config.USE_ADJUSTED_LR:
             model_callbacks.append(lr_callback)
-            
+
         if self.config.EARLY_STOPPING:
             model_callbacks.append(early_stopping)
 
@@ -291,7 +297,7 @@ class ModelTrainer:
         logging.info("************************************************")
         logging.info("Validation")
         # Tip: You can remove steps=self.config.TEST_SIZE and match the TEST_SIZE from the env
-        evaluate_results = self.model.evaluate(self.TESTING_DATASET, steps=self.config.TEST_SIZE) # , steps=self.config.TEST_SIZE
+        evaluate_results = self.model.evaluate(self.TESTING_DATASET) # , steps=self.config.TEST_SIZE
         for name, value in zip(self.model.metrics_names, evaluate_results):
             logging.info(f"{name}: {value}")
         logging.info("\n")
@@ -326,7 +332,7 @@ class ModelTrainer:
             f.write(f"MODEL_TYPE: {config.get('MODEL_TYPE')}\n")
             f.write(f"TRANSFORM_DATA: {config.get('TRANSFORM_DATA')}\n")
             f.write(f"MODEL_NAME: {config.get('MODEL_NAME')}.h5\n")
-            f.write(f"MODEL_CHECKPOINT_NAME: {config.get('MODEL_CHECKPOINT_NAME')}.h5\n")        
+            f.write(f"MODEL_CHECKPOINT_NAME: {config.get('MODEL_CHECKPOINT_NAME')}.h5\n")
         f.close()
 
     @staticmethod

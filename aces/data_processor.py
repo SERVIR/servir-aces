@@ -148,7 +148,7 @@ class DataProcessor:
             label = tf.image.flip_left_right(tf.image.rot90(label, k=2))
         else:
             pass
-        
+
         return dataset, label
 
     @staticmethod
@@ -341,6 +341,26 @@ class DataProcessor:
             return parsed_dataset
         return parsed_dataset, label
 
+
+    @staticmethod
+    @tf.function
+    def to_tuple_multi_label_ai_platform(dataset: dict, label: tf.Tensor, depth: int = 1) -> tuple:
+        """
+        Convert a dataset with multiple labels to a tuple of features and multi-hot encoded labels.
+
+        Parameters:
+        dataset (tuple): The input dataset.
+        n_labels (int, optional): The number of labels. Default is 1.
+
+        Returns:
+        tuple: A tuple containing the features and multi-hot encoded labels.
+        """
+        label = tf.cast(label, tf.uint8)
+        label = tf.one_hot(indices=label, depth=depth)
+        parsed_dataset = {k: tf.expand_dims(v, axis=2) for k, v in dataset.items()}
+        return parsed_dataset, label
+
+
     @staticmethod
     def _get_dataset(files: list, features: list, labels: list, patch_shape: list, batch_size: int, buffer_size: int = 1000, training: bool = False, **kwargs) -> tf.data.Dataset:
         """
@@ -440,13 +460,17 @@ class DataProcessor:
             dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
             return dataset
 
-        parser = partial(DataProcessor.parse_tfrecord_multi_label, patch_size=patch_size, features=features, labels=labels)
-        tupler = partial(DataProcessor.to_tuple_multi_label, depth=n_classes)
+        if kwargs.get("USE_AI_PLATFORM", False):
+            parser = partial(DataProcessor.parse_tfrecord_multi_label, patch_size=patch_size, features=features, labels=labels)
+            tupler = partial(DataProcessor.to_tuple_multi_label_ai_platform, depth=n_classes)
+        else:
+            parser = partial(DataProcessor.parse_tfrecord_multi_label, patch_size=patch_size, features=features, labels=labels)
+            tupler = partial(DataProcessor.to_tuple_multi_label, depth=n_classes)
 
         dataset = dataset.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
 
         dataset = dataset.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
-        
+
         # dataset = dataset.cache()
         dataset = dataset.shuffle(512)
         dataset = dataset.batch(batch_size)

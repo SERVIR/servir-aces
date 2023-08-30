@@ -235,17 +235,17 @@ class TrainingDataGenerator:
                     | "Write training data" >> beam.io.WriteToTFRecord(output_path, file_name_suffix=".tfrecord.gz")
                 )
 
-        output_path = f"gs://{self.output_bucket}/experiments_neighbour_{self.kernel_size}x{self.kernel_size}"
+        output_path = f"gs://{self.output_bucket}/unet_{self.kernel_size}x{self.kernel_size}_planet"
 
         if Config.USE_S1:
-            output_path += "_s1"
+            output_path += "_w_s1"
 
         if Config.USE_ELEVATION:
-            output_path += "_elevation"
+            output_path += "_w_elevation"
 
-        training_output_path = f"{output_path}_training/training"
-        testing_output_path = f"{output_path}_testing/testing"
-        validation_output_path = f"{output_path}_validation/validation"
+        training_output_path = f"{output_path}/training/training"
+        testing_output_path = f"{output_path}/testing/testing"
+        validation_output_path = f"{output_path}/validation/validation"
 
         print("Training output path:", training_output_path)
         print("Testing output path:", testing_output_path)
@@ -265,9 +265,17 @@ class TrainingDataGenerator:
         validation_sample_points = EEUtils.sample_image(self.image, self.validation_sample_locations, **Config.__dict__)
         test_sample_points = EEUtils.sample_image(self.image, self.test_sample_locations, **Config.__dict__)
 
-        training_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}{'_with_elevation' if Config.USE_ELEVATION else ''}_training/training"
-        validation_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}{'_with_elevation' if Config.USE_ELEVATION else ''}_validation/validation"
-        test_file_prefix = f"experiments_dnn_points_before_during{'_after' if self.include_after else ''}{'_with_elevation' if Config.USE_ELEVATION else ''}_testing/testing"
+        output_path = f"dnn_planet"
+
+        if Config.USE_S1:
+            output_path += "_w_s1"
+
+        if Config.USE_ELEVATION:
+            output_path += "_w_elevation"
+
+        training_file_prefix = f"{output_path}/training/training"
+        validation_file_prefix = f"{output_path}/validation/validation"
+        test_file_prefix = f"{output_path}/testing/testing"
 
         export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
         EEUtils.export_collection_data(training_sample_points, export_type="cloud", start_training=True, **{**export_kwargs, "file_prefix": training_file_prefix, "description": "Training"})

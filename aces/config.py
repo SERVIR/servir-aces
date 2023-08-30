@@ -69,7 +69,8 @@ class Config:
     MODEL_DIR_NAME = os.getenv("MODEL_DIR_NAME")
 
     MODEL_DIR = OUTPUT_DIR / MODEL_DIR_NAME
-    print(f"MODEL_DIR: {MODEL_DIR}")
+
+    AUTO_MODEL_DIR_NAME = os.getenv("AUTO_MODEL_DIR_NAME") == "True"
 
     SCALE = int(os.getenv("SCALE"))
 
@@ -116,6 +117,8 @@ class Config:
 
     OUT_CLASS_NUM = int(os.getenv("OUT_CLASS_NUM"))
 
+    USE_BEST_MODEL_FOR_INFERENCE = os.getenv("USE_BEST_MODEL_FOR_INFERENCE") == "True"
+
     ACTIVATION_FN = "sigmoid" if OUT_CLASS_NUM == 1 else "softmax"
     CALLBACK_PARAMETER = os.getenv("CALLBACK_PARAMETER")
 
@@ -155,6 +158,7 @@ class Config:
         self.MODEL_CHECKPOINT_NAME = Config.MODEL_CHECKPOINT_NAME
         self.MODEL_DIR_NAME = Config.MODEL_DIR_NAME
         self.MODEL_DIR = Config.MODEL_DIR
+        self.AUTO_MODEL_DIR_NAME = Config.AUTO_MODEL_DIR_NAME
 
         self.SCALE = Config.SCALE
 
@@ -196,6 +200,8 @@ class Config:
         self.OPTIMIZER = Config.OPTIMIZER
 
         self.OUT_CLASS_NUM = Config.OUT_CLASS_NUM
+
+        self.USE_BEST_MODEL_FOR_INFERENCE = Config.USE_BEST_MODEL_FOR_INFERENCE
 
         self.ACTIVATION_FN = Config.ACTIVATION_FN
         self.CALLBACK_PARAMETER = Config.CALLBACK_PARAMETER
