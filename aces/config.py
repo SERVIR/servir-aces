@@ -143,6 +143,8 @@ class Config:
 
     USE_AI_PLATFORM = os.getenv("USE_AI_PLATFORM") == "True"
 
+    GCP_MACHINE_TYPE = os.getenv("GCP_MACHINE_TYPE")
+
     def __init__(self) -> None:
         self.BASEDIR = Config.BASEDIR
         self.DATADIR = Config.DATADIR
@@ -228,3 +230,5 @@ class Config:
         self.GCS_VERTEX_CONTAINER_IMAGE = Config.GCS_VERTEX_CONTAINER_IMAGE
 
         self.USE_AI_PLATFORM = Config.USE_AI_PLATFORM
+
+        self.GCP_MACHINE_TYPE = Config.GCP_MACHINE_TYPE

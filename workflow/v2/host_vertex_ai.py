@@ -45,6 +45,8 @@ def run_shell_process(exe):
         if retcode is not None:
             break
 
+Config.MODEL_DIR_NAME = f"{Config.MODEL_DIR_NAME}_mt_{Config.GCP_MACHINE_TYPE.replace('-', '_')}"
+
 # Deploy
 # delete model before deploying
 try:
@@ -101,7 +103,7 @@ deploy_model = f"""gcloud ai endpoints deploy-model {endpoint_id} \
 --region={Config.GCS_REGION} \
 --model={Config.MODEL_DIR_NAME} \
 --display-name={Config.MODEL_DIR_NAME} \
---machine-type=e2-highmem-16"""
+--machine-type={Config.GCP_MACHINE_TYPE}"""
 logging.info(f"deploying model:")
 result = subprocess.check_output(deploy_model, shell=True)
 logging.info(result)

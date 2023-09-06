@@ -63,7 +63,8 @@ class TrainingDataGenerator:
         self.paro = self.l1.filter(ee.Filter.eq("ADM1_EN", "Paro"))
 
         # self.sample_locations = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/ACES_2/paro_2021_all_class_samples")
-        self.sample_locations = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/ACES_2/paro_2021_all_class_samples_clipped")
+        # self.sample_locations = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/ACES_2/paro_2021_all_class_samples_clipped")
+        self.sample_locations = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/ACES_2/paro_2021_all_class_samples_clipped_new")
         self.sample_locations = self.sample_locations.randomColumn("random", self.seed)
         self.training_sample_locations = self.sample_locations.filter(ee.Filter.gt("random", self.validation_ratio + self.test_ratio)) # > 0.4
         print("Training sample size:", self.training_sample_locations.size().getInfo())

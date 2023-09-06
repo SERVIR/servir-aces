@@ -12,7 +12,7 @@ import numpy as np
 import tensorflow as tf
 from functools import partial
 
-__all__ = ["DataProcessor"]
+__all__ = ["DataProcessor", "RandomTransform"]
 
 class DataProcessor:
     """
@@ -110,6 +110,7 @@ class DataProcessor:
                 logging.info(f" > inputs:")
                 for name, values in inputs.items():
                     logging.info(f"    {name}: {values.dtype.name} {values.shape}")
+                # logging.info(f"    example \n: {dataset.take(1)}")
                 logging.info(f" > outputs: {outputs.dtype.name} {outputs.shape}")
 
     @staticmethod
@@ -147,7 +148,8 @@ class DataProcessor:
             dataset = tf.image.flip_left_right(tf.image.rot90(dataset, k=2))
             label = tf.image.flip_left_right(tf.image.rot90(label, k=2))
         else:
-            pass
+            dataset = dataset
+            label = label
 
         return dataset, label
 
@@ -471,11 +473,79 @@ class DataProcessor:
 
         dataset = dataset.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
 
-        # dataset = dataset.cache()
         dataset = dataset.shuffle(512)
-        dataset = dataset.batch(batch_size)
+        # dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
         if kwargs.get("training", False) and kwargs.get("TRANSFORM_DATA", True):
             logging.info("randomly transforming data")
-            dataset = dataset.map(DataProcessor.random_transform, num_parallel_calls=tf.data.AUTOTUNE)
+            # dataset = dataset.map(DataProcessor.random_transform, num_parallel_calls=tf.data.AUTOTUNE)
+            dataset = dataset.map(RandomTransform(), num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.batch(batch_size)
+        # dataset = dataset.cache()
         return dataset
+
+
+
+class RandomTransform(tf.keras.layers.Layer):
+    def __init__(self, seed=42, unit_range=True):
+        super().__init__()
+        self.seed = seed
+        self.flip_horizontal = tf.keras.layers.RandomFlip("horizontal", seed=self.seed)
+        self.flip_vertical = tf.keras.layers.RandomFlip("vertical", seed=self.seed)
+        self.flip_both = tf.keras.layers.RandomFlip("horizontal_and_vertical", seed=self.seed)
+        self.random_brightness = tf.keras.layers.RandomBrightness(0.2, value_range=(0, 1) if unit_range else (0, 255), seed=self.seed)
+        self.random_contrast = tf.keras.layers.RandomContrast(0.2, seed=self.seed)
+
+    @tf.function
+    def call(self, dataset, label):
+        """
+        Apply random transformations to a dataset.
+
+        Parameters:
+        dataset (tf.Tensor): The input dataset.
+        label (tf.Tensor): The corresponding label.
+
+        Returns:
+        tuple: The transformed dataset and label as a tuple.
+        """
+        x = tf.random.uniform((), seed=self.seed)
+        transformed_features = {}
+
+        # Apply the same random transformation across all bands or features
+        for key, feature in dataset.items():
+            transformed_feature = feature  # Default to no change
+            if x < 0.10:
+                transformed_feature = self.flip_horizontal(feature)
+            elif tf.math.logical_and(x >= 0.10, x < 0.20):
+                transformed_feature = self.flip_vertical(feature)
+            elif tf.math.logical_and(x >= 0.20, x < 0.30):
+                transformed_feature = self.flip_both(feature)
+            elif tf.math.logical_and(x >= 0.30, x < 0.40):
+                transformed_feature = tf.image.rot90(feature, k=1)
+            elif tf.math.logical_and(x >= 0.40, x < 0.50):
+                transformed_feature = tf.image.rot90(feature, k=2)
+            elif tf.math.logical_and(x >= 0.50, x < 0.60):
+                transformed_feature = tf.image.rot90(feature, k=3)
+            elif tf.math.logical_and(x >= 0.60, x < 0.70):
+                transformed_feature = self.random_brightness(feature)
+            elif tf.math.logical_and(x >= 0.70, x < 0.80):
+                transformed_feature = self.random_contrast(feature)
+
+            transformed_features[key] = transformed_feature
+
+        # Apply corresponding transformations to the label
+        transformed_label = label  # Default to no change
+        if x < 0.10:
+            transformed_label = self.flip_horizontal(label)
+        elif tf.math.logical_and(x >= 0.10, x < 0.20):
+            transformed_label = self.flip_vertical(label)
+        elif tf.math.logical_and(x >= 0.20, x < 0.30):
+            transformed_label = self.flip_both(label)
+        elif tf.math.logical_and(x >= 0.30, x < 0.40):
+            transformed_label = tf.image.rot90(label, k=1)
+        elif tf.math.logical_and(x >= 0.40, x < 0.50):
+            transformed_label = tf.image.rot90(label, k=2)
+        elif tf.math.logical_and(x >= 0.50, x < 0.60):
+            transformed_label = tf.image.rot90(label, k=3)
+
+        return transformed_features, transformed_label

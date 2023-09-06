@@ -146,8 +146,6 @@ class ModelBuilder:
         logging.info(f"INITIAL_BIAS: {INITIAL_BIAS}")
         # DNN_DURING_ONLY = kwargs.get("DURING_ONLY", False)
 
-        print("comes here ai platform")
-
         DERIVE_FEATURES = kwargs.get("DERIVE_FEATURES", False)
 
         if INITIAL_BIAS is not None:
@@ -174,7 +172,7 @@ class ModelBuilder:
 
         model = keras.models.Model(inputs=inputs_main, outputs=output)
 
-        wrapped_model = ModelWrapper(PreprocessingPointModel(self.features), model)
+        wrapped_model = ModelWrapper(ModelPreprocess(self.features), model)
 
         metrics_list = [
             Metrics.precision(),
@@ -243,7 +241,7 @@ class ModelBuilder:
         Helper method for building and compiling a U-Net model.
         """
         model = self._build_and_compile_unet_model(**kwargs)
-        wrapped_model = ModelWrapper(PreprocessingPatchModel(self.features), model)
+        wrapped_model = ModelWrapper(ModelPreprocess(self.features), model)
         metrics_list = [
             Metrics.precision(),
             Metrics.recall(),
@@ -445,29 +443,16 @@ class AddExtraFeatures(tf.keras.layers.Layer):
         return features_dict, labels
 
 
-# A Layer to stack and reshape the input tensors.
-class PreprocessingPatchModel(keras.layers.Layer):
-    def __init__(self, in_features, **kwargs):
-        self.in_features = in_features
-        super(PreprocessingPatchModel, self).__init__(**kwargs)
-
-    def call(self, features_dict):
-        # (None, H, W, 1) -> (None, H, W, P)
-        return tf.concat([features_dict[b] for b in self.in_features], axis=3)
-
-    def get_config(self):
-        config = super().get_config()
-        return config
-
 
 # A Layer to stack and reshape the input tensors.
-class PreprocessingPointModel(keras.layers.Layer):
+class ModelPreprocess(keras.layers.Layer):
     def __init__(self, in_features, **kwargs):
         self.in_features = in_features
-        super(PreprocessingPointModel, self).__init__(**kwargs)
+        super(ModelPreprocess, self).__init__(**kwargs)
 
     def call(self, features_dict):
-        # (None, 1, 1, 1) -> (None, 1, 1, P)
+        # (None, 1, 1, 1) -> (None, 1, 1, P) for dnn
+        # (None, H, W, 1) -> (None, H, W, P) for cnn/unet
         return tf.concat([features_dict[b] for b in self.in_features], axis=3)
 
     def get_config(self):

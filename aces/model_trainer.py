@@ -256,6 +256,7 @@ class ModelTrainer:
             mode="auto",
             restore_best_weights=True,
         )
+
         tensorboard = callbacks.TensorBoard(log_dir=str(self.config.MODEL_SAVE_DIR / "logs"), write_images=True)
 
         def lr_scheduler(epoch):

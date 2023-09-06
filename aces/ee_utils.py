@@ -419,7 +419,8 @@ class EEUtils:
         from typing import List
         import io
 
-        @retry.Retry(timeout=300)
+        # @retry.Retry(timeout=10*60) # seconds
+        @retry.Retry(deadline=10*60) # seconds
         def get_patch(image: ee.Image, region: ee.Geometry, bands: List[str], patch_size: int) -> np.ndarray:
             """Get the patch of pixels in the geometry as a Numpy array."""
             # Create the URL to download the band values of the patch of pixels.
@@ -440,7 +441,8 @@ class EEUtils:
             # Load the NumPy file data and return it as a NumPy array.
             return np.load(io.BytesIO(response.content), allow_pickle=True)
 
-        @retry.Retry()
+        # @retry.Retry(timeout=10*60) # seconds
+        @retry.Retry(deadline=10*60) # seconds
         def compute_pixel(image: ee.Image, region: ee.Geometry, bands: List[str], patch_size: int, scale_x: float, scale_y: float) -> np.ndarray:
             """Get the patch of pixels in the geometry as a Numpy array."""
 
