@@ -436,6 +436,10 @@ class EEUtils:
             if response.status_code == 429:
                 # The retry.Retry library only works with `google.api_core` exceptions.
                 raise exceptions.TooManyRequests(response.text)
+
+            if response.status_code == 503:
+                raise exceptions.ServiceUnavailable(response.text)
+
                 # Still raise any other exceptions to make sure we got valid data.
             response.raise_for_status()
             # Load the NumPy file data and return it as a NumPy array.

@@ -244,19 +244,18 @@ class TrainingDataGenerator:
         if Config.USE_ELEVATION:
             output_path += "_w_elevation"
 
-        training_output_path = f"{output_path}/training/training"
-        testing_output_path = f"{output_path}/testing/testing"
-        validation_output_path = f"{output_path}/validation/validation"
+        datasets = [
+            {"name": "training", "locations": self.training_sample_locations, "output_path": f"{output_path}/training/training"},
+            {"name": "testing", "locations": self.test_sample_locations, "output_path": f"{output_path}/testing/testing"},
+            {"name": "validation", "locations": self.validation_sample_locations, "output_path": f"{output_path}/validation/validation"}
+        ]
 
-        print("Training output path:", training_output_path)
-        print("Testing output path:", testing_output_path)
-        print("Validation output path:", validation_output_path)
-
-        _generate_data_seed(self.image, self.training_sample_locations, self.selectors, self.scale, self.kernel_size, self.use_service_account, training_output_path)
-
-        _generate_data_seed(self.image, self.validation_sample_locations, self.selectors, self.scale, self.kernel_size, self.use_service_account, validation_output_path)
-
-        _generate_data_seed(self.image, self.test_sample_locations, self.selectors, self.scale, self.kernel_size, self.use_service_account, testing_output_path)
+        for dataset in datasets:
+            print(f"{dataset['name'].capitalize()} output path:", dataset["output_path"])
+            _generate_data_seed(
+                self.image, dataset["locations"], self.selectors, self.scale, self.kernel_size,
+                self.use_service_account, dataset["output_path"]
+            )
 
     def generate_training_point_data(self) -> None:
         """
