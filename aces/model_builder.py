@@ -153,7 +153,7 @@ class ModelBuilder:
         else:
             INITIAL_BIAS = "zeros"
 
-        inputs_main = keras.Input(shape=(1, 1, self.in_size), name="input_layer")
+        inputs_main = keras.Input(shape=(None, None, self.in_size), name="input_layer")
 
         if DERIVE_FEATURES:
             inputs = rs.concatenate_features_for_dnn(inputs_main)
@@ -500,10 +500,14 @@ class ReSerializeOutput(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def call(self, output_tensor):
-        return tf.map_fn(lambda x: tf.io.encode_base64(tf.io.serialize_tensor(x)),
-                         output_tensor,
-                         fn_output_signature=tf.string)
+    def call(self, output_tensor, name):
+        if not name: name = "output"
+        return {name: tf.identity(tf.map_fn(
+            lambda x: tf.io.encode_base64(tf.io.serialize_tensor(x)),
+            output_tensor, fn_output_signature=tf.string
+            ),
+            name=name
+        )}
 
     def get_config(self):
         config = super().get_config()

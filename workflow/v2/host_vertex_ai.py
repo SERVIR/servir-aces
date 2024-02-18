@@ -23,10 +23,10 @@ import subprocess
 
 if Config.USE_BEST_MODEL_FOR_INFERENCE:
     logging.info(f"Using best model for inference.\nLoading model from {str(Config.MODEL_DIR)}/{Config.MODEL_CHECKPOINT_NAME}.tf")
-    this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_CHECKPOINT_NAME}.tf")
+    this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_CHECKPOINT_NAME}")
 else:
-    logging.info(f"Using last model for inference.\nLoading model from {str(Config.MODEL_DIR)}/{Config.MODEL_NAME}.tf")
-    this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_NAME}.tf")
+    logging.info(f"Using last model for inference.\nLoading model from {str(Config.MODEL_DIR)}/{Config.MODEL_NAME}")
+    this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_NAME}")
 
 logging.info(this_model.summary())
 
@@ -46,6 +46,7 @@ def run_shell_process(exe):
             break
 
 Config.MODEL_DIR_NAME = f"{Config.MODEL_DIR_NAME}_mt_{Config.GCP_MACHINE_TYPE.replace('-', '_')}"
+Config.MODEL_DIR_NAME = "dnn_w_elv"
 
 # Deploy
 # delete model before deploying
@@ -98,12 +99,27 @@ endpoints = result.decode("utf-8").split()
 endpoint_id = endpoints[0]
 
 # deploy the model
+# deploy_model = f"""gcloud ai endpoints deploy-model {endpoint_id} \
+# --project={Config.GCS_PROJECT} \
+# --region={Config.GCS_REGION} \
+# --model={Config.MODEL_DIR_NAME} \
+# --display-name={Config.MODEL_DIR_NAME} \
+# --machine-type={Config.GCP_MACHINE_TYPE}"""
+# logging.info(f"deploying model:")
+# result = subprocess.check_output(deploy_model, shell=True)
+# logging.info(result)
+
+
 deploy_model = f"""gcloud ai endpoints deploy-model {endpoint_id} \
 --project={Config.GCS_PROJECT} \
 --region={Config.GCS_REGION} \
 --model={Config.MODEL_DIR_NAME} \
 --display-name={Config.MODEL_DIR_NAME} \
 --machine-type={Config.GCP_MACHINE_TYPE}"""
+# --accelerator=type=nvidia-tesla-k80,count=1"""
+# --deployed-model-id={Config.MODEL_DIR_NAME}"""
+# --traffic-split=[{Config.MODEL_DIR_NAME}=100]"""
 logging.info(f"deploying model:")
+logging.info(deploy_model)
 result = subprocess.check_output(deploy_model, shell=True)
 logging.info(result)

@@ -241,7 +241,7 @@ class ModelTrainer:
         Trains the model using the provided configuration settings and callbacks.
         """
         model_checkpoint = callbacks.ModelCheckpoint(
-            f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_CHECKPOINT_NAME}.tf",
+            f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_CHECKPOINT_NAME}",
             monitor=self.config.CALLBACK_PARAMETER,
             save_best_only=True,
             mode="auto",
@@ -288,6 +288,11 @@ class ModelTrainer:
             callbacks=model_callbacks,
         )
 
+        # either save the wrapped model or the original model
+        # named as "trained-model" to avoid confusion
+        # self.model.save(f"{self.config.MODEL_SAVE_DIR}/trained-wrapped-model")
+        self.model.save(f"{self.config.MODEL_SAVE_DIR}/trained-model")
+
     def evaluate_and_print_val(self) -> None:
         """
         Evaluate and print validation metrics.
@@ -299,6 +304,8 @@ class ModelTrainer:
         logging.info("Validation")
         # Tip: You can remove steps=self.config.TEST_SIZE and match the TEST_SIZE from the env
         evaluate_results = self.model.evaluate(self.TESTING_DATASET) # , steps=self.config.TEST_SIZE
+        with open(f"{self.config.MODEL_SAVE_DIR}/evaluation.txt", "w") as evaluate:
+            evaluate.write(json.dumps(dict(zip(self.model.metrics_names, evaluate_results))))
         for name, value in zip(self.model.metrics_names, evaluate_results):
             logging.info(f"{name}: {value}")
         logging.info("\n")
@@ -317,6 +324,9 @@ class ModelTrainer:
             f.write(f"BATCH_SIZE: {config.get('BATCH_SIZE')}\n")
             f.write(f"EPOCHS: {config.get('EPOCHS')}\n")
             f.write(f"LOSS: {config.get('LOSS_TXT')}\n")
+            f.write(f"TRAINING_DIR: {config.get('TRAINING_DIR')}\n")
+            f.write(f"TESTING_DIR: {config.get('TESTING_DIR')}\n")
+            f.write(f"VALIDATION_DIR: {config.get('VALIDATION_DIR')}\n")
             if config.get('USE_ADJUSTED_LR'):
                 f.write(f"USE_ADJUSTED_LR: {config.get('USE_ADJUSTED_LR')}\n")
                 f.write(f"MAX_LR: {config.get('MAX_LR')}\n")
@@ -349,7 +359,11 @@ class ModelTrainer:
         Saves the model architecture plot, training history plot, and model object.
         """
         logging.info(f"Saving plots and model visualization at {self.config.MODEL_SAVE_DIR}...")
-        keras.utils.plot_model(self.model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True)
+        if self.config.USE_AI_PLATFORM:
+            keras.utils.plot_model(self._model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True, rankdir="TB")
+            keras.utils.plot_model(self.model, f"{self.config.MODEL_SAVE_DIR}/wrapped_model.png", show_shapes=True, rankdir="LR") # rankdir='TB'
+        else:
+            keras.utils.plot_model(self.model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True, rankdir="TB") # rankdir='TB'
         Utils.plot_metrics([key.replace("val_", "") for key in self.history.history.keys() if key.startswith("val_")],
                            self.history.history, len(self.history.epoch), self.config.MODEL_SAVE_DIR)
 
@@ -360,6 +374,26 @@ class ModelTrainer:
         with open(f"{self.config.MODEL_SAVE_DIR}/model.pkl", "wb") as f:
             pickle.dump(self.history.history, f)
 
+        with open(f"{self.config.MODEL_SAVE_DIR}/model.txt", "w") as f:
+            f.write(json.dumps(self.history.history))
+
+
+    def load_and_save_models(self) -> None:
+        """
+        Load the trained models.
+
+        Loads the trained models from different formats: h5 and tf formats.
+        """
+        self.config.MODEL_SAVE_DIR = self.config.OUTPUT_DIR / self.config.MODEL_DIR_NAME
+        self.model = tf.keras.models.load_model(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_CHECKPOINT_NAME}.tf")
+        updated_model = self.serialize_model()
+        # if not issubclass(self.model.__class__, keras.Model):
+        #     # Saving the model to HDF5 format requires the model to be a Functional model or a Sequential model
+        #     updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
+        updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
+        updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
+
+
     def save_models(self) -> None:
         """
         Save the trained models.
@@ -368,14 +402,19 @@ class ModelTrainer:
         """
         if self.config.USE_AI_PLATFORM:
             updated_model = self.serialize_model()
-            if not issubclass(self.model.__class__, keras.Model):
-                # Saving the model to HDF5 format requires the model to be a Functional model or a Sequential model
-                updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
-            updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
+            # updated_model = self.model
+
+            # if not issubclass(self.model.__class__, keras.Model):
+            #     # Saving the model to HDF5 format requires the model to be a Functional model or a Sequential model
+            #     updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
+
+            # updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
+            # updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
+            updated_model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}")
         else:
             if not issubclass(self.model.__class__, keras.Model):
                 self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.h5", save_format="h5")
-            self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}.tf", save_format="tf")
+            self.model.save(f"{str(self.config.MODEL_SAVE_DIR)}/{self.config.MODEL_NAME}", save_format="tf")
 
     def serialize_model(self) -> tf.keras.Model:
         """
@@ -390,7 +429,7 @@ class ModelTrainer:
         }
         updated_model_input = input_deserializer(serialized_inputs)
         updated_model = self.model(updated_model_input)
-        updated_model = output_deserializer(updated_model)
+        updated_model = output_deserializer(updated_model, "output")
         updated_model = tf.keras.Model(serialized_inputs, updated_model)
-        keras.utils.plot_model(updated_model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True)
+        keras.utils.plot_model(updated_model, f"{self.config.MODEL_SAVE_DIR}/serialized_model.png", show_shapes=True, rankdir="LR")
         return updated_model

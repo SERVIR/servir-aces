@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
 try:
     from aces.config import Config
     from aces.model_builder import ModelBuilder
@@ -46,20 +49,10 @@ for f in exported_files_list:
 image_files_list.sort()
 
 physical_devices = TFUtils.configure_memory_growth()
+logging.info(f"Using last model for inference.\nLoading model from {str(Config.MODEL_DIR)}/trained-model")
+this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/trained-model")
 
-model_builder = ModelBuilder(
-    in_size=len(Config.FEATURES),
-    out_classes=Config.OUT_CLASS_NUM,
-    optimizer=Config.OPTIMIZER,
-    loss=Config.LOSS
-)
-this_model = model_builder.build_model(model_type=Config.MODEL_TYPE, physical_devices=physical_devices)
-
-print(this_model.summary())
-
-# open and save model
-print(f"Loading model weights from {str(Config.MODEL_DIR)}/modelWeights.h5")
-this_model.load_weights(f"{str(Config.MODEL_DIR)}/modelWeights.h5")
+logging.info(this_model.summary())
 
 cat = f"gsutil cat {json_file}"
 read_t = subprocess.check_output(cat, shell=True)
@@ -74,6 +67,29 @@ patch_height = mixer["patchDimensions"][1]
 patches = mixer["totalPatches"]
 patch_dimensions_flat = [patch_width * patch_height, 1]
 
+# Get set up for prediction.
+if Config.KERNEL_BUFFER:
+    x_buffer = Config.KERNEL_BUFFER[0] // 2
+    y_buffer = Config.KERNEL_BUFFER[1] // 2
+
+    buffered_shape = [
+        Config.PATCH_SHAPE[0] + Config.KERNEL_BUFFER[0],
+        Config.PATCH_SHAPE[1] + Config.KERNEL_BUFFER[1],
+    ]
+else:
+    x_buffer = 0
+    y_buffer = 0
+    buffered_shape = Config.PATCH_SHAPE
+
+if Config.USE_ELEVATION:
+    Config.FEATURES.extend(["elevation", "slope"])
+
+
+if Config.USE_S1:
+    Config.FEATURES.extend(["vv_asc_before", "vh_asc_before", "vv_asc_during", "vh_asc_during",
+                            "vv_desc_before", "vh_desc_before", "vv_desc_during", "vh_desc_during"])
+
+print(f"Config.FEATURES: {Config.FEATURES}")
 
 image_columns = [
     tf.io.FixedLenFeature(shape=patch_dimensions_flat, dtype=tf.float32) for k in Config.FEATURES
@@ -84,6 +100,13 @@ image_features_dict = dict(zip(Config.FEATURES, image_columns))
 def parse_image(example_proto):
     return tf.io.parse_single_example(example_proto, image_features_dict)
 
+
+def toTupleImage(inputs):
+    inputsList = [inputs.get(key) for key in Config.FEATURES]
+    stacked = tf.stack(inputsList, axis=0)
+
+    stacked = tf.transpose(stacked, [1, 2, 0])
+    return stacked
 
 # Create a dataset from the TFRecord file(s) in Cloud Storage.
 image_dataset = tf.data.TFRecordDataset(image_files_list, compression_type="GZIP")
@@ -101,8 +124,13 @@ image_dataset = image_dataset.map(
   lambda data_dict: (tf.transpose(list(data_dict.values())), )
 )
 
+# image_dataset = image_dataset.map(toTupleImage)
+
 # for (None, in_shape)
 image_dataset = image_dataset.batch(patch_width * patch_height)
+
+for inputs in image_dataset.take(1):
+    print("inputs", inputs)
 
 # Perform inference.
 print("Running predictions...")

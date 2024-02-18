@@ -49,7 +49,7 @@ class TrainingDataGenerator:
         self.grace = 10
         self.scale = Config.SCALE
         self.include_after = include_after
-        self.test_ratio = 0.2
+        self.test_ratio = 0.1
         self.validation_ratio = 0.2
         self.seed = 100
         self.use_service_account = use_service_account
@@ -121,8 +121,8 @@ class TrainingDataGenerator:
 
         if Config.USE_S1:
             self.image = self.image.addBands(self.sentinel1_asc_before_composite).addBands(self.sentinel1_asc_during_composite).addBands(self.sentinel1_desc_before_composite).addBands(self.sentinel1_desc_during_composite).toFloat()
-            Config.FEATURES.extend(["vv_asc_before", "vh_asc_before", "s1_ratio_asc_before", "s1_ndratio_asc_before", "vv_asc_during", "vh_asc_during", "s1_ratio_asc_during", "s1_ndratio_asc_during",
-                                    "vv_desc_before", "vh_desc_before", "s1_ratio_desc_before", "s1_ndratio_desc_before", "vv_desc_during", "vh_desc_during", "s1_ratio_desc_during", "s1_ndratio_desc_during"])
+            Config.FEATURES.extend(["vv_asc_before", "vh_asc_before", "vv_asc_during", "vh_asc_during",
+                                    "vv_desc_before", "vh_desc_before", "vv_desc_during", "vh_desc_during"])
 
         if Config.USE_ELEVATION:
             self.image = self.image.addBands(self.elevation).addBands(self.slope).toFloat()
@@ -236,7 +236,7 @@ class TrainingDataGenerator:
                     | "Write training data" >> beam.io.WriteToTFRecord(output_path, file_name_suffix=".tfrecord.gz")
                 )
 
-        output_path = f"gs://{self.output_bucket}/unet_{self.kernel_size}x{self.kernel_size}_planet"
+        output_path = f"gs://{self.output_bucket}/unet_{self.kernel_size}x{self.kernel_size}_planet_wo_indices"
 
         if Config.USE_S1:
             output_path += "_w_s1"
@@ -245,9 +245,9 @@ class TrainingDataGenerator:
             output_path += "_w_elevation"
 
         datasets = [
-            {"name": "training", "locations": self.training_sample_locations, "output_path": f"{output_path}/training/training"},
-            {"name": "testing", "locations": self.test_sample_locations, "output_path": f"{output_path}/testing/testing"},
-            {"name": "validation", "locations": self.validation_sample_locations, "output_path": f"{output_path}/validation/validation"}
+            {"name": "training", "locations": self.training_sample_locations, "output_path": f"{output_path}/training_70/training"},
+            {"name": "testing", "locations": self.test_sample_locations, "output_path": f"{output_path}/testing_10/testing"},
+            {"name": "validation", "locations": self.validation_sample_locations, "output_path": f"{output_path}/validation_20/validation"}
         ]
 
         for dataset in datasets:
@@ -265,7 +265,7 @@ class TrainingDataGenerator:
         validation_sample_points = EEUtils.sample_image(self.image, self.validation_sample_locations, **Config.__dict__)
         test_sample_points = EEUtils.sample_image(self.image, self.test_sample_locations, **Config.__dict__)
 
-        output_path = f"dnn_planet"
+        output_path = f"dnn_planet_wo_indices"
 
         if Config.USE_S1:
             output_path += "_w_s1"
@@ -273,14 +273,17 @@ class TrainingDataGenerator:
         if Config.USE_ELEVATION:
             output_path += "_w_elevation"
 
-        training_file_prefix = f"{output_path}/training/training"
-        validation_file_prefix = f"{output_path}/validation/validation"
-        test_file_prefix = f"{output_path}/testing/testing"
+        datasets = [
+            {"name": "training", "sample_points": training_sample_points, "output_path": f"{output_path}/training_70/training"},
+            {"name": "testing", "sample_points": test_sample_points, "output_path": f"{output_path}/testing_10/testing"},
+            {"name": "validation", "sample_points": validation_sample_points, "output_path": f"{output_path}/validation_20/validation"}
+        ]
 
         export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
-        EEUtils.export_collection_data(training_sample_points, export_type="cloud", start_training=True, **{**export_kwargs, "file_prefix": training_file_prefix, "description": "Training"})
-        EEUtils.export_collection_data(validation_sample_points, export_type="cloud", start_training=True, **{**export_kwargs, "file_prefix": validation_file_prefix, "description": "Validation"})
-        EEUtils.export_collection_data(test_sample_points, export_type="cloud", start_training=True, **{**export_kwargs, "file_prefix": test_file_prefix, "description": "Test"})
+
+        for dataset in datasets:
+            print(f"{dataset['name'].capitalize()} output path:", dataset["output_path"])
+            EEUtils.export_collection_data(dataset["sample_points"], export_type="cloud", start_training=True, **{**export_kwargs, "file_prefix": dataset["output_path"], "description": dataset["name"].capitalize()})
 
     def run_patch_generator(self) -> None:
         """

@@ -71,7 +71,6 @@ class Config:
     MODEL_DIR = OUTPUT_DIR / MODEL_DIR_NAME
 
     AUTO_MODEL_DIR_NAME = os.getenv("AUTO_MODEL_DIR_NAME") == "True"
-
     SCALE = int(os.getenv("SCALE"))
 
     FEATURES = os.getenv("FEATURES").split("\n")

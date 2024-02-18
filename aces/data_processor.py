@@ -155,7 +155,7 @@ class DataProcessor:
 
     @staticmethod
     @tf.function
-    def parse_tfrecord(example_proto: tf.Tensor, patch_size: int, features: list = None, labels: list = None) -> tf.data.Dataset:
+    def parse_tfrecord(example_proto: tf.Tensor, patch_size: int, features: list = None, labels: list = None, depth: int = 1) -> tf.data.Dataset:
         """
         Parse a TFRecord example.
 
@@ -177,7 +177,9 @@ class DataProcessor:
         inputs_list = [inputs.get(key) for key in keys]
         stacked = tf.stack(inputs_list, axis=0)
         stacked = tf.transpose(stacked, [1, 2, 0])
-        return tf.data.Dataset.from_tensors(stacked)
+        label = stacked[:, :, len(features):]
+        x = tf.one_hot(tf.cast(label[:, :, -1], tf.uint8), depth)
+        return stacked[:, :, :len(features)], x
 
     @staticmethod
     @tf.function
@@ -338,7 +340,7 @@ class DataProcessor:
         """
         label = tf.cast(label, tf.uint8)
         label = tf.one_hot(indices=label, depth=depth)
-        parsed_dataset = tf.transpose(list(dataset.values()))
+        parsed_dataset = {k: tf.expand_dims(v, axis=2) for k, v in dataset.items()}
         if x_only:
             return parsed_dataset
         return parsed_dataset, label
@@ -465,21 +467,27 @@ class DataProcessor:
         if kwargs.get("USE_AI_PLATFORM", False):
             parser = partial(DataProcessor.parse_tfrecord_multi_label, patch_size=patch_size, features=features, labels=labels)
             tupler = partial(DataProcessor.to_tuple_multi_label_ai_platform, depth=n_classes)
+            parser_tupler = None
         else:
-            parser = partial(DataProcessor.parse_tfrecord_multi_label, patch_size=patch_size, features=features, labels=labels)
-            tupler = partial(DataProcessor.to_tuple_multi_label, depth=n_classes)
+            parser_tupler = partial(DataProcessor.parse_tfrecord, patch_size=patch_size, features=features, labels=labels, depth=n_classes)
+            print(f'parser_tupler: {parser_tupler}')
 
-        dataset = dataset.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
-
-        dataset = dataset.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        if parser_tupler is not None:
+            dataset = dataset.map(parser_tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        else:
+            dataset = dataset.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
+            dataset = dataset.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
 
         dataset = dataset.shuffle(512)
         # dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
         if kwargs.get("training", False) and kwargs.get("TRANSFORM_DATA", True):
             logging.info("randomly transforming data")
-            # dataset = dataset.map(DataProcessor.random_transform, num_parallel_calls=tf.data.AUTOTUNE)
-            dataset = dataset.map(RandomTransform(), num_parallel_calls=tf.data.AUTOTUNE)
+            if kwargs.get("USE_AI_PLATFORM", False):
+                dataset = dataset.map(RandomTransform(), num_parallel_calls=tf.data.AUTOTUNE)
+            else:
+                dataset = dataset.map(DataProcessor.random_transform, num_parallel_calls=tf.data.AUTOTUNE)
+
         dataset = dataset.batch(batch_size)
         # dataset = dataset.cache()
         return dataset

@@ -40,7 +40,7 @@ rice_zone = {
         "min": 1000,
         "max": 2600,
     },
-    "Paro ": {
+    "Paro": {
         "min": 1500,
         "max": 2600,
     },
@@ -49,11 +49,11 @@ rice_zone = {
 region_fc = name_region[region]
 
 # smaller example region
-# region_fc = ee.Geometry.Polygon(
-#         [[[89.29777557572515, 27.54982094226756],
-#           [89.29777557572515, 27.187608451375436],
-#           [89.54908783158453, 27.187608451375436],
-#           [89.54908783158453, 27.54982094226756]]], None, False);
+region_fc = ee.Geometry.Polygon(
+        [[[89.25910506388209, 27.58540960195346],
+          [89.25910506388209, 27.159794800895543],
+          [89.58182845255396, 27.159794800895543],
+          [89.58182845255396, 27.58540960195346]]], None, False);
 
 composite_before_paro = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_before")
 composite_during_paro = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/Paro_Rice_Composite_2021/composite_during")
@@ -74,27 +74,34 @@ if sensor == "planet":
 composite_before = composite_before.select(bands)
 composite_during = composite_during.select(bands)
 
-# var srtm = ee.Image("USGS/SRTMGL1_003")
-# var slope = ee.Algorithms.Terrain(srtm).select("slope")
-
-# var elevation_stats = statisticsForImage (srtm, paro, 90)
-
-# srtm = srtm.unitScale(elevation_stats.get("elevation_min"), elevation_stats.get("elevation_max"))
-# slope = slope.unitScale(0, 90)
-
 composite_before = composite_before.regexpRename("$(.*)", "_before")
 composite_during = composite_during.regexpRename("$(.*)", "_during")
 image = composite_before.addBands(composite_during).toFloat()
 
+if Config.USE_ELEVATION:
+    elevation = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/elevationParo")
+    slope = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/slopeParo")
+    image = image.addBands(elevation).addBands(slope).toFloat()
+    Config.FEATURES.extend(["elevation", "slope"])
 
-dem = ee.Image("MERIT/DEM/v1_0_3") # ee.Image('USGS/SRTMGL1_003');
-dem = dem.clip(fc_country)
-riceZone = dem.gt(1000).And(dem.lte(2600))
 
-image = image.clip(region_fc).updateMask(riceZone)
+if Config.USE_S1:
+    sentinel1_asc_before_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Ascending2021/s1AscBefore")
+    sentinel1_asc_during_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Ascending2021/s1AscDuring")
+    sentinel1_desc_before_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Descending2021/s1DescBefore")
+    sentinel1_desc_during_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Descending2021/s1DescDuring")
 
+    image = image.addBands(sentinel1_asc_before_composite).addBands(sentinel1_asc_during_composite).addBands(sentinel1_desc_before_composite).addBands(sentinel1_desc_during_composite).toFloat()
+    Config.FEATURES.extend(["vv_asc_before", "vh_asc_before", "vv_asc_during", "vh_asc_during",
+                            "vv_desc_before", "vh_desc_before", "vv_desc_during", "vh_desc_during"])
+
+# dem = ee.Image("MERIT/DEM/v1_0_3") # ee.Image('USGS/SRTMGL1_003');
+# dem = dem.clip(fc_country)
+# riceZone = dem.gt(rice_zone[region]["min"]).And(dem.lte(rice_zone[region]["max"]))
+# image = image.clip(region_fc).updateMask(riceZone)
+
+image = image.select(Config.FEATURES)
 print("image", image.bandNames().getInfo())
-
 
 # Specify patch and file dimensions.
 formatOptions = {
@@ -113,9 +120,11 @@ image_export_options = {
     "bucket": Config.GCS_BUCKET,
     "scale": Config.SCALE,
     "file_format": "TFRecord",
-    # "region": image.geometry(),
+    "region": region_fc, # image.geometry(),
     "format_options": formatOptions,
     "max_pixels": 1e13,
 }
+
+print("image_export_options", image_export_options)
 
 EEUtils.export_image(image, export_type=["cloud"], start_training=True, **image_export_options)
