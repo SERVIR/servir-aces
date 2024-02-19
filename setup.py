@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="aces",
-    version="2023.6.28",
-    description="Agricultural Classification and Estimation Service",
+    version="2024.2.20",
+    description="Agricultural Classification and Estimation Service (ACES)",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/biplovbhandari/aces",
@@ -14,8 +14,11 @@ setup(
     packages=find_packages(),
     install_requires=[
         "numpy",
-        "tensorflow",
-        "apache-beam",
+        "tensorflow>=2.9.3",
+        "apache-beam>=2.38.0",
         "earthengine-api",
+        "python-dotenv>=1.0.0",
+        "matplotlib",
     ],
+    python_requires='>=3.9',
 )
