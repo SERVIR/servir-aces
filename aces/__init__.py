@@ -7,4 +7,4 @@ from aces.model_trainer import *
 from aces.model_builder import *
 from aces.remote_sensing import *
 
-__version__ = "2023.6.28"
+__version__ = "2024.1.1"

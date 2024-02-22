@@ -17,15 +17,33 @@ class Config:
     """
     ACES Configuration Class
 
-    This class contains the configuration settings for the ACES project.
+    This class contains the configuration settings for the ACES project. These are generated from the .env file.
 
     Attributes:
         BASEDIR (str): The base directory for data I/O information.
-        DATADIR (str): The directory for data collection experiments.
-        MODEL_NAME (str): The name of the ACES model.
+        DATADIR (str): The directory for data collection experiments. DATADIR = BASEDIR / DATADIR
+        MODEL_NAME (str): The name of the model.
         MODEL_CHECKPOINT_NAME (str): The name for model checkpoints.
-        LABELS (list): A list of labels used in the project.
+        MODEL_DIR_NAME (str): The name of the model directory. MODEL_DIR = OUTPUT_DIR / MODEL_DIR_NAME
+        AUTO_MODEL_DIR_NAME (bool): Flag to use automatic model directory naming.
+        # True generates as trial_MODELTYPE + datetime.now() + _v + version
+        # False uses the MODEL_DIR_NAME
+        FEATURES (str): The list of features used in the model.
+        USE_ELEVATION (bool): Flag to use elevation data.
+        USE_S1 (bool): Flag to use Sentinel-1 data.
+        DERIVE_FEATURES (bool): Flag to derive features.
+        ADDED_FEATURES (list): A list of additional features used in the model (used when DERIVE_FEATURES is true).
+        LABELS (list): A list of labels used in the model.
+        SCALE (int): The scale of the data.
+        # Note: The seeding componenet needs fixing. It is not working as expected.
+        USE_SEED (bool): Flag to use a seed for reproducbility.
+        SEED (int): The seed used for reproducibility.
         PATCH_SHAPE (tuple): The shape of training patches.
+        # buffer for prediction purpose
+        # Half this will extend on the sides of each patch.
+        # if zero; does not do buffer
+        # else specify the size as tuple (e.g. 128, 128)
+        KERNEL_BUFFER (tuple): The buffer for prediction purpose.
         TRAIN_SIZE (int): The size of the training dataset.
         TEST_SIZE (int): The size of the testing dataset.
         VAL_SIZE (int): The size of the validation dataset.
@@ -39,20 +57,44 @@ class Config:
         MIN_LR (float): The minimum learning rate.
         DROPOUT_RATE (float): The dropout rate for the model.
         CALLBACK_PARAMETER (str): The parameter used for callbacks.
+        # patience for EARLY_STOPPING = int(0.3 * EPOCHS)
+        # monitors CALLBACK_PARAMETER
+        EARLY_STOPPING (bool): Flag to use early stopping.
+        MODEL_TYPE (str): The type of model (current choices: cnn, dnn, unet).
+        TRANSFORM_DATA (bool): Flag to transform data (rotation, flip) DNN
+        does not do augmentation.
         ACTIVATION_FN (str): The activation function for the model.
         OPTIMIZER (str): The optimizer used for model training.
-        LOSS (str): The loss function used for model training.
-        MODEL_TYPE (str): The type of model (cnn, dnn, unet).
+        # You can use any loss function available [here](https://www.tensorflow.org/api_docs/python/tf/keras/losses):
+        # other available are: custom_focal_tversky_loss
+        LOSS (str): The loss function used for model training.,
         OUT_CLASS_NUM (int): The number of output classes.
-        PCA_COMPONENTS (int): The number of PCA components.
-        EE_USER (str): The Earth Engine username.
-        EE_OUPUT_ASSET (str): The Earth Engine output asset path.
-        EE_SERVICE_CREDENTIALS (str): The path to Earth Engine service account credentials.
-        GCS_PROJECT (str): The Google Cloud Storage project name.
+        # This parameter is used in script [5. prediction_unet.py](https://github.com/SERVIR/servir-aces/blob/main/workflow/v2/5.prediction_unet.py)
+        # and [host_vertex_ai.py](https://github.com/SERVIR/servir-aces/blob/main/workflow/v2/host_vertex_ai.py) files
+        USE_BEST_MODEL_FOR_INFERENCE (bool): Flag to use the best model for inference.
+        USE_SERVICE_ACCOUNT (bool): Flag to use a service account for Earth Engine.
+        # This is used when USE_SERVICE_ACCOUNT is True
+        # This is used to
+        EE_SERVICE_CREDENTIALS (str): The path to the Earth Engine service account credentials.
+        # Used in the script [5.prediction_unet.py](https://github.com/SERVIR/servir-aces/blob/main/workflow/v2/5.prediction_unet.py) and
+        # [5.prediction_dnn](https://github.com/SERVIR/servir-aces/blob/main/workflow/v2/5.prediction_dnn.py)
+        EE_OUPUT_ASSET (str): The Earth Engine output (prediction) asset path.
+        OUTPUT_NAME (str): The name of the output prediction for GEE asset, locally (in TF Format) and gcs output (in TFRecord format).
         GCS_BUCKET (str): The Google Cloud Storage bucket name.
-        GCS_EEIFIED_DIR (str): The directory for Earth Engineified data in GCS.
-        GCS_CHECKPOINT_DIR (str): The directory for model checkpoints in GCS.
-        FEATURES (str): The list of features used in the model.
+        # Exported to this dir from [4.export_image_for_prediction.py](https://github.com/SERVIR/servir-aces/blob/main/workflow/v2/4.export_image_for_prediction.py)
+        GCS_IMAGE_DIR (str): The Google Cloud Storage image directory to store the image for prediction.
+        # used as file_name_prefix = {GCS_IMAGE_DIR}/{GCS_IMAGE_PREFIX} for exporting image
+        GCS_IMAGE_PREFIX (str): The Google Cloud Storage image prefix.
+        # Used in the script [host_vertex_ai.py](https://github.com/SERVIR/servir-aces/blob/main/workflow/v2/host_vertex_ai.py)
+        GCS_PROJECT (str): The Google Cloud Storage project name.
+        GCS_VERTEX_MODEL_SAVE_DIR (str): The Google Cloud Storage Vertex AI model save directory.
+        GCS_REGION (str): The Google Cloud Storage region.
+        GCS_VERTEX_CONTAINER_IMAGE (str): The Google Cloud Storage Vertex AI container image.
+        # AI platform expects a need a serialized model, this parameter does this.
+        # See its uses in `data_processor.py` and `model_training.py`
+        USE_AI_PLATFORM (bool): Flag to use Google Cloud AI Platform.
+        # Get machine type here: https://cloud.google.com/vertex-ai/docs/predictions/configure-compute
+        GCP_MACHINE_TYPE (str): The Google Cloud Platform machine type.
     """
     BASEDIR = Path(os.getenv("BASEDIR"))
     DATADIR = BASEDIR / os.getenv("DATADIR")
@@ -126,6 +168,7 @@ class Config:
     DERIVE_FEATURES = os.getenv("DERIVE_FEATURES") == "True"
 
     # EE settings
+    USE_SERVICE_ACCOUNT = os.getenv("USE_SERVICE_ACCOUNT") == "True"
     EE_SERVICE_CREDENTIALS = os.getenv("EE_SERVICE_CREDENTIALS")
     EE_USER = os.getenv("EE_USER")
     EE_OUTPUT_ASSET = os.getenv("EE_OUTPUT_ASSET")
@@ -212,6 +255,7 @@ class Config:
         self.DERIVE_FEATURES = Config.DERIVE_FEATURES
 
         # EE settings
+        self.USE_SERVICE_ACCOUNT = Config.USE_SERVICE_ACCOUNT
         self.EE_SERVICE_CREDENTIALS = Config.EE_SERVICE_CREDENTIALS
         self.EE_USER = Config.EE_USER
         self.EE_OUTPUT_ASSET = Config.EE_OUTPUT_ASSET
@@ -220,7 +264,6 @@ class Config:
         # cloud stuff
         self.GCS_PROJECT = Config.GCS_PROJECT
         self.GCS_BUCKET = Config.GCS_BUCKET
-        self.EE_SERVICE_CREDENTIALS = Config.EE_SERVICE_CREDENTIALS
         self.GCS_IMAGE_DIR = Config.GCS_IMAGE_DIR
         self.GCS_IMAGE_PREFIX = Config.GCS_IMAGE_PREFIX
 

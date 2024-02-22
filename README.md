@@ -12,7 +12,7 @@ ACES (Agricultural Classification and Estimation Service) is a Python module for
 
 
 ## Usage
-Define all your configuration in `.env` file. An example of the file is provided as [`.env.example`](https://github.com/biplovbhandari/aces/blob/main/.env.example) file.
+Define all your configuration in `.env` file. An example of the file is provided as [`.env.example`](https://github.com/SERVIR/servir-aces/blob/main/.env.example) file.
 
 Here's an example of how to use the ACES module:
 
@@ -30,4 +30,4 @@ if __name__ == "__main__":
 Contributions to ACES are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on the GitHub repository.
 
 ## License
-This project is licensed under the [GNU General Public License v3.0](https://github.com/biplovbhandari/aces/blob/main/LICENSE).
+This project is licensed under the [GNU General Public License v3.0](https://github.com/SERVIR/servir-aces/blob/main/LICENSE).
