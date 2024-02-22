@@ -332,7 +332,7 @@ if __name__ == "__main__":
     else:
         print("No mode specified, defaulting to neighborhood.")
 
-    generator = TrainingDataGenerator(use_service_account=False)
+    generator = TrainingDataGenerator(use_service_account=Config.USE_SERVICE_ACCOUNT)
     if mode == "patch":
         generator.run_patch_generator()
     elif mode == "patch_seed":
