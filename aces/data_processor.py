@@ -60,7 +60,7 @@ class DataProcessor:
         **config: The configuration settings.
 
         Returns:
-        int: The number of training samples.
+        ******int: The number of training samples.
         int: The number of testing samples.
         int: The number of validation samples.
         """
