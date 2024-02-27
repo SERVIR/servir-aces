@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-ACES Data Processor Module
+<p> ACES Data Processor Module:
+</p>
 This module provides functions for data input/output and preprocessing for the ACES project.
 """
 
@@ -16,7 +17,7 @@ __all__ = ["DataProcessor", "RandomTransform"]
 
 class DataProcessor:
     """
-    ACES Data processor Class
+    ACES Data processor Class:
 
     This class provides functions for data input/output and preprocessing for the ACES project.
     """
@@ -28,10 +29,12 @@ class DataProcessor:
         Create a TensorFlow Dataset from a TFRecord file.
 
         Parameters:
-        filename (str): The filename of the TFRecord file.
+
+        * filename (str): The filename of the TFRecord file.
 
         Returns:
-        tf.data.TFRecordDataset: The TensorFlow Dataset created from the TFRecord file.
+
+        * tf.data.TFRecordDataset: The TensorFlow Dataset created from the TFRecord file.
         """
         return tf.data.TFRecordDataset(filename, compression_type="GZIP")
 
@@ -42,10 +45,12 @@ class DataProcessor:
         Get a single sample from a dataset.
 
         Parameters:
-        records: The input tensor records.
+
+        * records: The input tensor records.
 
         Returns:
-        tf.Tensor: The single sample.
+
+        * tf.Tensor: The single sample.
         """
         tensors = records.map(lambda x: tf.numpy_function(lambda _: 1, inp=[x], Tout=tf.int64), num_parallel_calls=tf.data.AUTOTUNE)
         n_tensors = tensors.reduce(np.int64(0), lambda x, y: x + y).numpy()
@@ -57,12 +62,17 @@ class DataProcessor:
         Calculate the number of samples in the training, testing, and validation datasets.
 
         Parameters:
+
         **config: The configuration settings.
 
         Returns:
-        ******int: The number of training samples.
-        int: The number of testing samples.
-        int: The number of validation samples.
+
+        * int: The number of training samples.
+
+        * int: The number of testing samples.
+
+        * int: The number of validation samples.
+
         """
         parser = partial(DataProcessor.parse_tfrecord_multi_label,
                          patch_size=config.get("PATCH_SHAPE_SINGLE"),
@@ -96,8 +106,10 @@ class DataProcessor:
         Print information about a dataset.
 
         Parameters:
-        dataset (tf.data.Dataset): The dataset to print information about.
-        dataset_name (str): The name of the dataset.
+
+        * dataset (tf.data.Dataset): The dataset to print information about.
+
+        * dataset_name (str): The name of the dataset.
         """
         logging.info(dataset_name)
         for inputs, outputs in dataset.take(1):
@@ -120,10 +132,12 @@ class DataProcessor:
         Apply random transformations to a dataset.
 
         Parameters:
-        dataset (tf.Tensor): The input dataset.
+
+        * dataset (tf.Tensor): The input dataset.
 
         Returns:
-        tf.Tensor: The transformed dataset.
+
+        * tf.Tensor: The transformed dataset.
         """
         x = tf.random.uniform(())
         if x < 0.10:
@@ -160,13 +174,17 @@ class DataProcessor:
         Parse a TFRecord example.
 
         Parameters:
-        example_proto (tf.Tensor): The example to parse.
-        patch_size (int): The size of the patch.
-        features (list, optional): The list of feature names to include. Default is None.
-        labels (list, optional): The list of label names to include. Default is None.
+        * example_proto (tf.Tensor): The example to parse.
+
+        * patch_size (int): The size of the patch.
+
+        * features (list, optional): The list of feature names to include. Default is None.
+
+        * labels (list, optional): The list of label names to include. Default is None.
 
         Returns:
-        tf.data.Dataset: The parsed dataset.
+
+        * tf.data.Dataset: The parsed dataset.
         """
         keys = features + labels
         columns = [
@@ -188,12 +206,16 @@ class DataProcessor:
         Convert a dataset to a tuple of features and labels.
 
         Parameters:
-        dataset (tf.Tensor): The input dataset.
-        n_features (int, optional): The number of features. Default is None.
-        inverse_labels (bool, optional): Whether to inverse the labels. Default is False.
+
+        * dataset (tf.Tensor): The input dataset.
+
+        * n_features (int, optional): The number of features. Default is None.
+
+        * inverse_labels (bool, optional): Whether to inverse the labels. Default is False.
 
         Returns:
-        tuple: A tuple containing the features and labels.
+
+        * tuple: A tuple containing the features and labels.
         """
         features = dataset[:, :, :, :n_features]
         labels = dataset[:, :, :, n_features:]
@@ -209,13 +231,18 @@ class DataProcessor:
         Parse a TFRecord example with named features.
 
         Parameters:
-        example_proto (tf.Tensor): The example to parse.
-        patch_size (int): The size of the patch.
-        features (list, optional): The list of feature names to include. Default is None.
-        labels (list, optional): The list of label names to include. Default is None.
+
+        * example_proto (tf.Tensor): The example to parse.
+
+        * patch_size (int): The size of the patch.
+
+        * features (list, optional): The list of feature names to include. Default is None.
+
+        * labels (list, optional): The list of label names to include. Default is None.
 
         Returns:
-        tf.data.Dataset: The parsed dataset.
+        
+        * tf.data.Dataset: The parsed dataset.
         """
         keys = features + labels
         columns = [
@@ -231,13 +258,18 @@ class DataProcessor:
         Convert inputs with named features to a tuple of features and one-hot encoded labels.
 
         Parameters:
-        inputs (tf.Tensor): The input dataset.
-        features (list, optional): The list of feature names. Default is None.
-        labels (list, optional): The list of label names. Default is None.
-        n_classes (int, optional): The number of classes for one-hot encoding. Default is 1.
+
+        * inputs (tf.Tensor): The input dataset.
+
+        * features (list, optional): The list of feature names. Default is None.
+
+        * labels (list, optional): The list of label names. Default is None.
+
+        * n_classes (int, optional): The number of classes for one-hot encoding. Default is 1.
 
         Returns:
-        tuple: A tuple containing the features and one-hot encoded labels.
+
+        * tuple: A tuple containing the features and one-hot encoded labels.
         """
         return (
             {name: inputs[name] for name in features},
@@ -251,12 +283,16 @@ class DataProcessor:
         Parse a TFRecord example for DNN models.
 
         Parameters:
-        example_proto (tf.Tensor): The example to parse.
-        features (list, optional): The list of feature names to include. Default is None.
-        labels (list, optional): The list of label names to include. Default is None.
+
+        * example_proto (tf.Tensor): The example to parse.
+
+        * features (list, optional): The list of feature names to include. Default is None.
+
+        * labels (list, optional): The list of label names to include. Default is None.
 
         Returns:
-        tuple: A tuple containing the parsed features and labels.
+
+        * tuple: A tuple containing the parsed features and labels.
         """
         keys = features + labels
         columns = [
@@ -275,12 +311,16 @@ class DataProcessor:
         Convert a dataset for DNN models to a tuple of features and one-hot encoded labels.
 
         Parameters:
-        dataset (dict): The input dataset.
-        label (tf.Tensor): The label.
-        depth (int, optional): The depth of one-hot encoding. Default is 1.
+
+        * dataset (dict): The input dataset.
+
+        * label (tf.Tensor): The label.
+
+        * depth (int, optional): The depth of one-hot encoding. Default is 1.
 
         Returns:
-        tuple: A tuple containing the features and one-hot encoded labels.
+
+        * tuple: A tuple containing the features and one-hot encoded labels.
         """
         return tf.transpose(list(dataset.values())), tf.one_hot(indices=label, depth=depth)
 
@@ -290,12 +330,16 @@ class DataProcessor:
         Convert a dataset for DNN models to a tuple of features and one-hot encoded labels.
 
         Parameters:
-        dataset (dict): The input dataset.
-        label (tf.Tensor): The label.
-        depth (int, optional): The depth of one-hot encoding. Default is 1.
+
+        * dataset (dict): The input dataset.
+
+        * label (tf.Tensor): The label.
+
+        * depth (int, optional): The depth of one-hot encoding. Default is 1.
 
         Returns:
-        tuple: A tuple containing the features and one-hot encoded labels.
+
+        * tuple: A tuple containing the features and one-hot encoded labels.
         """
           # (1) -> (1, 1, 1)
         return ({k: [[v]] for k, v in dataset.items()}, tf.expand_dims(tf.one_hot(label, depth), axis=0))
@@ -308,13 +352,18 @@ class DataProcessor:
         Parse a TFRecord example with multiple labels.
 
         Parameters:
-        example_proto (tf.data.Dataset): The example to parse.
-        patch_size (int): The size of the patch.
-        features (list, optional): The list of feature names to include. Default is None.
-        labels (list, optional): The list of label names to include. Default is None.
+
+        * example_proto (tf.data.Dataset): The example to parse.
+
+        * patch_size (int): The size of the patch.
+
+        * features (list, optional): The list of feature names to include. Default is None.
+
+        * labels (list, optional): The list of label names to include. Default is None.
 
         Returns:
-        tuple: A tuple containing the parsed features and labels.
+
+        * tuple: A tuple containing the parsed features and labels.
         """
         keys = features + labels
         columns = [
@@ -332,11 +381,14 @@ class DataProcessor:
         Convert a dataset with multiple labels to a tuple of features and multi-hot encoded labels.
 
         Parameters:
-        dataset (tuple): The input dataset.
-        n_labels (int, optional): The number of labels. Default is 1.
+
+        * dataset (tuple): The input dataset.
+
+        * n_labels (int, optional): The number of labels. Default is 1.
 
         Returns:
-        tuple: A tuple containing the features and multi-hot encoded labels.
+
+        * tuple: A tuple containing the features and multi-hot encoded labels.
         """
         label = tf.cast(label, tf.uint8)
         label = tf.one_hot(indices=label, depth=depth)
@@ -353,11 +405,14 @@ class DataProcessor:
         Convert a dataset with multiple labels to a tuple of features and multi-hot encoded labels.
 
         Parameters:
-        dataset (tuple): The input dataset.
-        n_labels (int, optional): The number of labels. Default is 1.
+
+        * dataset (tuple): The input dataset.
+
+        * n_labels (int, optional): The number of labels. Default is 1.
 
         Returns:
-        tuple: A tuple containing the features and multi-hot encoded labels.
+
+        * tuple: A tuple containing the features and multi-hot encoded labels.
         """
         label = tf.cast(label, tf.uint8)
         label = tf.one_hot(indices=label, depth=depth)
@@ -383,6 +438,7 @@ class DataProcessor:
         cache (bool, optional): Whether to cache the dataset. Default is False.
 
         Returns:
+
         tf.data.Dataset: The TFRecord dataset.
         """
         dnn = kwargs.get('dnn', False)
@@ -431,19 +487,28 @@ class DataProcessor:
         Get a TFRecord dataset.
 
         Parameters:
-        filenames (list): The list of file names.
-        patch_size (int): The size of the patch.
-        features (list, optional): The list of feature names to include. Default is None.
-        labels (list, optional): The list of label names to include. Default is None.
-        batch_size (int, optional): The batch size. Default is 1.
-        shuffle(bool, optional): Whether to shuffle the dataset. Default is False.
-        n_labels (int, optional): The number of labels. Default is 1.
-        num_parallel_calls (int, optional): The number of parallel calls. Default is tf.data.experimental.AUTOTUNE.
-        drop_remainder (bool, optional): Whether to drop the remainder of batches. Default is False.
-        cache (bool, optional): Whether to cache the dataset. Default is False.
+        * filenames (list): The list of file names.
+
+        * patch_size (int): The size of the patch.
+
+        * (list, optional): The list of feature names to include. Default is None.
+
+        * labels (list, optional): The list of label names to include. Default is None.
+
+        * batch_size (int, optional): The batch size. Default is 1.
+
+        * shuffle(bool, optional): Whether to shuffle the dataset. Default is False.
+
+        * n_labels (int, optional): The number of labels. Default is 1.
+
+        * num_parallel_calls (int, optional): The number of parallel calls. Default is tf.data.experimental.AUTOTUNE.
+
+        * drop_remainder (bool, optional): Whether to drop the remainder of batches. Default is False.
+        
+        * cache (bool, optional): Whether to cache the dataset. Default is False.
 
         Returns:
-        tf.data.Dataset: The TFRecord dataset.
+        * tf.data.Dataset: The TFRecord dataset.
         """
         logging.info(f"Loading dataset from {pattern}")
 
@@ -510,11 +575,14 @@ class RandomTransform(tf.keras.layers.Layer):
         Apply random transformations to a dataset.
 
         Parameters:
-        dataset (tf.Tensor): The input dataset.
-        label (tf.Tensor): The corresponding label.
+
+        * dataset (tf.Tensor): The input dataset.
+
+        * label (tf.Tensor): The corresponding label.
 
         Returns:
-        tuple: The transformed dataset and label as a tuple.
+
+        * tuple: The transformed dataset and label as a tuple.
         """
         x = tf.random.uniform((), seed=self.seed)
         transformed_features = {}
