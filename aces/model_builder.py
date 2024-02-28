@@ -6,7 +6,7 @@ model_builder.py:
 Model Builder Class for Creating and Compiling Neural Network Models
 
 This module provides a `ModelBuilder` class that is responsible for creating and compiling neural network models.
-It includes methods for building and compiling models of different types, such as Deep Neural Network (**DNN**), 
+It includes methods for building and compiling models of different types, such as Deep Neural Network (**DNN**),
 Convolutional Neural Network (**CNN**), and **U-Net**, based on the
 provided specifications. The class also contains utility methods for constructing custom layers and defining metrics.
 """

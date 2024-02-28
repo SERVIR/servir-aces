@@ -235,7 +235,7 @@ class ModelTrainer:
             print_model_summary: Flag indicating whether to print the model summary.
 
         Builds and compiles the model using the provided configuration settings.
-        
+
         Prints the model summary if print_model_summary is set to True.
         """
         model, wrapped_model = self.build_model(**self.config.__dict__)
