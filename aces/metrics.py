@@ -4,7 +4,7 @@
 metrics.py: Custom Metrics for Model Evaluation and Utility Functions for Model Visualization
 
 This module provides a collection of custom metrics that can be used for evaluating model performance in tasks such as
-image segmentation. This module includes a wide variety of evaluation metrics listed below. 
+image segmentation. This module includes a wide variety of evaluation metrics listed below.
 Additionally, it contains utility functions for plotting and visualizing model metrics during training.
 """
 
@@ -51,7 +51,7 @@ class Metrics:
         dice_coef():
             Computes the Dice coefficient metric.
         dice_loss():
-            Computes the Dice loss metric.    
+            Computes the Dice loss metric.
         bce_loss():
             Computes the Binary Cross-Entropy (BCE) loss metric.
         bce_dice_loss():
@@ -237,7 +237,7 @@ class Metrics:
             True positives metric.
         """
         return keras.metrics.TruePositives(name="tp")
-    
+
     @staticmethod
     def false_positives():
         """
@@ -247,7 +247,7 @@ class Metrics:
             False positives metric.
         """
         return keras.metrics.FalsePositives(name="fp")
-    
+
     @staticmethod
     def true_negatives():
         """
@@ -257,7 +257,7 @@ class Metrics:
             True negatives metric.
         """
         return keras.metrics.TrueNegatives(name="tn")
-    
+
     @staticmethod
     def false_negatives():
         """
@@ -267,7 +267,7 @@ class Metrics:
             False negatives metric.
         """
         return keras.metrics.FalseNegatives(name="fn")
-    
+
     @staticmethod
     def binary_accuracy():
         """
@@ -277,7 +277,7 @@ class Metrics:
             Binary accuracy metric.
         """
         return keras.metrics.BinaryAccuracy(name="accuracy")
-    
+
     # check difference between this and precision_m output
     @staticmethod
     def precision():
@@ -288,7 +288,7 @@ class Metrics:
             Precision metric.
         """
         return keras.metrics.Precision(name="precision")
-    
+
     @staticmethod
     def recall():
         """
@@ -308,7 +308,7 @@ class Metrics:
             AUC metric.
         """
         return keras.metrics.AUC(name="auc")
-    
+
     @staticmethod
     def prc():
         """
@@ -318,7 +318,7 @@ class Metrics:
             PRC metric.
         """
         return keras.metrics.AUC(name="prc", curve="PR")
-    
+
     @staticmethod
     def one_hot_io_u(num_classes, name="one_hot_io_u"):
         """

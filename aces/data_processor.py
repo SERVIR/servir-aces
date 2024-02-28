@@ -241,7 +241,7 @@ class DataProcessor:
         * labels (list, optional): The list of label names to include. Default is None.
 
         Returns:
-        
+
         * tf.data.Dataset: The parsed dataset.
         """
         keys = features + labels
@@ -504,7 +504,7 @@ class DataProcessor:
         * num_parallel_calls (int, optional): The number of parallel calls. Default is tf.data.experimental.AUTOTUNE.
 
         * drop_remainder (bool, optional): Whether to drop the remainder of batches. Default is False.
-        
+
         * cache (bool, optional): Whether to cache the dataset. Default is False.
 
         Returns:

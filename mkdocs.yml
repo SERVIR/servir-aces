@@ -17,3 +17,7 @@ theme:
 plugins:
   - search
   - mkdocstrings
+  - bibtex:
+      bib_file: "aces/refs.bib"
+markdown_extensions:
+  - footnotes
