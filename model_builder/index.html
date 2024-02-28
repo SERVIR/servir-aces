@@ -575,9 +575,11 @@
 
   <div class="doc doc-contents first">
   
-      <p>model_builder.py: Model Builder Class for Creating and Compiling Neural Network Models</p>
+      <p>model_builder.py:</p>
+<p>Model Builder Class for Creating and Compiling Neural Network Models</p>
 <p>This module provides a <code>ModelBuilder</code> class that is responsible for creating and compiling neural network models.
-It includes methods for building and compiling models of different types, such as DNN, CNN, and U-Net, based on the
+It includes methods for building and compiling models of different types, such as Deep Neural Network (<strong>DNN</strong>),
+Convolutional Neural Network (<strong>CNN</strong>), and <strong>U-Net</strong>, based on the
 provided specifications. The class also contains utility methods for constructing custom layers and defining metrics.</p>
 
   
@@ -682,10 +684,7 @@ _build_and_compile_unet_model(**kwargs):
 
         <details class="quote">
           <summary>Source code in <code>aces/model_builder.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 21</span>
-<span class="normal"> 22</span>
-<span class="normal"> 23</span>
-<span class="normal"> 24</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 24</span>
 <span class="normal"> 25</span>
 <span class="normal"> 26</span>
 <span class="normal"> 27</span>
@@ -1093,7 +1092,10 @@ _build_and_compile_unet_model(**kwargs):
 <span class="normal">429</span>
 <span class="normal">430</span>
 <span class="normal">431</span>
-<span class="normal">432</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ModelBuilder</span><span class="p">:</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span>
+<span class="normal">435</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ModelBuilder</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    ModelBuilder Class for Creating and Compiling Neural Network Models</span>
 
@@ -1606,10 +1608,7 @@ _build_and_compile_unet_model(**kwargs):
 
       <details class="quote">
         <summary>Source code in <code>aces/model_builder.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">50</span>
 <span class="normal">51</span>
 <span class="normal">52</span>
 <span class="normal">53</span>
@@ -1620,7 +1619,10 @@ _build_and_compile_unet_model(**kwargs):
 <span class="normal">58</span>
 <span class="normal">59</span>
 <span class="normal">60</span>
-<span class="normal">61</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">out_classes</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">loss</span><span class="p">):</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">out_classes</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">loss</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initialize ModelBuilder with input size, output classes, optimizer, and loss.</span>
 
@@ -1705,10 +1707,7 @@ _build_and_compile_unet_model(**kwargs):
 
       <details class="quote">
         <summary>Source code in <code>aces/model_builder.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">189</span>
 <span class="normal">190</span>
 <span class="normal">191</span>
 <span class="normal">192</span>
@@ -1739,7 +1738,10 @@ _build_and_compile_unet_model(**kwargs):
 <span class="normal">217</span>
 <span class="normal">218</span>
 <span class="normal">219</span>
-<span class="normal">220</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_cnn_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_cnn_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds and compiles a Convolutional Neural Network (CNN) model.</span>
 
@@ -1844,10 +1846,7 @@ _build_and_compile_unet_model(**kwargs):
 
       <details class="quote">
         <summary>Source code in <code>aces/model_builder.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 93</span>
-<span class="normal"> 94</span>
-<span class="normal"> 95</span>
-<span class="normal"> 96</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 96</span>
 <span class="normal"> 97</span>
 <span class="normal"> 98</span>
 <span class="normal"> 99</span>
@@ -1883,7 +1882,10 @@ _build_and_compile_unet_model(**kwargs):
 <span class="normal">129</span>
 <span class="normal">130</span>
 <span class="normal">131</span>
-<span class="normal">132</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_dnn_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_dnn_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds and compiles a Deep Neural Network (DNN) model.</span>
 
@@ -1993,10 +1995,7 @@ _build_and_compile_unet_model(**kwargs):
 
       <details class="quote">
         <summary>Source code in <code>aces/model_builder.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">138</span>
 <span class="normal">139</span>
 <span class="normal">140</span>
 <span class="normal">141</span>
@@ -2042,7 +2041,10 @@ _build_and_compile_unet_model(**kwargs):
 <span class="normal">181</span>
 <span class="normal">182</span>
 <span class="normal">183</span>
-<span class="normal">184</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_dnn_model_for_ai_platform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_dnn_model_for_ai_platform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds and compiles a Deep Neural Network (DNN) model.</span>
 
@@ -2162,10 +2164,7 @@ _build_and_compile_unet_model(**kwargs):
 
       <details class="quote">
         <summary>Source code in <code>aces/model_builder.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">254</span>
-<span class="normal">255</span>
-<span class="normal">256</span>
-<span class="normal">257</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">257</span>
 <span class="normal">258</span>
 <span class="normal">259</span>
 <span class="normal">260</span>
@@ -2193,7 +2192,10 @@ _build_and_compile_unet_model(**kwargs):
 <span class="normal">282</span>
 <span class="normal">283</span>
 <span class="normal">284</span>
-<span class="normal">285</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_unet_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_unet_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds and compiles a U-Net model.</span>
 
@@ -2295,10 +2297,7 @@ _build_and_compile_unet_model(**kwargs):
 
       <details class="quote">
         <summary>Source code in <code>aces/model_builder.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">222</span>
-<span class="normal">223</span>
-<span class="normal">224</span>
-<span class="normal">225</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">225</span>
 <span class="normal">226</span>
 <span class="normal">227</span>
 <span class="normal">228</span>
@@ -2310,7 +2309,10 @@ _build_and_compile_unet_model(**kwargs):
 <span class="normal">234</span>
 <span class="normal">235</span>
 <span class="normal">236</span>
-<span class="normal">237</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_unet_model_for_ai_platform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_unet_model_for_ai_platform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds and compiles a U-Net model.</span>
 
@@ -2432,10 +2434,7 @@ _build_and_compile_unet_model(**kwargs):
 
       <details class="quote">
         <summary>Source code in <code>aces/model_builder.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">63</span>
-<span class="normal">64</span>
-<span class="normal">65</span>
-<span class="normal">66</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">66</span>
 <span class="normal">67</span>
 <span class="normal">68</span>
 <span class="normal">69</span>
@@ -2460,7 +2459,10 @@ _build_and_compile_unet_model(**kwargs):
 <span class="normal">88</span>
 <span class="normal">89</span>
 <span class="normal">90</span>
-<span class="normal">91</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_type</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="normal">91</span>
+<span class="normal">92</span>
+<span class="normal">93</span>
+<span class="normal">94</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_type</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds and compiles a neural network model based on the provided model type.</span>
 

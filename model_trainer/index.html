@@ -698,7 +698,7 @@
   <div class="doc doc-contents ">
 
   
-      <p>A class for training deep learning models.</p>
+      <p>A class for training, buidling, compiling, and running specified deep learning models.</p>
 
   <p><strong>Attributes:</strong></p>
   <table>
@@ -1156,9 +1156,18 @@
 <span class="normal">432</span>
 <span class="normal">433</span>
 <span class="normal">434</span>
-<span class="normal">435</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ModelTrainer</span><span class="p">:</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ModelTrainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A class for training deep learning models.</span>
+<span class="sd">    A class for training, buidling, compiling, and running specified deep learning models.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        config: An object containing the configuration settings for model training.</span>
@@ -1210,12 +1219,19 @@
 <span class="sd">        Train the model using the provided configuration settings.</span>
 
 <span class="sd">        This method performs the following steps:</span>
+
 <span class="sd">        1. Configures memory growth for TensorFlow.</span>
+
 <span class="sd">        2. Creates TensorFlow datasets for training, testing, and validation.</span>
+
 <span class="sd">        3. Builds and compiles the model.</span>
+
 <span class="sd">        4. Prepares the output directory for saving models and results.</span>
+
 <span class="sd">        5. Starts the training process.</span>
+
 <span class="sd">        6. Evaluates and prints validation metrics.</span>
+
 <span class="sd">        7. Saves training parameters, plots, and models.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;****************************************************************************&quot;</span><span class="p">)</span>
@@ -1348,6 +1364,7 @@
 <span class="sd">            print_model_summary: Flag indicating whether to print the model summary.</span>
 
 <span class="sd">        Builds and compiles the model using the provided configuration settings.</span>
+
 <span class="sd">        Prints the model summary if print_model_summary is set to True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
@@ -1361,6 +1378,7 @@
 <span class="sd">            print_model_summary: Flag indicating whether to print the model summary.</span>
 
 <span class="sd">        Builds and compiles the model using the provided configuration settings.</span>
+
 <span class="sd">        Prints the model summary if print_model_summary is set to True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">model</span><span class="p">,</span> <span class="n">wrapped_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
@@ -1793,23 +1811,24 @@
         </tr>
     </tbody>
   </table>
-      <p>Builds and compiles the model using the provided configuration settings.
-Prints the model summary if print_model_summary is set to True.</p>
+      <p>Builds and compiles the model using the provided configuration settings.</p>
+<p>Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span>
-<span class="normal">214</span>
-<span class="normal">215</span>
-<span class="normal">216</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">216</span>
 <span class="normal">217</span>
 <span class="normal">218</span>
 <span class="normal">219</span>
-<span class="normal">220</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">print_model_summary</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">print_model_summary</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build and compile the model.</span>
 
@@ -1817,6 +1836,7 @@ Prints the model summary if print_model_summary is set to True.</p>
 <span class="sd">        print_model_summary: Flag indicating whether to print the model summary.</span>
 
 <span class="sd">    Builds and compiles the model using the provided configuration settings.</span>
+
 <span class="sd">    Prints the model summary if print_model_summary is set to True.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
@@ -1867,25 +1887,26 @@ Prints the model summary if print_model_summary is set to True.</p>
         </tr>
     </tbody>
   </table>
-      <p>Builds and compiles the model using the provided configuration settings.
-Prints the model summary if print_model_summary is set to True.</p>
+      <p>Builds and compiles the model using the provided configuration settings.</p>
+<p>Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">222</span>
-<span class="normal">223</span>
-<span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span>
-<span class="normal">230</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">230</span>
 <span class="normal">231</span>
 <span class="normal">232</span>
 <span class="normal">233</span>
 <span class="normal">234</span>
-<span class="normal">235</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_model_ai_platform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">build_and_compile_model_ai_platform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build and compile the model.</span>
 
@@ -1893,6 +1914,7 @@ Prints the model summary if print_model_summary is set to True.</p>
 <span class="sd">        print_model_summary: Flag indicating whether to print the model summary.</span>
 
 <span class="sd">    Builds and compiles the model using the provided configuration settings.</span>
+
 <span class="sd">    Prints the model summary if print_model_summary is set to True.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">model</span><span class="p">,</span> <span class="n">wrapped_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
@@ -1950,14 +1972,7 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">171</span>
 <span class="normal">172</span>
 <span class="normal">173</span>
 <span class="normal">174</span>
@@ -1993,7 +2008,14 @@ Prints the model summary if print_model_summary is set to True.</p>
 <span class="normal">204</span>
 <span class="normal">205</span>
 <span class="normal">206</span>
-<span class="normal">207</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">print_info</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">create_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">print_info</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create TensorFlow datasets for training, testing, and validation.</span>
 
@@ -2060,22 +2082,22 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">296</span>
-<span class="normal">297</span>
-<span class="normal">298</span>
-<span class="normal">299</span>
-<span class="normal">300</span>
-<span class="normal">301</span>
-<span class="normal">302</span>
-<span class="normal">303</span>
-<span class="normal">304</span>
-<span class="normal">305</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">305</span>
 <span class="normal">306</span>
 <span class="normal">307</span>
 <span class="normal">308</span>
 <span class="normal">309</span>
 <span class="normal">310</span>
-<span class="normal">311</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">evaluate_and_print_val</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">evaluate_and_print_val</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Evaluate and print validation metrics.</span>
 
@@ -2114,20 +2136,20 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">381</span>
-<span class="normal">382</span>
-<span class="normal">383</span>
-<span class="normal">384</span>
-<span class="normal">385</span>
-<span class="normal">386</span>
-<span class="normal">387</span>
-<span class="normal">388</span>
-<span class="normal">389</span>
-<span class="normal">390</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">390</span>
 <span class="normal">391</span>
 <span class="normal">392</span>
 <span class="normal">393</span>
-<span class="normal">394</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">load_and_save_models</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">load_and_save_models</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load the trained models.</span>
 
@@ -2164,14 +2186,7 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">138</span>
-<span class="normal">139</span>
-<span class="normal">140</span>
-<span class="normal">141</span>
-<span class="normal">142</span>
-<span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">145</span>
 <span class="normal">146</span>
 <span class="normal">147</span>
 <span class="normal">148</span>
@@ -2188,7 +2203,14 @@ Prints the model summary if print_model_summary is set to True.</p>
 <span class="normal">159</span>
 <span class="normal">160</span>
 <span class="normal">161</span>
-<span class="normal">162</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">prepare_output_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">prepare_output_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Prepare the output directory for saving models and results.</span>
 
@@ -2235,15 +2257,15 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">370</span>
-<span class="normal">371</span>
-<span class="normal">372</span>
-<span class="normal">373</span>
-<span class="normal">374</span>
-<span class="normal">375</span>
-<span class="normal">376</span>
-<span class="normal">377</span>
-<span class="normal">378</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_history_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_history_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Save the history object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2275,16 +2297,7 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">397</span>
-<span class="normal">398</span>
-<span class="normal">399</span>
-<span class="normal">400</span>
-<span class="normal">401</span>
-<span class="normal">402</span>
-<span class="normal">403</span>
-<span class="normal">404</span>
-<span class="normal">405</span>
-<span class="normal">406</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">406</span>
 <span class="normal">407</span>
 <span class="normal">408</span>
 <span class="normal">409</span>
@@ -2295,7 +2308,16 @@ Prints the model summary if print_model_summary is set to True.</p>
 <span class="normal">414</span>
 <span class="normal">415</span>
 <span class="normal">416</span>
-<span class="normal">417</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_models</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_models</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Save the trained models.</span>
 
@@ -2343,16 +2365,7 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">313</span>
-<span class="normal">314</span>
-<span class="normal">315</span>
-<span class="normal">316</span>
-<span class="normal">317</span>
-<span class="normal">318</span>
-<span class="normal">319</span>
-<span class="normal">320</span>
-<span class="normal">321</span>
-<span class="normal">322</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">322</span>
 <span class="normal">323</span>
 <span class="normal">324</span>
 <span class="normal">325</span>
@@ -2377,7 +2390,16 @@ Prints the model summary if print_model_summary is set to True.</p>
 <span class="normal">344</span>
 <span class="normal">345</span>
 <span class="normal">346</span>
-<span class="normal">347</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">save_parameters</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Save the training parameters to a text file.</span>
@@ -2435,20 +2457,20 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">355</span>
-<span class="normal">356</span>
-<span class="normal">357</span>
-<span class="normal">358</span>
-<span class="normal">359</span>
-<span class="normal">360</span>
-<span class="normal">361</span>
-<span class="normal">362</span>
-<span class="normal">363</span>
-<span class="normal">364</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">364</span>
 <span class="normal">365</span>
 <span class="normal">366</span>
 <span class="normal">367</span>
-<span class="normal">368</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Save plots and model visualization.</span>
 
@@ -2485,23 +2507,23 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">419</span>
-<span class="normal">420</span>
-<span class="normal">421</span>
-<span class="normal">422</span>
-<span class="normal">423</span>
-<span class="normal">424</span>
-<span class="normal">425</span>
-<span class="normal">426</span>
-<span class="normal">427</span>
-<span class="normal">428</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">428</span>
 <span class="normal">429</span>
 <span class="normal">430</span>
 <span class="normal">431</span>
 <span class="normal">432</span>
 <span class="normal">433</span>
 <span class="normal">434</span>
-<span class="normal">435</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">serialize_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">:</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">serialize_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Serialize and save the trained models.</span>
 
@@ -2541,16 +2563,7 @@ Prints the model summary if print_model_summary is set to True.</p>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span>
-<span class="normal">246</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">246</span>
 <span class="normal">247</span>
 <span class="normal">248</span>
 <span class="normal">249</span>
@@ -2598,7 +2611,16 @@ Prints the model summary if print_model_summary is set to True.</p>
 <span class="normal">291</span>
 <span class="normal">292</span>
 <span class="normal">293</span>
-<span class="normal">294</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">start_training</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">start_training</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Start the training process.</span>
 
@@ -2675,14 +2697,30 @@ Prints the model summary if print_model_summary is set to True.</p>
   <div class="doc doc-contents ">
   
       <p>Train the model using the provided configuration settings.</p>
-<p>This method performs the following steps:
-1. Configures memory growth for TensorFlow.
-2. Creates TensorFlow datasets for training, testing, and validation.
-3. Builds and compiles the model.
-4. Prepares the output directory for saving models and results.
-5. Starts the training process.
-6. Evaluates and prints validation metrics.
-7. Saves training parameters, plots, and models.</p>
+<p>This method performs the following steps:</p>
+<ol>
+<li>
+<p>Configures memory growth for TensorFlow.</p>
+</li>
+<li>
+<p>Creates TensorFlow datasets for training, testing, and validation.</p>
+</li>
+<li>
+<p>Builds and compiles the model.</p>
+</li>
+<li>
+<p>Prepares the output directory for saving models and results.</p>
+</li>
+<li>
+<p>Starts the training process.</p>
+</li>
+<li>
+<p>Evaluates and prints validation metrics.</p>
+</li>
+<li>
+<p>Saves training parameters, plots, and models.</p>
+</li>
+</ol>
 
       <details class="quote">
         <summary>Source code in <code>aces/model_trainer.py</code></summary>
@@ -2748,17 +2786,31 @@ Prints the model summary if print_model_summary is set to True.</p>
 <span class="normal">133</span>
 <span class="normal">134</span>
 <span class="normal">135</span>
-<span class="normal">136</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Train the model using the provided configuration settings.</span>
 
 <span class="sd">    This method performs the following steps:</span>
+
 <span class="sd">    1. Configures memory growth for TensorFlow.</span>
+
 <span class="sd">    2. Creates TensorFlow datasets for training, testing, and validation.</span>
+
 <span class="sd">    3. Builds and compiles the model.</span>
+
 <span class="sd">    4. Prepares the output directory for saving models and results.</span>
+
 <span class="sd">    5. Starts the training process.</span>
+
 <span class="sd">    6. Evaluates and prints validation metrics.</span>
+
 <span class="sd">    7. Saves training parameters, plots, and models.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;****************************************************************************&quot;</span><span class="p">)</span>
