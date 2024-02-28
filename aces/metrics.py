@@ -4,7 +4,7 @@
 metrics.py: Custom Metrics for Model Evaluation and Utility Functions for Model Visualization
 
 This module provides a collection of custom metrics that can be used for evaluating model performance in tasks such as
-image segmentation. It includes metrics like recall, precision, F1-score, Dice coefficient, Tversky index, and more.
+image segmentation. This module includes a wide variety of evaluation metrics listed below. 
 Additionally, it contains utility functions for plotting and visualizing model metrics during training.
 """
 
@@ -30,8 +30,6 @@ class Metrics:
             Computes the precision metric.
         recall():
             Computes the recall metric.
-        dice_coef():
-            Computes the Dice coefficient metric.
         f1_m():
             Computes the F1 score metric.
         one_hot_io_u(num_classes):
@@ -50,6 +48,20 @@ class Metrics:
             Computes the Area Under the Curve (AUC) metric.
         prc():
             Computes the Precision-Recall Curve (PRC) metric.
+        dice_coef():
+            Computes the Dice coefficient metric.
+        dice_loss():
+            Computes the Dice loss metric.    
+        bce_loss():
+            Computes the Binary Cross-Entropy (BCE) loss metric.
+        bce_dice_loss():
+            Computes the BCE and Dice loss metric. cite
+        tversky():
+            Computes the Tversky index metric.
+        tversky_loss():
+            Computes the Tversky loss metric.
+        focal_tversky_loss():
+            Computes the focal Tversky loss metric
     """
 
     @staticmethod
@@ -155,7 +167,7 @@ class Metrics:
     @staticmethod
     def bce_loss(y_true, y_pred):
         """
-        Calculate the binary cross-entropy (BCE) loss metric.
+        Calculate the Binary Cross-Entropy (BCE) loss metric.
 
         Args:
             y_true: Ground truth labels.

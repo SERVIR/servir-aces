@@ -24,7 +24,7 @@ from aces.utils import Utils, TFUtils
 
 class ModelTrainer:
     """
-    A class for training deep learning models.
+    A class for training, buidling, compiling, and running specified deep learning models.
 
     Attributes:
         config: An object containing the configuration settings for model training.
@@ -76,12 +76,19 @@ class ModelTrainer:
         Train the model using the provided configuration settings.
 
         This method performs the following steps:
+
         1. Configures memory growth for TensorFlow.
+
         2. Creates TensorFlow datasets for training, testing, and validation.
+
         3. Builds and compiles the model.
+
         4. Prepares the output directory for saving models and results.
+
         5. Starts the training process.
+
         6. Evaluates and prints validation metrics.
+
         7. Saves training parameters, plots, and models.
         """
         logging.info("****************************************************************************")
@@ -214,6 +221,7 @@ class ModelTrainer:
             print_model_summary: Flag indicating whether to print the model summary.
 
         Builds and compiles the model using the provided configuration settings.
+
         Prints the model summary if print_model_summary is set to True.
         """
         self.model = self.build_model(**self.config.__dict__)
@@ -227,6 +235,7 @@ class ModelTrainer:
             print_model_summary: Flag indicating whether to print the model summary.
 
         Builds and compiles the model using the provided configuration settings.
+        
         Prints the model summary if print_model_summary is set to True.
         """
         model, wrapped_model = self.build_model(**self.config.__dict__)
