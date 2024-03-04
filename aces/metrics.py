@@ -31,37 +31,37 @@ class Metrics:
         recall():
             Computes the recall metric.
         f1_m():
-            Computes the F1 score metric.
+            Computes the F1 score metric. [van1979information, chicco2020advantages]
         one_hot_io_u(num_classes):
-            Computes the Intersection over Union (IoU) metric for each class.
+            Computes the Intersection over Union (IoU) metric for each class. [jaccard1901etude]
         true_positives():
-            Computes the true positives metric.
+            Computes the true positives metric also known as sensitivity.[yerushalmy1947statistical]
         false_positives():
-            Computes the false positives metric.
+            Computes the false positives metric. [cohen2013statistical]
         true_negatives():
-            Computes the true negatives metric.
+            Computes the true negatives metric also known as specificity. [yerushalmy1947statistical]
         false_negatives():
-            Computes the false negatives metric.
+            Computes the false negatives metric. [cohen2013statistical]
         binary_accuracy():
             Computes the binary accuracy metric.
         auc():
-            Computes the Area Under the Curve (AUC) metric.
+            Computes the Area Under the Curve (AUC) metric. [provost2001robust]
         prc():
             Computes the Precision-Recall Curve (PRC) metric.
         dice_coef():
-            Computes the Dice coefficient metric.
+            Computes the Dice coefficient metric. [milletari2016v]
         dice_loss():
-            Computes the Dice loss metric.
+            Computes the Dice loss metric. [sudre2017generalised]
         bce_loss():
-            Computes the Binary Cross-Entropy (BCE) loss metric.
+            Computes the Binary Cross-Entropy (BCE) loss metric. [zhu2018negative; yi2004automated]
         bce_dice_loss():
-            Computes the BCE and Dice loss metric. cite
+            Computes the BCE and Dice loss metric. cite [taghanaki2019combo]
         tversky():
-            Computes the Tversky index metric.
+            Computes the Tversky index metric.[tversky1977features]
         tversky_loss():
-            Computes the Tversky loss metric.
+            Computes the Tversky loss metric. [salehi2017tversky]
         focal_tversky_loss():
-            Computes the focal Tversky loss metric
+            Computes the focal Tversky loss metric [abraham2019novel]
     """
 
     @staticmethod
