@@ -1,8 +1,82 @@
 site_name: ACES Documentation
+site_description: Agricultural Classification and Estimation Service (ACES)
+site_author: biplovbhandari
+site_url: https://servir.github.io/servir-aces
+repo_url: https://github.com/SERVIR/servir-aces
+
+copyright: "Copyright &copy; 2024 - 2024 SERVIR Global"
+
+theme:
+    palette:
+        - scheme: default
+          #   primary: blue
+          #   accent: indigo
+          toggle:
+              icon: material/toggle-switch-off-outline
+              name: Switch to dark mode
+        - scheme: slate
+          primary: indigo
+          accent: indigo
+          toggle:
+              icon: material/toggle-switch
+              name: Switch to light mode
+    name: material
+    icon:
+        repo: fontawesome/brands/github
+    # logo: assets/logo.png
+    # favicon: assets/favicon.png
+    features:
+        - navigation.instant
+        - navigation.tracking
+        - navigation.top
+        - search.highlight
+        - search.share
+    custom_dir: "docs/overrides"
+    font:
+        text: Google Sans
+        code: Regular
+
+plugins:
+  - search
+  - mkdocstrings
+  - bibtex:
+      bib_file: "aces/refs.bib"
+  - git-revision-date
+  - git-revision-date-localized:
+        enable_creation_date: true
+        type: timeago
+  # - pdf-export
+  - mkdocs-jupyter:
+        include_source: True
+        ignore_h1_titles: True
+        execute: True
+        allow_errors: false
+        ignore: ["conf.py"]
+        execute_ignore: ["*ignore.ipynb"]
+
+
+markdown_extensions:
+    - admonition
+    - abbr
+    - attr_list
+    - def_list
+    - footnotes
+    - meta
+    - md_in_html
+    - pymdownx.superfences
+    - pymdownx.highlight:
+          linenums: true
+    - toc:
+          permalink: true
+
 nav:
   - Home: index.md
   - Installation: installation.md
   - Usage: usage.md
+  - Contributing: contributing.md
+  - FAQ: faq.md
+  - Changelog: changelog.md
+  - Report Issue: https://github.com/SERVIR/servir-aces/issues
   - API Reference:
     - data_processor module: data_processor.md
     - model_builder module: model_builder.md
@@ -10,14 +84,3 @@ nav:
     - metrics module: metrics.md
     - ee_utils module: ee_utils.md
     - remote_sensing module: remote_sensing.md
-
-theme:
-  name: material
-
-plugins:
-  - search
-  - mkdocstrings
-  - bibtex:
-      bib_file: "aces/refs.bib"
-markdown_extensions:
-  - footnotes
