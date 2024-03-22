@@ -135,7 +135,7 @@ write_dnn_prediction.py
 write_fcn_prediction.py
 predict.py
 push_model.py
-requirements.txt
+# requirements.txt
 
 servir-sco-assets-05d5c82b2de5.json
 
