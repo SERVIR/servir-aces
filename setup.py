@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
    name="servir-aces",
-   version="2024.1.1",
+   version="v0.0.1",
    description="Agricultural Classification and Estimation Service (ACES)",
    long_description=open("README.md").read(),
    long_description_content_type="text/markdown",
