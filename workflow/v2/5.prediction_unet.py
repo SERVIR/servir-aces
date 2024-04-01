@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
 try:
     from aces.config import Config
 except ModuleNotFoundError:
@@ -54,13 +51,13 @@ print(f"image_files_list: {image_files_list}")
 print(f"json_file: {json_file}")
 
 if Config.USE_BEST_MODEL_FOR_INFERENCE:
-    logging.info(f"Using best model for inference.\nLoading model from {str(Config.MODEL_DIR)}/{Config.MODEL_CHECKPOINT_NAME}.tf")
+    print(f"Using best model for inference.\nLoading model from {str(Config.MODEL_DIR)}/{Config.MODEL_CHECKPOINT_NAME}.tf")
     this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/{Config.MODEL_CHECKPOINT_NAME}.tf")
 else:
-    logging.info(f"Using last model for inference.\nLoading model from {str(Config.MODEL_DIR)}/trained-model")
+    print(f"Using last model for inference.\nLoading model from {str(Config.MODEL_DIR)}/trained-model")
     this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/trained-model")
 
-logging.info(this_model.summary())
+print(this_model.summary())
 
 
 cat = f"gsutil cat {json_file}"

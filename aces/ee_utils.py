@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
 import re, warnings
 import ee
 import numpy as np
@@ -105,7 +102,7 @@ class EEUtils:
 
     @staticmethod
     def _export_collection_to_drive(collection, start_training, **kwargs) -> None:
-        logging.info("Exporting training data to Google Drive..")
+        print("Exporting training data to Google Drive..")
         training_task = ee.batch.Export.table.toDrive(
             collection=collection,
             description=kwargs.get("description", "myExportTableTask"),
@@ -119,7 +116,7 @@ class EEUtils:
     @staticmethod
     def _export_collection_to_asset(collection, start_training, **kwargs) -> None:
         asset_id = kwargs.get("asset_id", "myAssetId")
-        logging.info(f"Exporting training data to {asset_id}..")
+        print(f"Exporting training data to {asset_id}..")
         training_task = ee.batch.Export.table.toAsset(
             collection=collection,
             description=kwargs.get("description", "myExportTableTask"),
@@ -133,7 +130,7 @@ class EEUtils:
         description = kwargs.get("description", "myExportTableTask")
         bucket = kwargs.get("bucket", "myBucket")
         file_prefix = kwargs.get("file_prefix") if kwargs.get("file_prefix") is not None else description
-        logging.info(f"Exporting training data to gs://{bucket}/{file_prefix}..")
+        print(f"Exporting training data to gs://{bucket}/{file_prefix}..")
         training_task = ee.batch.Export.table.toCloudStorage(
             collection=collection,
             description=description,
@@ -157,7 +154,7 @@ class EEUtils:
         bucket = kwargs.get("bucket", "myBucket")
         file_prefix = kwargs.get("file_prefix") if kwargs.get("file_prefix") is not None else description
         file_prefix = f"{file_prefix}_{index}"
-        logging.info(f"Exporting training data to gs://{bucket}/{file_prefix}..")
+        print(f"Exporting training data to gs://{bucket}/{file_prefix}..")
         training_task = ee.batch.Export.table.toCloudStorage(
             collection=collection,
             description=description,
@@ -197,7 +194,7 @@ class EEUtils:
             else:
                 raise ValueError(f"region must be an ee.FeatureCollection or ee.Geometry object. Found {type(region)}")
 
-        logging.info(f"Exporting training data to gs://{bucket}/{file_name_prefix}..")
+        print(f"Exporting training data to gs://{bucket}/{file_name_prefix}..")
 
         params = {
             "image": image,
@@ -224,7 +221,7 @@ class EEUtils:
     @staticmethod
     def _export_image_to_asset(image, start_training, **kwargs) -> None:
         asset_id = kwargs.get("asset_id", "")
-        logging.info(f"Exporting image to {asset_id}..")
+        print(f"Exporting image to {asset_id}..")
 
         training_task = ee.batch.Export.image.toAsset(
             image=image,

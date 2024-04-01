@@ -6,9 +6,6 @@
 This module provides functions for data input/output and preprocessing for the ACES project.
 """
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
 import numpy as np
 import tensorflow as tf
 from functools import partial
@@ -81,7 +78,6 @@ class DataProcessor:
                          patch_size=config.get("PATCH_SHAPE_SINGLE"),
                          features=config.get("FEATURES"),
                          labels=config.get("LABELS"),
-                         x_only=False,
                          depth=config.get("OUT_CLASS_NUM"))
 
         tf_training_records = tf.data.Dataset.list_files(f"{str(config.get('TRAINING_DIR'))}/*")\
@@ -117,19 +113,19 @@ class DataProcessor:
 
         * dataset_name (str): The name of the dataset.
         """
-        logging.info(dataset_name)
+        print(dataset_name)
         for inputs, outputs in dataset.take(1):
             try:
-                logging.info(f"inputs: {inputs.dtype.name} {inputs.shape}")
-                logging.info(inputs)
-                logging.info(f"outputs: {outputs.dtype.name} {outputs.shape}")
-                logging.info(outputs)
+                print(f"inputs: {inputs.dtype.name} {inputs.shape}")
+                print(inputs)
+                print(f"outputs: {outputs.dtype.name} {outputs.shape}")
+                print(outputs)
             except:
-                logging.info(f" > inputs:")
+                print(f" > inputs:")
                 for name, values in inputs.items():
-                    logging.info(f"    {name}: {values.dtype.name} {values.shape}")
-                # logging.info(f"    example \n: {dataset.take(1)}")
-                logging.info(f" > outputs: {outputs.dtype.name} {outputs.shape}")
+                    print(f"    {name}: {values.dtype.name} {values.shape}")
+                # print(f"    example \n: {dataset.take(1)}")
+                print(f" > outputs: {outputs.dtype.name} {outputs.shape}")
 
     @staticmethod
     @tf.function
@@ -516,7 +512,7 @@ class DataProcessor:
         Returns:
         * tf.data.Dataset: The TFRecord dataset.
         """
-        logging.info(f"Loading dataset from {pattern}")
+        print(f"Loading dataset from {pattern}")
 
         dataset = tf.data.Dataset.list_files(pattern).interleave(DataProcessor.create_tfrecord_from_file)
 
@@ -552,7 +548,7 @@ class DataProcessor:
         # dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
         if kwargs.get("training", False) and kwargs.get("TRANSFORM_DATA", True):
-            logging.info("randomly transforming data")
+            print("randomly transforming data")
             if kwargs.get("USE_AI_PLATFORM", False):
                 dataset = dataset.map(RandomTransform(), num_parallel_calls=tf.data.AUTOTUNE)
             else:

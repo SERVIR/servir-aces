@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
 try:
     from aces.config import Config
     from aces.model_builder import ModelBuilder
@@ -49,10 +46,10 @@ for f in exported_files_list:
 image_files_list.sort()
 
 physical_devices = TFUtils.configure_memory_growth()
-logging.info(f"Using last model for inference.\nLoading model from {str(Config.MODEL_DIR)}/trained-model")
+print(f"Using last model for inference.\nLoading model from {str(Config.MODEL_DIR)}/trained-model")
 this_model = tf.keras.models.load_model(f"{str(Config.MODEL_DIR)}/trained-model")
 
-logging.info(this_model.summary())
+print(this_model.summary())
 
 cat = f"gsutil cat {json_file}"
 read_t = subprocess.check_output(cat, shell=True)

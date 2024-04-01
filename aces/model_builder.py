@@ -11,9 +11,6 @@ Convolutional Neural Network (**CNN**), and **U-Net**, based on the
 provided specifications. The class also contains utility methods for constructing custom layers and defining metrics.
 """
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
 import tensorflow as tf
 from tensorflow import keras
 
@@ -104,7 +101,7 @@ class ModelBuilder:
             keras.Model: The compiled DNN model.
         """
         INITIAL_BIAS = kwargs.get("INITIAL_BIAS", None)
-        logging.info(f"INITIAL_BIAS: {INITIAL_BIAS}")
+        print(f"INITIAL_BIAS: {INITIAL_BIAS}")
 
         if INITIAL_BIAS is not None:
             INITIAL_BIAS = tf.keras.initializers.Constant(INITIAL_BIAS)
@@ -146,7 +143,7 @@ class ModelBuilder:
             keras.Model: The compiled DNN model.
         """
         INITIAL_BIAS = kwargs.get("INITIAL_BIAS", None)
-        logging.info(f"INITIAL_BIAS: {INITIAL_BIAS}")
+        print(f"INITIAL_BIAS: {INITIAL_BIAS}")
         # DNN_DURING_ONLY = kwargs.get("DURING_ONLY", False)
 
         DERIVE_FEATURES = kwargs.get("DERIVE_FEATURES", False)
@@ -236,7 +233,7 @@ class ModelBuilder:
             with tf.distribute.MirroredStrategy().scope():
                 return self._build_and_compile_unet_model_for_ai_plaform(**kwargs)
         else:
-            logging.info("No distributed strategy found.")
+            print("No distributed strategy found.")
             return self._build_and_compile_unet_model(**kwargs)
 
     def _build_and_compile_unet_model_for_ai_plaform(self, **kwargs):
@@ -276,7 +273,7 @@ class ModelBuilder:
                 model.compile(optimizer=self.optimizer, loss=self.loss, metrics=metrics_list)
                 return model
         else:
-            logging.info("No distributed strategy found.")
+            print("No distributed strategy found.")
             model = self._build_and_compile_unet_model(**kwargs)
             metrics_list = [
                 Metrics.precision(),

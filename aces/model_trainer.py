@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
-logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
-
 import os
 import datetime
 import json
@@ -50,7 +46,7 @@ class ModelTrainer:
         if self.use_seed:
             # producable results
             import random
-            logging.info(f"Using seed: {self.seed}")
+            print(f"Using seed: {self.seed}")
             tf.random.set_seed(self.seed)
             np.random.seed(self.seed)
             random.seed(2)
@@ -92,56 +88,56 @@ class ModelTrainer:
 
         7. Saves training parameters, plots, and models.
         """
-        logging.info("****************************************************************************")
-        logging.info("****************************** Clear Session... ****************************")
+        print("****************************************************************************")
+        print("****************************** Clear Session... ****************************")
         keras.backend.clear_session()
-        logging.info("****************************************************************************")
+        print("****************************************************************************")
         print(f"****************************** Configure memory growth... ************************")
         physical_devices = TFUtils.configure_memory_growth()
         self.config.physical_devices = physical_devices
-        logging.info("****************************************************************************")
-        logging.info("****************************** creating datasets... ************************")
+        print("****************************************************************************")
+        print("****************************** creating datasets... ************************")
         self.create_datasets(print_info=self.config.PRINT_INFO)
 
         if self.config.USE_AI_PLATFORM:
-            logging.info("****************************************************************************")
-            logging.info("******* building and compiling model for ai platform... ********************")
+            print("****************************************************************************")
+            print("******* building and compiling model for ai platform... ********************")
             self.build_and_compile_model_ai_platform()
         else:
-            logging.info("****************************************************************************")
-            logging.info("************************ building and compiling model... *******************")
+            print("****************************************************************************")
+            print("************************ building and compiling model... *******************")
             self.build_and_compile_model(print_model_summary=True)
 
-        logging.info("****************************************************************************")
-        logging.info("************************ preparing output directory... *********************")
+        print("****************************************************************************")
+        print("************************ preparing output directory... *********************")
         self.prepare_output_dir()
-        logging.info("****************************************************************************")
-        logging.info("****************************** training model... ***************************")
+        print("****************************************************************************")
+        print("****************************** training model... ***************************")
         self.start_training()
 
         if self.config.USE_AI_PLATFORM:
-            logging.info(self.model.summary())
+            print(self.model.summary())
 
-        logging.info("****************************************************************************")
-        logging.info("****************************** evaluating model... *************************")
+        print("****************************************************************************")
+        print("****************************** evaluating model... *************************")
         self.evaluate_and_print_val()
-        logging.info("****************************************************************************")
-        logging.info("****************************** saving parameters... ************************")
+        print("****************************************************************************")
+        print("****************************** saving parameters... ************************")
         ModelTrainer.save_parameters(**self.config.__dict__)
-        logging.info("****************************************************************************")
-        logging.info("*************** saving model config and history object... ******************")
+        print("****************************************************************************")
+        print("*************** saving model config and history object... ******************")
         self.save_history_object()
         if self.config.USE_AI_PLATFORM:
             ModelTrainer.save_model_config(self.config.MODEL_SAVE_DIR, **self._model.get_config())
         else:
             ModelTrainer.save_model_config(self.config.MODEL_SAVE_DIR, **self.model.get_config())
-        logging.info("****************************************************************************")
-        logging.info("****************************** saving plots... *****************************")
+        print("****************************************************************************")
+        print("****************************** saving plots... *****************************")
         self.save_plots()
-        logging.info("****************************************************************************")
-        logging.info("****************************** saving models... ****************************")
+        print("****************************************************************************")
+        print("****************************** saving models... ****************************")
         self.save_models()
-        logging.info("****************************************************************************")
+        print("****************************************************************************")
 
     def prepare_output_dir(self) -> None:
         """
@@ -151,7 +147,7 @@ class ModelTrainer:
         """
         if not self.config.AUTO_MODEL_DIR_NAME:
             self.config.MODEL_SAVE_DIR = self.config.OUTPUT_DIR / self.config.MODEL_DIR_NAME
-            logging.info(f"> Saving models and results at {self.config.MODEL_SAVE_DIR}...")
+            print(f"> Saving models and results at {self.config.MODEL_SAVE_DIR}...")
             os.mkdir(self.config.MODEL_SAVE_DIR)
         else:
             today = datetime.date.today().strftime("%Y_%m_%d")
@@ -162,11 +158,11 @@ class ModelTrainer:
                 try:
                     os.mkdir(self.config.MODEL_SAVE_DIR)
                 except FileExistsError:
-                    logging.info(f"> {self.config.MODEL_SAVE_DIR} exists, creating another version...")
+                    print(f"> {self.config.MODEL_SAVE_DIR} exists, creating another version...")
                     iterator += 1
                     continue
                 else:
-                    logging.info(f"> Saving models and results at {self.config.MODEL_SAVE_DIR}...")
+                    print(f"> Saving models and results at {self.config.MODEL_SAVE_DIR}...")
                     break
 
     def create_datasets(self, print_info: bool = False) -> None:
@@ -209,7 +205,7 @@ class ModelTrainer:
         )
 
         if print_info:
-            logging.info("Printing dataset info:")
+            print("Printing dataset info:")
             DataProcessor.print_dataset_info(self.TRAINING_DATASET, "Training")
             DataProcessor.print_dataset_info(self.TESTING_DATASET, "Testing")
             DataProcessor.print_dataset_info(self.VALIDATION_DATASET, "Validation")
@@ -226,7 +222,7 @@ class ModelTrainer:
         Prints the model summary if print_model_summary is set to True.
         """
         self.model = self.build_model(**self.config.__dict__)
-        if print_model_summary:  logging.info(self.model.summary())
+        if print_model_summary:  print(self.model.summary())
 
     def build_and_compile_model_ai_platform(self) -> None:
         """
@@ -240,7 +236,7 @@ class ModelTrainer:
         Prints the model summary if print_model_summary is set to True.
         """
         model, wrapped_model = self.build_model(**self.config.__dict__)
-        logging.info(model.summary())
+        print(model.summary())
         self._model = model
         self.model = wrapped_model
 
@@ -309,16 +305,16 @@ class ModelTrainer:
 
         Evaluates the model on the validation dataset and prints the metrics.
         """
-        logging.info("************************************************")
-        logging.info("************************************************")
-        logging.info("Validation")
+        print("************************************************")
+        print("************************************************")
+        print("Validation")
         # Tip: You can remove steps=self.config.TEST_SIZE and match the TEST_SIZE from the env
         evaluate_results = self.model.evaluate(self.TESTING_DATASET) # , steps=self.config.TEST_SIZE
         with open(f"{self.config.MODEL_SAVE_DIR}/evaluation.txt", "w") as evaluate:
             evaluate.write(json.dumps(dict(zip(self.model.metrics_names, evaluate_results))))
         for name, value in zip(self.model.metrics_names, evaluate_results):
-            logging.info(f"{name}: {value}")
-        logging.info("\n")
+            print(f"{name}: {value}")
+        print("\n")
 
     @staticmethod
     def save_parameters(**config) -> None:
@@ -368,7 +364,7 @@ class ModelTrainer:
 
         Saves the model architecture plot, training history plot, and model object.
         """
-        logging.info(f"Saving plots and model visualization at {self.config.MODEL_SAVE_DIR}...")
+        print(f"Saving plots and model visualization at {self.config.MODEL_SAVE_DIR}...")
         if self.config.USE_AI_PLATFORM:
             keras.utils.plot_model(self._model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True, rankdir="TB")
             keras.utils.plot_model(self.model, f"{self.config.MODEL_SAVE_DIR}/wrapped_model.png", show_shapes=True, rankdir="LR") # rankdir='TB'
