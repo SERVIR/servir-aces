@@ -1,0 +1,71 @@
+[project]
+name = "servir-aces"
+version = "0.0.1"
+dynamic = [
+    "dependencies",
+]
+description = "Agricultural Classification and Estimation Service (ACES)"
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = [
+    "remote sensing",
+    "agriculture",
+    "machine learning",
+    "deep learning",
+]
+license = {text = "GNU General Public License v3.0"}
+authors = [
+  {name = "Biplov Bhandari", email = "bionicbiplov45@gmail.com"},
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[tool]
+[tool.setuptools.packages.find]
+include = ["aces*"]
+exclude = ["docs*"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+
+[tool.distutils.bdist_wheel]
+universal = true
+
+
+[tool.bumpversion]
+current_version = "0.0.1"
+commit = true
+tag = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "aces/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+
+[tool.flake8]
+exclude = [
+    "docs",
+]
+max-line-length = 88
+
+
+[project.urls]
+Homepage = "https://github.com/SERVIR/servir-aces"
+
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
