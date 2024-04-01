@@ -42,7 +42,7 @@ class DataProcessor:
     @tf.autograph.experimental.do_not_convert
     def get_sum_tensor(records):
         """
-        Get a single sample from a dataset.
+        Gets the total number of tensor record by mapping through them.
 
         Parameters:
 
@@ -50,10 +50,13 @@ class DataProcessor:
 
         Returns:
 
-        * tf.Tensor: The single sample.
+        * tf.Tensor: The total number of tensor records.
         """
-        tensors = records.map(lambda x: tf.numpy_function(lambda _: 1, inp=[x], Tout=tf.int64), num_parallel_calls=tf.data.AUTOTUNE)
-        n_tensors = tensors.reduce(np.int64(0), lambda x, y: x + y).numpy()
+        dataset = records.map(lambda x, y: tf.constant(1, dtype=tf.int64), num_parallel_calls=tf.data.AUTOTUNE)
+        # ignores any error encountered while reading the records
+        # works with v2.x
+        dataset = dataset.apply(tf.data.experimental.ignore_errors())
+        n_tensors = dataset.reduce(np.int64(0), lambda x, y: x + y).numpy()
         return n_tensors
 
     @staticmethod
@@ -74,28 +77,31 @@ class DataProcessor:
         * int: The number of validation samples.
 
         """
-        parser = partial(DataProcessor.parse_tfrecord_multi_label,
+        parser_tupler = partial(DataProcessor.parse_tfrecord,
                          patch_size=config.get("PATCH_SHAPE_SINGLE"),
                          features=config.get("FEATURES"),
-                         labels=config.get("LABELS"))
-        tupler = partial(DataProcessor.to_tuple_multi_label, depth=config.get("OUT_CLASS_NUM"), x_only=True)
+                         labels=config.get("LABELS"),
+                         x_only=False,
+                         depth=config.get("OUT_CLASS_NUM"))
 
         tf_training_records = tf.data.Dataset.list_files(f"{str(config.get('TRAINING_DIR'))}/*")\
                                              .interleave(DataProcessor.create_tfrecord_from_file, num_parallel_calls=tf.data.AUTOTUNE)
-        tf_training_records = tf_training_records.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
-        tf_training_records = tf_training_records.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        tf_training_records = tf_training_records.map(parser_tupler, num_parallel_calls=tf.data.AUTOTUNE)
+
+
+        if config.get("PRINT_DATASET", False):
+            DataProcessor.print_dataset_info(tf_training_records, "Training")
+
         n_training_records = DataProcessor.get_sum_tensor(tf_training_records)
 
         tf_testing_records = tf.data.Dataset.list_files(f"{str(config.get('TESTING_DIR'))}/*")\
                                             .interleave(DataProcessor.create_tfrecord_from_file, num_parallel_calls=tf.data.AUTOTUNE)
-        tf_testing_records = tf_testing_records.map(parser, num_parallel_calls=tf.data.AUTOTUNE)
-        tf_testing_records = tf_testing_records.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        tf_testing_records = tf_testing_records.map(parser_tupler, num_parallel_calls=tf.data.AUTOTUNE)
         n_testing_records = DataProcessor.get_sum_tensor(tf_testing_records)
 
         tf_validation_records = tf.data.Dataset.list_files(f"{str(config.get('VALIDATION_DIR'))}/*")\
                                                .interleave(DataProcessor.create_tfrecord_from_file, num_parallel_calls=tf.data.AUTOTUNE)
-        tf_validation_records = tf_validation_records.map(parser, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        tf_validation_records = tf_validation_records.map(tupler, num_parallel_calls=tf.data.AUTOTUNE)
+        tf_validation_records = tf_validation_records.map(parser_tupler, num_parallel_calls=tf.data.AUTOTUNE)
         n_validation_records = DataProcessor.get_sum_tensor(tf_validation_records)
 
         return n_training_records, n_testing_records, n_validation_records
@@ -196,8 +202,8 @@ class DataProcessor:
         stacked = tf.stack(inputs_list, axis=0)
         stacked = tf.transpose(stacked, [1, 2, 0])
         label = stacked[:, :, len(features):]
-        x = tf.one_hot(tf.cast(label[:, :, -1], tf.uint8), depth)
-        return stacked[:, :, :len(features)], x
+        y = tf.one_hot(tf.cast(label[:, :, -1], tf.uint8), depth)
+        return stacked[:, :, :len(features)], y
 
     @staticmethod
     @tf.function
@@ -535,7 +541,6 @@ class DataProcessor:
             parser_tupler = None
         else:
             parser_tupler = partial(DataProcessor.parse_tfrecord, patch_size=patch_size, features=features, labels=labels, depth=n_classes)
-            print(f'parser_tupler: {parser_tupler}')
 
         if parser_tupler is not None:
             dataset = dataset.map(parser_tupler, num_parallel_calls=tf.data.AUTOTUNE)

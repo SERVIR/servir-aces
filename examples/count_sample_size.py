@@ -17,8 +17,13 @@ except ModuleNotFoundError:
 
 
 if __name__ == "__main__":
-    config = Config()
-    n_training_records, n_testing_records, n_validation_records = DataProcessor.calculate_n_samples(**config.__dict__)
+    config_file = "config.env"
+    config = Config(config_file)
+    # expand the config
+    additional_config = {
+        "PRINT_DATASET": True
+    }
+    n_training_records, n_testing_records, n_validation_records = DataProcessor.calculate_n_samples(**{**config.__dict__, **additional_config})
     logging.info(f"no of training records: {n_training_records}")
     logging.info(f"no of testing records: {n_testing_records}")
     logging.info(f"no of validation records: {n_validation_records}")

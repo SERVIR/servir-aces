@@ -8,9 +8,7 @@ This module provides the configuration settings for the ACES project.
 from pathlib import Path
 import os
 import ast
-
 from dotenv import load_dotenv
-load_dotenv(".env")
 
 
 class Config:
@@ -96,181 +94,119 @@ class Config:
         # Get machine type here: https://cloud.google.com/vertex-ai/docs/predictions/configure-compute
         GCP_MACHINE_TYPE (str): The Google Cloud Platform machine type.
     """
-    BASEDIR = Path(os.getenv("BASEDIR"))
-    DATADIR = BASEDIR / os.getenv("DATADIR")
 
-    TRAINING_DIR = DATADIR / "training"
-    TESTING_DIR = DATADIR / "testing"
-    VALIDATION_DIR= DATADIR / "validation"
+    def __init__(self, config_file) -> None:
 
-    OUTPUT_DIR = BASEDIR / os.getenv("OUTPUT_DIR")
+        load_dotenv(config_file)
 
-    MODEL_NAME = os.getenv("MODEL_NAME")
-    MODEL_CHECKPOINT_NAME = os.getenv("MODEL_CHECKPOINT_NAME")
+        self.BASEDIR = Path(os.getenv("BASEDIR"))
+        _DATADIR = os.getenv("DATADIR")
+        if _DATADIR.startswith("gs://"):
+            self.DATADIR = _DATADIR
+            self.TRAINING_DIR = f"{self.DATADIR}/training"
+            self.TESTING_DIR = f"{self.DATADIR}/testing"
+            self.VALIDATION_DIR = f"{self.DATADIR}/validation"
+        else:
+            self.DATADIR = self.BASEDIR / os.getenv("DATADIR")
+            self.TRAINING_DIR = self.DATADIR / "training"
+            self.TESTING_DIR = self.DATADIR / "testing"
+            self.VALIDATION_DIR= self.DATADIR / "validation"
 
-    MODEL_DIR_NAME = os.getenv("MODEL_DIR_NAME")
+        print(f"BASEDIR: {self.BASEDIR}")
+        print(f"DATADIR: {self.DATADIR}")
 
-    MODEL_DIR = OUTPUT_DIR / MODEL_DIR_NAME
+        self.OUTPUT_DIR = self.BASEDIR / os.getenv("OUTPUT_DIR")
 
-    AUTO_MODEL_DIR_NAME = os.getenv("AUTO_MODEL_DIR_NAME") == "True"
-    SCALE = int(os.getenv("SCALE"))
+        self.MODEL_NAME = os.getenv("MODEL_NAME")
+        self.MODEL_CHECKPOINT_NAME = os.getenv("MODEL_CHECKPOINT_NAME")
 
-    FEATURES = os.getenv("FEATURES").split("\n")
-    ADDED_FEATURES = os.getenv("ADDED_FEATURES").split("\n")
-    USE_ELEVATION = os.getenv("USE_ELEVATION") == "True"
-    USE_S1 = os.getenv("USE_S1") == "True"
-    LABELS = ast.literal_eval(os.getenv("LABELS"))
+        self.MODEL_DIR_NAME = os.getenv("MODEL_DIR_NAME")
 
-    USE_SEED = os.getenv("USE_SEED") == "True"
-    SEED = int(os.getenv("SEED"))
+        self.MODEL_DIR = self.OUTPUT_DIR / self.MODEL_DIR_NAME
 
-    # patch size for training
-    PATCH_SHAPE = ast.literal_eval(os.getenv("PATCH_SHAPE"))
-    PATCH_SHAPE_SINGLE = PATCH_SHAPE[0]
-    KERNEL_BUFFER = os.getenv("KERNEL_BUFFER")
-    if KERNEL_BUFFER == "0":
-        KERNEL_BUFFER = None
-    else:
-        KERNEL_BUFFER = ast.literal_eval(KERNEL_BUFFER)
+        self.AUTO_MODEL_DIR_NAME = os.getenv("AUTO_MODEL_DIR_NAME") == "True"
+        self.SCALE = int(os.getenv("SCALE"))
 
-    # Sizes of the testing, and evaluation datasets
-    TRAIN_SIZE = int(os.getenv("TRAIN_SIZE"))
-    TEST_SIZE = int(os.getenv("TEST_SIZE"))
-    VAL_SIZE = int(os.getenv("VAL_SIZE"))
+        self.FEATURES = os.getenv("FEATURES").split("\n")
+        self.ADDED_FEATURES = os.getenv("ADDED_FEATURES").split("\n")
+        self.USE_ELEVATION = os.getenv("USE_ELEVATION") == "True"
+        self.USE_S1 = os.getenv("USE_S1") == "True"
+        self.LABELS = ast.literal_eval(os.getenv("LABELS"))
 
-    MODEL_TYPE = os.getenv("MODEL_TYPE")
-    IS_DNN = True if MODEL_TYPE == "dnn" else False
+        if self.USE_ELEVATION:
+                self.FEATURES.extend(["elevation", "slope"])
 
-    BATCH_SIZE = int(os.getenv("BATCH_SIZE"))
-    EPOCHS = int(os.getenv("EPOCHS"))
-    RAMPUP_EPOCHS = int(os.getenv("RAMPUP_EPOCHS"))
-    SUSTAIN_EPOCHS = int(os.getenv("SUSTAIN_EPOCHS"))
+        if self.USE_S1:
+            self.FEATURES.extend(["vv_asc_before", "vh_asc_before", "vv_asc_during", "vh_asc_during",
+                                  "vv_desc_before", "vh_desc_before", "vv_desc_during", "vh_desc_during"])
 
-    USE_ADJUSTED_LR = os.getenv("USE_ADJUSTED_LR") == "True"
-    MAX_LR = float(os.getenv("MAX_LR"))
-    MID_LR = float(os.getenv("MID_LR"))
-    MIN_LR = float(os.getenv("MIN_LR"))
-    DROPOUT_RATE = float(os.getenv("DROPOUT_RATE"))
+        print(f"using features: {self.FEATURES}")
+        print(f"using labels: {self.LABELS}")
 
-    LOSS = os.getenv("LOSS")
+        self.USE_SEED = os.getenv("USE_SEED") == "True"
+        self.SEED = int(os.getenv("SEED"))
 
-    OPTIMIZER = os.getenv("OPTIMIZER")
-
-    OUT_CLASS_NUM = int(os.getenv("OUT_CLASS_NUM"))
-
-    USE_BEST_MODEL_FOR_INFERENCE = os.getenv("USE_BEST_MODEL_FOR_INFERENCE") == "True"
-
-    ACTIVATION_FN = "sigmoid" if OUT_CLASS_NUM == 1 else "softmax"
-    CALLBACK_PARAMETER = os.getenv("CALLBACK_PARAMETER")
-
-    EARLY_STOPPING = os.getenv("EARLY_STOPPING") == "True"
-    TRANSFORM_DATA = os.getenv("TRANSFORM_DATA") == "True"
-    DERIVE_FEATURES = os.getenv("DERIVE_FEATURES") == "True"
-
-    # EE settings
-    USE_SERVICE_ACCOUNT = os.getenv("USE_SERVICE_ACCOUNT") == "True"
-    EE_SERVICE_CREDENTIALS = os.getenv("EE_SERVICE_CREDENTIALS")
-    EE_USER = os.getenv("EE_USER")
-    EE_OUTPUT_ASSET = os.getenv("EE_OUTPUT_ASSET")
-    OUTPUT_NAME = os.getenv("OUTPUT_NAME")
-
-    # cloud stuff
-    GCS_PROJECT = os.getenv("GCS_PROJECT")
-    GCS_BUCKET = os.getenv("GCS_BUCKET")
-    GCS_IMAGE_DIR = os.getenv("GCS_IMAGE_DIR")
-    GCS_IMAGE_PREFIX = os.getenv("GCS_IMAGE_PREFIX")
-    GCS_VERTEX_MODEL_SAVE_DIR = os.getenv("GCS_VERTEX_MODEL_SAVE_DIR")
-    GCS_REGION = os.getenv("GCS_REGION")
-    GCS_VERTEX_CONTAINER_IMAGE = os.getenv("GCS_VERTEX_CONTAINER_IMAGE")
-
-    USE_AI_PLATFORM = os.getenv("USE_AI_PLATFORM") == "True"
-
-    GCP_MACHINE_TYPE = os.getenv("GCP_MACHINE_TYPE")
-
-    def __init__(self) -> None:
-        self.BASEDIR = Config.BASEDIR
-        self.DATADIR = Config.DATADIR
-
-        self.TRAINING_DIR = Config.TRAINING_DIR
-        print(f"TRAINING_DIR: {self.TRAINING_DIR}")
-        self.TESTING_DIR = Config.TESTING_DIR
-        self.VALIDATION_DIR = Config.VALIDATION_DIR
-
-        self.OUTPUT_DIR = Config.OUTPUT_DIR
-
-        self.MODEL_NAME = Config.MODEL_NAME
-        self.MODEL_CHECKPOINT_NAME = Config.MODEL_CHECKPOINT_NAME
-        self.MODEL_DIR_NAME = Config.MODEL_DIR_NAME
-        self.MODEL_DIR = Config.MODEL_DIR
-        self.AUTO_MODEL_DIR_NAME = Config.AUTO_MODEL_DIR_NAME
-
-        self.SCALE = Config.SCALE
-
-        self.FEATURES = Config.FEATURES
-        self.ADDED_FEATURES = Config.ADDED_FEATURES
-        self.USE_ELEVATION = Config.USE_ELEVATION
-        self.USE_S1 = Config.USE_S1
-        self.LABELS = Config.LABELS
-
-        self.USE_SEED = Config.USE_SEED
-        self.SEED = Config.SEED
+        self.PRINT_INFO = os.getenv("USE_SEED") == "True"
 
         # patch size for training
-        self.PATCH_SHAPE = Config.PATCH_SHAPE
-        self.PATCH_SHAPE_SINGLE = Config.PATCH_SHAPE_SINGLE
-        self.KERNEL_BUFFER = Config.KERNEL_BUFFER
+        self.PATCH_SHAPE = ast.literal_eval(os.getenv("PATCH_SHAPE"))
+        self.PATCH_SHAPE_SINGLE = self.PATCH_SHAPE[0]
+        KERNEL_BUFFER = os.getenv("KERNEL_BUFFER")
+        if KERNEL_BUFFER == "0":
+            self.KERNEL_BUFFER = None
+        else:
+            self.KERNEL_BUFFER = ast.literal_eval(KERNEL_BUFFER)
 
         # Sizes of the testing, and evaluation datasets
-        self.TRAIN_SIZE = Config.TRAIN_SIZE
-        self.TEST_SIZE = Config.TEST_SIZE
-        self.VAL_SIZE = Config.VAL_SIZE
+        self.TRAIN_SIZE = int(os.getenv("TRAIN_SIZE"))
+        self.TEST_SIZE = int(os.getenv("TEST_SIZE"))
+        self.VAL_SIZE = int(os.getenv("VAL_SIZE"))
 
-        self.MODEL_TYPE = Config.MODEL_TYPE
-        self.IS_DNN = Config.IS_DNN
+        self.MODEL_TYPE = os.getenv("MODEL_TYPE")
+        self.IS_DNN = True if self.MODEL_TYPE == "dnn" else False
 
-        self.BATCH_SIZE = Config.BATCH_SIZE
-        print(f"BATCH_SIZE: {self.BATCH_SIZE}")
-        self.EPOCHS = Config.EPOCHS
-        self.RAMPUP_EPOCHS = Config.RAMPUP_EPOCHS
-        self.SUSTAIN_EPOCHS = Config.SUSTAIN_EPOCHS
+        self.BATCH_SIZE = int(os.getenv("BATCH_SIZE"))
+        self.EPOCHS = int(os.getenv("EPOCHS"))
+        self.RAMPUP_EPOCHS = int(os.getenv("RAMPUP_EPOCHS"))
+        self.SUSTAIN_EPOCHS = int(os.getenv("SUSTAIN_EPOCHS"))
 
-        self.USE_ADJUSTED_LR = Config.USE_ADJUSTED_LR
-        self.MAX_LR = Config.MAX_LR
-        self.MID_LR = Config.MID_LR
-        self.MIN_LR = Config.MIN_LR
-        self.DROPOUT_RATE = Config.DROPOUT_RATE
+        self.USE_ADJUSTED_LR = os.getenv("USE_ADJUSTED_LR") == "True"
+        self.MAX_LR = float(os.getenv("MAX_LR"))
+        self.MID_LR = float(os.getenv("MID_LR"))
+        self.MIN_LR = float(os.getenv("MIN_LR"))
+        self.DROPOUT_RATE = float(os.getenv("DROPOUT_RATE"))
 
-        self.LOSS = Config.LOSS
-        self.OPTIMIZER = Config.OPTIMIZER
+        self.LOSS = os.getenv("LOSS")
 
-        self.OUT_CLASS_NUM = Config.OUT_CLASS_NUM
+        self.OPTIMIZER = os.getenv("OPTIMIZER")
 
-        self.USE_BEST_MODEL_FOR_INFERENCE = Config.USE_BEST_MODEL_FOR_INFERENCE
+        self.OUT_CLASS_NUM = int(os.getenv("OUT_CLASS_NUM"))
 
-        self.ACTIVATION_FN = Config.ACTIVATION_FN
-        self.CALLBACK_PARAMETER = Config.CALLBACK_PARAMETER
+        self.USE_BEST_MODEL_FOR_INFERENCE = os.getenv("USE_BEST_MODEL_FOR_INFERENCE") == "True"
 
-        self.EARLY_STOPPING = Config.EARLY_STOPPING
-        self.TRANSFORM_DATA = Config.TRANSFORM_DATA
-        self.DERIVE_FEATURES = Config.DERIVE_FEATURES
+        self.ACTIVATION_FN = "sigmoid" if self.OUT_CLASS_NUM == 1 else "softmax"
+        self.CALLBACK_PARAMETER = os.getenv("CALLBACK_PARAMETER")
+
+        self.EARLY_STOPPING = os.getenv("EARLY_STOPPING") == "True"
+        self.TRANSFORM_DATA = os.getenv("TRANSFORM_DATA") == "True"
+        self.DERIVE_FEATURES = os.getenv("DERIVE_FEATURES") == "True"
 
         # EE settings
-        self.USE_SERVICE_ACCOUNT = Config.USE_SERVICE_ACCOUNT
-        self.EE_SERVICE_CREDENTIALS = Config.EE_SERVICE_CREDENTIALS
-        self.EE_USER = Config.EE_USER
-        self.EE_OUTPUT_ASSET = Config.EE_OUTPUT_ASSET
-        self.OUTPUT_NAME = Config.OUTPUT_NAME
+        self.USE_SERVICE_ACCOUNT = os.getenv("USE_SERVICE_ACCOUNT") == "True"
+        self.EE_SERVICE_CREDENTIALS = os.getenv("EE_SERVICE_CREDENTIALS")
+        self.EE_USER = os.getenv("EE_USER")
+        self.EE_OUTPUT_ASSET = os.getenv("EE_OUTPUT_ASSET")
+        self.OUTPUT_NAME = os.getenv("OUTPUT_NAME")
 
         # cloud stuff
-        self.GCS_PROJECT = Config.GCS_PROJECT
-        self.GCS_BUCKET = Config.GCS_BUCKET
-        self.GCS_IMAGE_DIR = Config.GCS_IMAGE_DIR
-        self.GCS_IMAGE_PREFIX = Config.GCS_IMAGE_PREFIX
+        self.GCS_PROJECT = os.getenv("GCS_PROJECT")
+        self.GCS_BUCKET = os.getenv("GCS_BUCKET")
+        self.GCS_IMAGE_DIR = os.getenv("GCS_IMAGE_DIR")
+        self.GCS_IMAGE_PREFIX = os.getenv("GCS_IMAGE_PREFIX")
+        self.GCS_VERTEX_MODEL_SAVE_DIR = os.getenv("GCS_VERTEX_MODEL_SAVE_DIR")
+        self.GCS_REGION = os.getenv("GCS_REGION")
+        self.GCS_VERTEX_CONTAINER_IMAGE = os.getenv("GCS_VERTEX_CONTAINER_IMAGE")
 
-        self.GCS_VERTEX_MODEL_SAVE_DIR = Config.GCS_VERTEX_MODEL_SAVE_DIR
-        self.GCS_REGION = Config.GCS_REGION
-        self.GCS_VERTEX_CONTAINER_IMAGE = Config.GCS_VERTEX_CONTAINER_IMAGE
+        self.USE_AI_PLATFORM = os.getenv("USE_AI_PLATFORM") == "True"
 
-        self.USE_AI_PLATFORM = Config.USE_AI_PLATFORM
-
-        self.GCP_MACHINE_TYPE = Config.GCP_MACHINE_TYPE
+        self.GCP_MACHINE_TYPE = os.getenv("GCP_MACHINE_TYPE")
