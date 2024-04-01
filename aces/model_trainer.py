@@ -55,6 +55,7 @@ class ModelTrainer:
             np.random.seed(self.seed)
             random.seed(2)
 
+        # @ToDO: Create a way to autoload loss function from the list without if else
         if self.config.LOSS == "custom_focal_tversky_loss":
             self.config.LOSS = Metrics.focal_tversky_loss
             self.LOSS_TXT = Metrics.focal_tversky_loss.__func__.__name__ # "focal_tversky_loss"
@@ -100,7 +101,7 @@ class ModelTrainer:
         self.config.physical_devices = physical_devices
         logging.info("****************************************************************************")
         logging.info("****************************** creating datasets... ************************")
-        self.create_datasets(print_info=True)
+        self.create_datasets(print_info=self.config.PRINT_INFO)
 
         if self.config.USE_AI_PLATFORM:
             logging.info("****************************************************************************")

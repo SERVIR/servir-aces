@@ -18,6 +18,7 @@ except ModuleNotFoundError:
 
 
 if __name__ == "__main__":
-    config = Config()
+    config_file = "config.env"
+    config = Config(config_file)
     trainer = ModelTrainer(config)
     trainer.train_model()
