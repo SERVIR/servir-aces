@@ -27,3 +27,5 @@ mkdocstrings-crystal
 mkdocstrings-python-legacy
 pygments
 pymdown-extensions
+
+# apache-beam>=2.38.0
