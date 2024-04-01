@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
 import re
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,15 +30,15 @@ class TFUtils:
         physical_devices = tf.config.list_physical_devices("GPU")
         # self.config.physical_devices = physical_devices
         if len(physical_devices):
-            logging.info(f" > Found {len(physical_devices)} GPUs")
+            print(f" > Found {len(physical_devices)} GPUs")
             try:
                 for device in physical_devices:
                     tf.config.experimental.set_memory_growth(device, True)
                 return physical_devices
             except Exception as err:
-                logging.error(err)
+                print(err)
         else:
-            logging.info(" > No GPUs found")
+            print(" > No GPUs found")
             return []
 
 
@@ -80,8 +77,8 @@ class Utils:
                 ax[i].set_ylabel(metric.upper())
                 ax[i].legend()
             except Exception as e:
-                logging.info(f"Exception: {e}")
-                logging.info(f"Skipping {metric}.")
+                print(f"Exception: {e}")
+                print(f"Skipping {metric}.")
                 continue
 
         ax[i].set_xticks(range(1, epoch + 1, 4))

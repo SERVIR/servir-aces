@@ -8,9 +8,6 @@ image segmentation. This module includes a wide variety of evaluation metrics li
 Additionally, it contains utility functions for plotting and visualizing model metrics during training.
 """
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
 import matplotlib.pyplot as plt
 
 from tensorflow import keras
