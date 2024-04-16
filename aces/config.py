@@ -95,9 +95,9 @@ class Config:
         GCP_MACHINE_TYPE (str): The Google Cloud Platform machine type.
     """
 
-    def __init__(self, config_file) -> None:
+    def __init__(self, config_file, override=False) -> None:
 
-        load_dotenv(config_file)
+        load_dotenv(config_file, override=override)
 
         self.BASEDIR = Path(os.getenv("BASEDIR"))
         _DATADIR = os.getenv("DATADIR")
