@@ -78,21 +78,24 @@ composite_before = composite_before.regexpRename("$(.*)", "_before")
 composite_during = composite_during.regexpRename("$(.*)", "_during")
 image = composite_before.addBands(composite_during).toFloat()
 
-if Config.USE_ELEVATION:
+config_file = "config.env"
+config = Config(config_file)
+
+if config.USE_ELEVATION:
     elevation = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/elevationParo")
     slope = ee.Image("projects/servir-sco-assets/assets/Bhutan/ACES_2/slopeParo")
     image = image.addBands(elevation).addBands(slope).toFloat()
-    Config.FEATURES.extend(["elevation", "slope"])
+    config.FEATURES.extend(["elevation", "slope"])
 
 
-if Config.USE_S1:
+if config.USE_S1:
     sentinel1_asc_before_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Ascending2021/s1AscBefore")
     sentinel1_asc_during_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Ascending2021/s1AscDuring")
     sentinel1_desc_before_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Descending2021/s1DescBefore")
     sentinel1_desc_during_composite = ee.Image("projects/servir-sco-assets/assets/Bhutan/Sentinel1Descending2021/s1DescDuring")
 
     image = image.addBands(sentinel1_asc_before_composite).addBands(sentinel1_asc_during_composite).addBands(sentinel1_desc_before_composite).addBands(sentinel1_desc_during_composite).toFloat()
-    Config.FEATURES.extend(["vv_asc_before", "vh_asc_before", "vv_asc_during", "vh_asc_during",
+    config.FEATURES.extend(["vv_asc_before", "vh_asc_before", "vv_asc_during", "vh_asc_during",
                             "vv_desc_before", "vh_desc_before", "vv_desc_during", "vh_desc_during"])
 
 # dem = ee.Image("MERIT/DEM/v1_0_3") # ee.Image('USGS/SRTMGL1_003');
@@ -100,25 +103,25 @@ if Config.USE_S1:
 # riceZone = dem.gt(rice_zone[region]["min"]).And(dem.lte(rice_zone[region]["max"]))
 # image = image.clip(region_fc).updateMask(riceZone)
 
-image = image.select(Config.FEATURES)
+image = image.select(config.FEATURES)
 print("image", image.bandNames().getInfo())
 
 # Specify patch and file dimensions.
 formatOptions = {
-  "patchDimensions": [Config.PATCH_SHAPE_SINGLE, Config.PATCH_SHAPE_SINGLE],
+  "patchDimensions": [config.PATCH_SHAPE_SINGLE, config.PATCH_SHAPE_SINGLE],
   "maxFileSize": 104857600,
   "compressed": True
 }
 
-if Config.KERNEL_BUFFER:
-    formatOptions["kernelSize"] = Config.KERNEL_BUFFER
+if config.KERNEL_BUFFER:
+    formatOptions["kernelSize"] = config.KERNEL_BUFFER
 
 # Setup the task
 image_export_options = {
-    "description": Config.GCS_IMAGE_DIR.split("/")[-1],
-    "file_name_prefix": f"{Config.GCS_IMAGE_DIR}/{Config.GCS_IMAGE_PREFIX}",
-    "bucket": Config.GCS_BUCKET,
-    "scale": Config.SCALE,
+    "description": "export_task_for_prediction",
+    "file_name_prefix": f"{config.GCS_IMAGE_DIR}/{config.GCS_IMAGE_PREFIX}",
+    "bucket": config.GCS_BUCKET,
+    "scale": config.SCALE,
     "file_format": "TFRecord",
     "region": region_fc, # image.geometry(),
     "format_options": formatOptions,

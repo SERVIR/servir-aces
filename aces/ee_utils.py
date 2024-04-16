@@ -36,7 +36,7 @@ class EEUtils:
         return credentials
 
     @staticmethod
-    def initialize_session(use_highvolume : bool = False, key : Union[str, None] = None):
+    def initialize_session(use_highvolume : bool = False, key : Union[str, None] = None, project: str = None):
         """
         Initialize the Earth Engine session.
 
@@ -45,14 +45,22 @@ class EEUtils:
         key (str or None): The path to the service account key JSON file. If None, the default credentials will be used.
         """
         if key is None:
-            if use_highvolume:
+            if use_highvolume and project:
+                ee.Initialize(opt_url="https://earthengine-highvolume.googleapis.com", project=project)
+            elif use_highvolume:
                 ee.Initialize(opt_url="https://earthengine-highvolume.googleapis.com")
+            elif project:
+                ee.Initialize(project=project)
             else:
                 ee.Initialize()
         else:
             credentials = EEUtils.get_credentials_by_service_account_key(key)
-            if use_highvolume:
+            if use_highvolume and project:
+                ee.Initialize(credentials, opt_url="https://earthengine-highvolume.googleapis.com", project=project)
+            elif use_highvolume:
                 ee.Initialize(credentials, opt_url="https://earthengine-highvolume.googleapis.com")
+            elif project:
+                ee.Initialize(credentials, project=project)
             else:
                 ee.Initialize(credentials)
 
