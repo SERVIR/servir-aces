@@ -96,7 +96,13 @@ class Config:
     """
 
     def __init__(self, config_file, override=False) -> None:
+        """
+        ACES Configuration Class Constructor
 
+        Args:
+            config_file (str): The path to the configuration file.
+            override (bool): Flag to override the configuration settings.
+        """
         load_dotenv(config_file, override=override)
 
         self.BASEDIR = Path(os.getenv("BASEDIR"))

@@ -365,13 +365,15 @@ class ModelTrainer:
         Saves the model architecture plot, training history plot, and model object.
         """
         print(f"Saving plots and model visualization at {self.config.MODEL_SAVE_DIR}...")
+
+        Utils.plot_metrics([key.replace("val_", "") for key in self.history.history.keys() if key.startswith("val_")],
+                           self.history.history, len(self.history.epoch), self.config.MODEL_SAVE_DIR)
+
         if self.config.USE_AI_PLATFORM:
             keras.utils.plot_model(self._model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True, rankdir="TB")
             keras.utils.plot_model(self.model, f"{self.config.MODEL_SAVE_DIR}/wrapped_model.png", show_shapes=True, rankdir="LR") # rankdir='TB'
         else:
             keras.utils.plot_model(self.model, f"{self.config.MODEL_SAVE_DIR}/model.png", show_shapes=True, rankdir="TB") # rankdir='TB'
-        Utils.plot_metrics([key.replace("val_", "") for key in self.history.history.keys() if key.startswith("val_")],
-                           self.history.history, len(self.history.epoch), self.config.MODEL_SAVE_DIR)
 
     def save_history_object(self) -> None:
         """

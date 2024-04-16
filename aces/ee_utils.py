@@ -39,10 +39,14 @@ class EEUtils:
     def initialize_session(use_highvolume : bool = False, key : Union[str, None] = None, project: str = None):
         """
         Initialize the Earth Engine session.
+        If use_highvolume is True, the high-volume Earth Engine API will be used.
+        If a project is provided, the session will be initialized with the project ID. Recommended to use project.
+        If a key is provided, the service account key will be used.
 
         Parameters:
         use_highvolume (bool): Whether to use the high-volume Earth Engine API.
         key (str or None): The path to the service account key JSON file. If None, the default credentials will be used.
+        project (str): The Google Cloud project ID to use for the session.
         """
         if key is None:
             if use_highvolume and project:
