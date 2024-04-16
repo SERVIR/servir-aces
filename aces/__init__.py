@@ -11,4 +11,4 @@ from aces.remote_sensing import *
 
 __author__ = """Biplov Bhandari"""
 __email__ = "bionicbiplov45@gmail.com"
-__version__ = "0.0.6"
+__version__ = "0.0.7"
