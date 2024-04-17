@@ -33,6 +33,8 @@ class ModelTrainer:
 
         Args:
             config: An object containing the configuration settings for model training.
+            use_seed: A flag indicating whether to use a seed for reproducibility (needs fixing).
+            seed: The seed value to use for reproducibility.
 
         Attributes:
             config: The configuration settings for model training.
@@ -148,7 +150,8 @@ class ModelTrainer:
         if not self.config.AUTO_MODEL_DIR_NAME:
             self.config.MODEL_SAVE_DIR = self.config.OUTPUT_DIR / self.config.MODEL_DIR_NAME
             print(f"> Saving models and results at {self.config.MODEL_SAVE_DIR}...")
-            os.mkdir(self.config.MODEL_SAVE_DIR)
+            if not os.path.exists(self.config.MODEL_SAVE_DIR):
+                os.mkdir(self.config.MODEL_SAVE_DIR)
         else:
             today = datetime.date.today().strftime("%Y_%m_%d")
             iterator = 1
