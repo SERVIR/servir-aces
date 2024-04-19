@@ -24,6 +24,7 @@ class Config:
         MODEL_CHECKPOINT_NAME (str): The name for model checkpoints.
         MODEL_DIR_NAME (str): The name of the model directory. MODEL_DIR = OUTPUT_DIR / MODEL_DIR_NAME
         AUTO_MODEL_DIR_NAME (bool): Flag to use automatic model directory naming.
+        DATA_OUTPUT_DIR (str): The output directory for data export. Used in the workflow/v2/generate_training_patches script.
         # True generates as trial_MODELTYPE + datetime.now() + _v + version
         # False uses the MODEL_DIR_NAME
         FEATURES (str): The list of features used in the model.
@@ -131,6 +132,9 @@ class Config:
         self.MODEL_DIR = self.OUTPUT_DIR / self.MODEL_DIR_NAME
 
         self.AUTO_MODEL_DIR_NAME = os.getenv("AUTO_MODEL_DIR_NAME") == "True"
+
+        self.DATA_OUTPUT_DIR = os.getenv("DATA_OUTPUT_DIR")
+
         self.SCALE = int(os.getenv("SCALE"))
 
         self.FEATURES = os.getenv("FEATURES").split("\n")

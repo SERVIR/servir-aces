@@ -37,28 +37,31 @@ class TrainingDataGenerator:
     A class to generate training data for machine learning models.
     This class utilizes Apache Beam for data processing and Earth Engine for handling geospatial data.
     """
-    def __init__(self, include_after: bool = False, use_service_account: bool = False):
+    def __init__(self, config, include_after: bool = False, split_dir: str = "training", **kwargs):
         """
         Constructor for the TrainingDataGenerator class.
 
         Parameters:
         include_after (bool): If True, includes "after" images in the generated data. Default is False.
         """
-        self.output_bucket = Config.GCS_BUCKET
-        self.kernel_size = Config.PATCH_SHAPE_SINGLE
+        self.config = config
+        self.output_bucket = self.config.GCS_BUCKET
+        self.kernel_size = self.config.PATCH_SHAPE_SINGLE
         self.grace = 10
-        self.scale = Config.SCALE
+        self.scale = self.config.SCALE
         self.include_after = include_after
-        self.test_ratio = 0.1
-        self.validation_ratio = 0.2
-        self.seed = 100
-        self.use_service_account = use_service_account
+        self.test_ratio = kwargs.get("test_ratio", 0.1)
+        self.validation_ratio = kwargs.get("validation_ratio", 0.2)
+        self.seed = kwargs.get("seed", 100)
+        self.use_service_account = self.config.USE_SERVICE_ACCOUNT
+        self.split_dir = split_dir
+        print(f"split_dir: {self.split_dir}")
 
     def load_data(self) -> None:
         """
         Load the necessary data from Earth Engine and prepare it for use.
         """
-        EEUtils.initialize_session(use_highvolume=True, key=Config.EE_SERVICE_CREDENTIALS if self.use_service_account else None)
+        EEUtils.initialize_session(use_highvolume=True, key=self.config.EE_SERVICE_CREDENTIALS if self.use_service_account else None)
         self.l1 = ee.FeatureCollection("projects/servir-sco-assets/assets/Bhutan/BT_Admin_1")
         self.paro = self.l1.filter(ee.Filter.eq("ADM1_EN", "Paro"))
 
@@ -119,16 +122,16 @@ class TrainingDataGenerator:
         else:
             self.image = self.composite_before.addBands(self.composite_during).toFloat()
 
-        if Config.USE_S1:
+        if self.config.USE_S1:
             self.image = self.image.addBands(self.sentinel1_asc_before_composite).addBands(self.sentinel1_asc_during_composite).addBands(self.sentinel1_desc_before_composite).addBands(self.sentinel1_desc_during_composite).toFloat()
-            Config.FEATURES.extend(["vv_asc_before", "vh_asc_before", "vv_asc_during", "vh_asc_during",
+            self.config.FEATURES.extend(["vv_asc_before", "vh_asc_before", "vv_asc_during", "vh_asc_during",
                                     "vv_desc_before", "vh_desc_before", "vv_desc_during", "vh_desc_during"])
 
-        if Config.USE_ELEVATION:
+        if self.config.USE_ELEVATION:
             self.image = self.image.addBands(self.elevation).addBands(self.slope).toFloat()
-            Config.FEATURES.extend(["elevation", "slope"])
+            self.config.FEATURES.extend(["elevation", "slope"])
 
-        self.image = self.image.select(Config.FEATURES)
+        self.image = self.image.select(self.config.FEATURES)
         self.image = self.image.addBands(self.label).toFloat()
 
         print("Image bands:", self.image.bandNames().getInfo())
@@ -145,29 +148,27 @@ class TrainingDataGenerator:
         Use Apache Beam to generate training, validation, and test patch data from the loaded data.
         """
         from datetime import datetime
-        from uuid import uuid4
 
         export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
 
-        file_prefix = f"experiments_neighbour_{self.kernel_size}x{self.kernel_size}"
+        extra_info = ""
+        if self.config.USE_S1:
+            extra_info += "_s1"
 
-        if Config.USE_S1:
-            file_prefix += "_s1"
+        if self.config.USE_ELEVATION:
+            extra_info += "_elevation"
 
-        if Config.USE_ELEVATION:
-            file_prefix += "_elevation"
-
-        training_file_prefix = f"{file_prefix}_training/training"
-        testing_file_prefix = f"{file_prefix}_testing/testing"
-        validation_file_prefix = f"{file_prefix}_validation/validation"
+        training_file_prefix = f"{self.config.DATA_OUTPUT_DIR}/training_{int((1. - self.test_ratio - self.validation_ratio) * 100.)}/training{extra_info}__{self.kernel_size}x{self.kernel_size}"
+        testing_file_prefix = f"{self.config.DATA_OUTPUT_DIR}/testing_{int(self.test_ratio * 100.)}/testing{extra_info}__{self.kernel_size}x{self.kernel_size}"
+        validation_file_prefix = f"{self.config.DATA_OUTPUT_DIR}/validation_{int(self.validation_ratio * 100.)}/validation{extra_info}__{self.kernel_size}x{self.kernel_size}"
 
         def _generate_data(image, data, selectors, use_service_account, prefix):
-            if "training" in prefix:
-                description = "Training"
-            elif "validation" in prefix:
+            if "validation" in prefix:
                 description = "Validation"
             elif "testing" in prefix:
                 description = "Testing"
+            elif "training" in prefix:
+                description = "Training"
             else:
                 description = "Unknown"
 
@@ -179,18 +180,22 @@ class TrainingDataGenerator:
                     pipeline
                     | "Create range" >> beam.Create(range(0, data.size().getInfo(), 1))
                     | "Yield sample points" >> beam.Map(EEUtils.beam_yield_sample_points_with_index, data.toList(data.size()), use_service_account)
-                    | "Get patch" >> beam.Map(EEUtils.beam_sample_neighbourhood, image, use_service_account)
+                    | "Get patch" >> beam.Map(EEUtils.beam_sample_neighbourhood, image, self.config, use_service_account)
                     | "Write training data" >> beam.Map(EEUtils.beam_export_collection_to_cloud_storage, start_training=True,
                                                         **{**export_kwargs, "file_prefix": f"{prefix}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_')}",
                                                            "description": f"{description}_{datetime.now().strftime('%Y%m-%d%H-%M-%S_')}",
                                                            "selectors": selectors})
                 )
 
-        _generate_data(self.image, self.training_sample_locations, self.selectors, self.use_service_account, training_file_prefix)
-
-        _generate_data(self.image, self.validation_sample_locations, self.selectors, self.use_service_account, validation_file_prefix)
-
-        _generate_data(self.image, self.test_sample_locations, self.selectors, self.use_service_account, testing_file_prefix)
+        if self.split_dir == "training":
+            _generate_data(self.image, self.training_sample_locations, self.selectors, self.use_service_account, training_file_prefix)
+        elif self.split_dir == "validation":
+            _generate_data(self.image, self.validation_sample_locations, self.selectors, self.use_service_account, testing_file_prefix)
+        elif self.split_dir == "testing":
+            _generate_data(self.image, self.test_sample_locations, self.selectors, self.use_service_account, validation_file_prefix)
+        else:
+            print("Invalid split name specified. Choices are training, validation, and testing. Exiting..")
+            exit(1)
 
     def generate_training_patch_data(self) -> None:
         """
@@ -208,16 +213,22 @@ class TrainingDataGenerator:
                 | "Split dataset" >> beam.Partition(Utils.split_dataset, 3, validation_ratio=self.validation_ratio, test_ratio=self.test_ratio)
             )
 
+            extra_info = ""
+            if self.config.USE_S1:
+                extra_info += "_s1"
+
+            if self.config.USE_ELEVATION:
+                extra_info += "_elevation"
+
+            training_file_prefix = f"gs://{self.config.GCS_BUCKET}/{self.config.DATA_OUTPUT_DIR}/training_{int((1. - self.test_ratio - self.validation_ratio) * 100.)}/training{extra_info}__{self.kernel_size}x{self.kernel_size}"
+            testing_file_prefix = f"gs://{self.config.GCS_BUCKET}/{self.config.DATA_OUTPUT_DIR}/testing_{int(self.test_ratio * 100.)}/testing{extra_info}__{self.kernel_size}x{self.kernel_size}"
+            validation_file_prefix = f"gs://{self.config.GCS_BUCKET}/{self.config.DATA_OUTPUT_DIR}/validation_{int(self.validation_ratio * 100.)}/validation{extra_info}__{self.kernel_size}x{self.kernel_size}"
+
+
             # Write the datasets to TFRecord files in the output bucket
-            training_data | "Write training data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_training/training", file_name_suffix=".tfrecord.gz"
-            )
-            validation_data | "Write validation data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_validation/validation", file_name_suffix=".tfrecord.gz"
-            )
-            test_data | "Write test data" >> beam.io.WriteToTFRecord(
-                f"gs://{self.output_bucket}/experiments_paro_{self.kernel_size}x{self.kernel_size}_before_during{'_after' if self.include_after else ''}_testing/testing", file_name_suffix=".tfrecord.gz"
-            )
+            training_data | "Write training data" >> beam.io.WriteToTFRecord(training_file_prefix, file_name_suffix=".tfrecord.gz")
+            validation_data | "Write validation data" >> beam.io.WriteToTFRecord(testing_file_prefix, file_name_suffix=".tfrecord.gz")
+            test_data | "Write test data" >> beam.io.WriteToTFRecord(validation_file_prefix, file_name_suffix=".tfrecord.gz")
 
     def generate_training_patch_seed_data(self) -> None:
         """
@@ -236,47 +247,55 @@ class TrainingDataGenerator:
                     | "Write training data" >> beam.io.WriteToTFRecord(output_path, file_name_suffix=".tfrecord.gz")
                 )
 
-        output_path = f"gs://{self.output_bucket}/unet_{self.kernel_size}x{self.kernel_size}_planet_wo_indices"
+        extra_info = ""
+        if self.config.USE_S1:
+            extra_info += "_s1"
 
-        if Config.USE_S1:
-            output_path += "_w_s1"
+        if self.config.USE_ELEVATION:
+            extra_info += "_elevation"
 
-        if Config.USE_ELEVATION:
-            output_path += "_w_elevation"
+        training_file_prefix = f"gs://{self.config.GCS_BUCKET}/{self.config.DATA_OUTPUT_DIR}/training_{int((1. - self.test_ratio - self.validation_ratio) * 100.)}/training{extra_info}__{self.kernel_size}x{self.kernel_size}"
+        testing_file_prefix = f"gs://{self.config.GCS_BUCKET}/{self.config.DATA_OUTPUT_DIR}/testing_{int(self.test_ratio * 100.)}/testing{extra_info}__{self.kernel_size}x{self.kernel_size}"
+        validation_file_prefix = f"gs://{self.config.GCS_BUCKET}/{self.config.DATA_OUTPUT_DIR}/validation_{int(self.validation_ratio * 100.)}/validation{extra_info}__{self.kernel_size}x{self.kernel_size}"
+
 
         datasets = [
-            {"name": "training", "locations": self.training_sample_locations, "output_path": f"{output_path}/training_70/training"},
-            {"name": "testing", "locations": self.test_sample_locations, "output_path": f"{output_path}/testing_10/testing"},
-            {"name": "validation", "locations": self.validation_sample_locations, "output_path": f"{output_path}/validation_20/validation"}
+            {"name": "training", "locations": self.training_sample_locations, "output_path": training_file_prefix},
+            {"name": "testing", "locations": self.test_sample_locations, "output_path": testing_file_prefix},
+            {"name": "validation", "locations": self.validation_sample_locations, "output_path": validation_file_prefix}
         ]
 
         for dataset in datasets:
-            print(f"{dataset['name'].capitalize()} output path:", dataset["output_path"])
-            _generate_data_seed(
-                self.image, dataset["locations"], self.selectors, self.scale, self.kernel_size,
-                self.use_service_account, dataset["output_path"]
-            )
+            if dataset["name"] == self.split_dir:
+                print(f"{dataset['name'].capitalize()} output path:", dataset["output_path"])
+                _generate_data_seed(
+                    self.image, dataset["locations"], self.selectors, self.scale, self.kernel_size,
+                    self.use_service_account, dataset["output_path"]
+                )
 
     def generate_training_point_data(self) -> None:
         """
         Use Apache Beam to generate training, validation, and test point data from the loaded data.
         """
-        training_sample_points = EEUtils.sample_image(self.image, self.training_sample_locations, **Config.__dict__)
-        validation_sample_points = EEUtils.sample_image(self.image, self.validation_sample_locations, **Config.__dict__)
-        test_sample_points = EEUtils.sample_image(self.image, self.test_sample_locations, **Config.__dict__)
+        training_sample_points = EEUtils.sample_image(self.image, self.training_sample_locations, **self.config.__dict__)
+        validation_sample_points = EEUtils.sample_image(self.image, self.validation_sample_locations, **self.config.__dict__)
+        test_sample_points = EEUtils.sample_image(self.image, self.test_sample_locations, **self.config.__dict__)
 
-        output_path = f"dnn_planet_wo_indices"
+        extra_info = ""
+        if self.config.USE_S1:
+            extra_info += "_s1"
 
-        if Config.USE_S1:
-            output_path += "_w_s1"
+        if self.config.USE_ELEVATION:
+            extra_info += "_elevation"
 
-        if Config.USE_ELEVATION:
-            output_path += "_w_elevation"
+        training_file_prefix = f"{self.config.DATA_OUTPUT_DIR}/training_{int((1. - self.test_ratio - self.validation_ratio) * 100.)}/training{extra_info}"
+        testing_file_prefix = f"{self.config.DATA_OUTPUT_DIR}/testing_{int(self.test_ratio * 100.)}/testing{extra_info}"
+        validation_file_prefix = f"{self.config.DATA_OUTPUT_DIR}/validation_{int(self.validation_ratio * 100.)}/validation{extra_info}"
 
         datasets = [
-            {"name": "training", "sample_points": training_sample_points, "output_path": f"{output_path}/training_70/training"},
-            {"name": "testing", "sample_points": test_sample_points, "output_path": f"{output_path}/testing_10/testing"},
-            {"name": "validation", "sample_points": validation_sample_points, "output_path": f"{output_path}/validation_20/validation"}
+            {"name": "training", "sample_points": training_sample_points, "output_path": training_file_prefix},
+            {"name": "testing", "sample_points": test_sample_points, "output_path": testing_file_prefix},
+            {"name": "validation", "sample_points": validation_sample_points, "output_path": validation_file_prefix}
         ]
 
         export_kwargs = { "bucket": self.output_bucket, "selectors": self.selectors }
@@ -321,9 +340,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Adding optional argument
-    parser.add_argument("-m", "--mode", help="""Which mode to run? The available modes are: patch, point, neighborhood, patch_seed. \n
+    parser.add_argument("-m", "--mode", help="""Which mode to run? The available modes are: patch, point, neighborhood (or neighbourhood), patch_seed. \n
                         use as python generate_training_data.py --mode patch \n
                         or python generate_training_data.py --m point""")
+
+    parser.add_argument("-c", "--config", "--c", help="`.env` file to load config from")
+
+    parser.add_argument("-s", "--split_directory", "--s", help="The split directory. Default is training. Choices are training, testing, and validation \n")
 
     # Read arguments from command line
     mode = "neighborhood"
@@ -332,14 +355,29 @@ if __name__ == "__main__":
     else:
         print("No mode specified, defaulting to neighborhood.")
 
-    generator = TrainingDataGenerator(use_service_account=Config.USE_SERVICE_ACCOUNT)
+    config = "../config.env"
+    if parser.parse_args().config:
+        config = parser.parse_args().config
+    else:
+        print("No config file specified, defaulting to `config.env`.")
+
+    config = Config(config)
+
+    split_dir = "training"
+    if parser.parse_args().split_directory:
+        split_dir = parser.parse_args().split_directory
+    else:
+        print("No split directory specified, defaulting to `training`.")
+
+    # more settings can be applied here
+    generator = TrainingDataGenerator(config=config, split_dir=split_dir)
     if mode == "patch":
         generator.run_patch_generator()
     elif mode == "patch_seed":
         generator.run_patch_generator_seed()
     elif mode == "point":
         generator.run_point_generator()
-    elif mode == "neighborhood":
+    elif mode == "neighborhood" or mode == "neighbourhood":
         generator.run_neighborhood_generator()
     else:
         print("Invalid mode specified.")
