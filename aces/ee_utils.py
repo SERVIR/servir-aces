@@ -169,7 +169,7 @@ class EEUtils:
         print(f"Exporting training data to gs://{bucket}/{file_prefix}..")
         training_task = ee.batch.Export.table.toCloudStorage(
             collection=collection,
-            description=description,
+            description=f"{description}__index_{index}",
             fileNamePrefix=file_prefix,
             bucket=bucket,
             fileFormat=kwargs.get("file_format", "TFRecord"),
@@ -356,8 +356,8 @@ class EEUtils:
     @staticmethod
     def sample_image(image: ee.Image, region: ee.FeatureCollection, **kwargs: dict) -> ee.FeatureCollection:
         sample = image.sample(region=region,
-                              scale=kwargs.get("scale", Config.SCALE),
-                              seed=kwargs.get("seed", Config.SEED),
+                              scale=kwargs.get("SCALE") or kwargs.get("scale"),
+                              seed=kwargs.get("SEED") or kwargs.get("seed"),
                               geometries=kwargs.get("geometries", False))
         return sample
 
@@ -382,11 +382,19 @@ class EEUtils:
         return point["coordinates"]
 
     @staticmethod
-    def beam_sample_neighbourhood(coords_index, image, use_service_account: bool = False):
+    def beam_sample_neighbourhood(coords_index, image, config: Union[Config, str] = "config.env", use_service_account: bool = False):
         from aces.ee_utils import EEUtils
         from aces.config import Config
         import ee
-        EEUtils.initialize_session(use_highvolume=True, key=Config.EE_SERVICE_CREDENTIALS if use_service_account else None)
+
+        if isinstance(config, str):
+            config = Config(config)
+        elif isinstance(config, Config):
+            config = config
+        else:
+            raise ValueError("config must be of type Config or str")
+
+        EEUtils.initialize_session(use_highvolume=True, key=config.EE_SERVICE_CREDENTIALS if use_service_account else None)
 
         coords = coords_index[0]
         index = coords_index[1]
@@ -403,12 +411,12 @@ class EEUtils:
         def sample_data(image, points) -> ee.FeatureCollection:
             return image.sample(
                 region=points,
-                scale=Config.SCALE,
+                scale=config.SCALE,
                 tileScale=16,
                 geometries=False
             )
 
-        image_kernel = get_kernel(Config.PATCH_SHAPE_SINGLE)
+        image_kernel = get_kernel(config.PATCH_SHAPE_SINGLE)
         neighborhood = create_neighborhood(image_kernel)
         training_data = sample_data(neighborhood, ee.Geometry.Point(coords))
         return training_data, index
