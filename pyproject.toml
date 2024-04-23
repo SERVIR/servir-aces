@@ -27,6 +27,12 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
+[project.optional-dependencies]
+extra = [
+    "apache-beam[gcp]>=2.38.0",
+    # Other dev dependencies can be listed here
+]
+
 [tool]
 [tool.setuptools.packages.find]
 include = ["aces*"]
