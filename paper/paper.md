@@ -21,7 +21,7 @@ affiliations:
       index: 1
     - name: SERVIR Science Coordination Office, NASA Marshall Space Flight Center, 320 Sparkman Drive, Huntsville, AL 35805, USA
       index: 2
-date: 16 April 2024
+date: 30 April 2024
 bibliography: paper.bib
 ---
 
