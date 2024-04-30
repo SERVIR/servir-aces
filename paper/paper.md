@@ -27,9 +27,13 @@ bibliography: paper.bib
 
 # Summary
 
-**`servir-aces`** Agricultural Classification and Estimation Service (ACES) is a Python package for generating training data using highly parallelized [apache-beam](https://beam.apache.org/) and [Google Earth Engine (GEE)](https://earthengine.google.com/) [@Gorelick2017] workflows as well as for training various Machine Learning (ML) and Deep Learning (DL) models for Remote Sensing Applications [@Mayer2023], [@Bhandari2024]. With petabytes of data available via GEE, and integration of the TensorFlow (TF) platfrom, models trained in TF can be easily loaded into GEE. This package provides functionalities for 1) data processing; 2) data loading from GEE; 3) feature extraction, 4) model training, and 5) model inference. The combination of TF and GEE has enabled several large scale ML and DL Remote Sensing applications. Some of them include Wetland Area Mapping [@Bakkestuen2023], Crop Type Mapping [@Poortinga2021], Surface Water Mapping [@Mayer2021], and Urban Mapping [@Parekh2021].
+**`servir-aces`** Agricultural Classification and Estimation Service (ACES) is a Python package for generating training data using highly parallelized [apache-beam](https://beam.apache.org/) and [Google Earth Engine (GEE)](https://earthengine.google.com/) [@Gorelick2017] workflows as well as for training various Machine Learning (ML) and Deep Learning (DL) models for Remote Sensing Applications [@Mayer2023], [@Bhandari2024].
+
+# Statement of Need
 
 Despite robust platforms, specialized technical knowledge is required to setup and run various ML/DL models, leading many practitioners, scientists, and domain experts to find it difficult to implement them. The **`servir-aces`** Python package is created to fill this gap. **`servir-aces`** siginicantly lowers the barrier for users to export training data and both train and run DL models using cloud-based technology with their GEE workflows. Several examples are provided via a runnable notebook to make it easier for scientists utilize this emerging field of DL.
+
+With petabytes of data available via GEE, and integration of the TensorFlow (TF) platfrom, models trained in TF can be easily loaded into GEE. This package provides functionalities for 1) data processing; 2) data loading from GEE; 3) feature extraction, 4) model training, and 5) model inference. The combination of TF and GEE has enabled several large scale ML and DL Remote Sensing applications. Some of them include Wetland Area Mapping [@Bakkestuen2023], Crop Type Mapping [@Poortinga2021], Surface Water Mapping [@Mayer2021], and Urban Mapping [@Parekh2021].
 
 # **`servir-aces`** Audience
 
