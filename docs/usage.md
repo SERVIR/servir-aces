@@ -38,6 +38,33 @@ USE_S1 = False
 PATCH_SHAPE = (256, 256)
 ```
 
+You can then change the `MODEL_TYPE` which you are running. The default is "unet". You can change to "dnn" if you are using that model.
+
+*Note current version does not expose all the model intracacies through the environment file but future version may include those depending on the need.*
+
+```
+MODEL_TYPE = "unet"
+```
+
+Next define the `FEATURES` and the `LABELS` variables. This dataset was prepared for the rice mapping application that uses before and during growing season information. So for this dataset, here are the example `FEATURES`. Note the `FEATURES` should be in the same format as shown below
+
+```
+FEATURES = "red_before
+green_before
+blue_before
+nir_before
+red_during
+green_during
+blue_during
+nir_during"
+```
+
+Similarly, since the dataset has a single label, it is going to be
+
+```
+LABELS = ["class"]
+```
+
 Next, we need to calculate the size of the training, testing and validation dataset. For this, we know our size before hand. But `aces` also provides handful of functions that we can use to calculate this. See this [notebook](https://github.com/SERVIR/servir-aces/blob/main/notebook/count_sample_size.ipynb) to learn more about how to do it. We will also change the `BATCH_SIZE` to 32; if you have larger memory available, you can increase the `BATCH_SIZE`. You can run for longer `EPOCHS` by changing the `EPOCHS` paramter; we will keep it to 30 for now.
 
 ```
@@ -49,12 +76,13 @@ BATCH_SIZE = 32
 EPOCHS = 30
 ```
 
-The last setting we will change for this is the `MODEL_DIR_NAME`. This is the directory name where you want to save the output of the training and other relevant files. This is used to construct the `MODEL_DIR`, which is constructed as `OUTPUT_DIR + MODEL_DIR_NAME`.
+Finally, you can change the `MODEL_DIR_NAME`. This is the directory name where you want to save the output of the training and other relevant files. This is used to construct the `MODEL_DIR`, which is constructed as `OUTPUT_DIR + MODEL_DIR_NAME`.
 
 ```
 MODEL_DIR_NAME = "unet_v1"
 ```
 
+These settings should be good enough to get started. To view the complete settings and what they meant, you can view them [here](https://github.com/SERVIR/servir-aces/blob/main/.env.example).
 
 To use servir-aces in a project.
 
