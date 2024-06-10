@@ -141,7 +141,7 @@ class Config:
         self.ADDED_FEATURES = os.getenv("ADDED_FEATURES").split("\n")
         self.USE_ELEVATION = os.getenv("USE_ELEVATION") == "True"
         self.USE_S1 = os.getenv("USE_S1") == "True"
-        self.LABELS = ast.literal_eval(os.getenv("LABELS"))
+        self.LABELS = os.getenv("LABELS").split("\n")
 
         if self.USE_ELEVATION:
                 self.FEATURES.extend(["elevation", "slope"])

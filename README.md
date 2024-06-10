@@ -108,5 +108,7 @@ For inference, refer to this [notebook](https://colab.research.google.com/drive/
 ## Contributing
 Contributions to ACES are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on the GitHub repository.
 
+For Developers, to bump the version, refer [here](https://github.com/opengeos/cookiecutter-pypackage).
+
 ## License
 This project is licensed under the [GNU General Public License v3.0](https://github.com/SERVIR/servir-aces/blob/main/LICENSE).
