@@ -131,7 +131,26 @@ a Creative Commons Attribution 4.0 International License (CC BY
   (<xref alt="Mayer et al., 2021" rid="ref-Mayer2021" ref-type="bibr">Mayer
   et al., 2021</xref>), and Urban Mapping
   (<xref alt="Parekh et al., 2021" rid="ref-Parekh2021" ref-type="bibr">Parekh
-  et al., 2021</xref>).</p>
+  et al., 2021</xref>). However, these applications tend to be developed
+  ad-hoc without using a common library and require a very specialized
+  domain as well as technical knowledge. In addition, several unified
+  libraries like torchgeo
+  (<xref alt="Stewart et al., 2022" rid="ref-Stewart_TorchGeo_Deep_Learning_2022" ref-type="bibr">Stewart
+  et al., 2022</xref>) and
+  <ext-link ext-link-type="uri" xlink:href="https://github.com/azavea/raster-vision">rastervision</ext-link>
+  exists but those are mostly targeted for pytorch user community. Some
+  efforts for GEE &amp; TensorFlow users stemmed out of geemap
+  (<xref alt="Wu, 2020" rid="ref-Wu2020" ref-type="bibr">Wu,
+  2020</xref>) but that is mostly for tree based approaches like Random
+  Forest, while
+  <ext-link ext-link-type="uri" xlink:href="https://github.com/opengeos/geospatial-ml">geospatial-ml</ext-link>
+  has not seen much development since its inception. Thus there is a
+  need for a unified libraries to train deep learning models within the
+  GEE &amp; TensorFlow user community. The
+  <bold><monospace>servir-aces</monospace></bold> is a first step for
+  that. Although this was originally deeloped for agricultural related
+  applications, the library has matured enough to work for any kind of
+  image segmentation tasks.</p>
 </sec>
 <sec id="servir-aces-audience">
   <title><bold><monospace>servir-aces</monospace></bold>
@@ -366,6 +385,44 @@ a Creative Commons Attribution 4.0 International License (CC BY
       <volume>13</volume>
       <issue>16</issue>
       <fpage>3166</fpage>
+      <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-Stewart_TorchGeo_Deep_Learning_2022">
+    <element-citation publication-type="paper-conference">
+      <person-group person-group-type="author">
+        <name><surname>Stewart</surname><given-names>Adam J.</given-names></name>
+        <name><surname>Robinson</surname><given-names>Caleb</given-names></name>
+        <name><surname>Corley</surname><given-names>Isaac A.</given-names></name>
+        <name><surname>Ortiz</surname><given-names>Anthony</given-names></name>
+        <name><surname>Lavista Ferres</surname><given-names>Juan M.</given-names></name>
+        <name><surname>Banerjee</surname><given-names>Arindam</given-names></name>
+      </person-group>
+      <article-title>TorchGeo: Deep learning with geospatial data</article-title>
+      <source>Proceedings of the 30th international conference on advances in geographic information systems</source>
+      <publisher-name>Association for Computing Machinery</publisher-name>
+      <publisher-loc>Seattle, Washington</publisher-loc>
+      <year iso-8601-date="2022-11">2022</year><month>11</month>
+      <uri>https://dl.acm.org/doi/10.1145/3557915.3560953</uri>
+      <pub-id pub-id-type="doi">10.1145/3557915.3560953</pub-id>
+      <fpage>1</fpage>
+      <lpage>12</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-Wu2020">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Wu</surname><given-names>Qiusheng</given-names></name>
+      </person-group>
+      <article-title>Geemap: A python package for interactive mapping with google earth engine</article-title>
+      <source>Journal of Open Source Software</source>
+      <publisher-name>The Open Journal</publisher-name>
+      <year iso-8601-date="2020">2020</year>
+      <volume>5</volume>
+      <issue>51</issue>
+      <uri>https://doi.org/10.21105/joss.02305</uri>
+      <pub-id pub-id-type="doi">10.21105/joss.02305</pub-id>
+      <fpage>2305</fpage>
       <lpage></lpage>
     </element-citation>
   </ref>
