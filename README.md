@@ -1,6 +1,9 @@
 # ACES (Agricultural Classification and Estimation Service)
 
 [![image](https://img.shields.io/pypi/v/servir-aces.svg)](https://pypi.python.org/pypi/servir-aces)
+[![Conda Recipe](https://img.shields.io/badge/recipe-servir--aces-green.svg)](https://github.com/conda-forge/servir-aces-feedstock)
+[![image](https://img.shields.io/conda/vn/conda-forge/servir-aces.svg)](https://anaconda.org/conda-forge/servir-aces)
+[![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/servir-aces.svg)](https://anaconda.org/conda-forge/servir-aces)
 
 ACES (Agricultural Classification and Estimation Service) is a Python module for generating training data and training machine learning models for remote sensing applications. It provides functionalities for data processing, data loading from Earth Engine, feature extraction, and model training.
 
