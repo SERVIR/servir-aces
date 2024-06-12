@@ -102,7 +102,7 @@ a Creative Commons Attribution 4.0 International License (CC BY
   Applications
   (<xref alt="Mayer et al., 2023" rid="ref-Mayer2023" ref-type="bibr">Mayer
   et al., 2023</xref>),
-  (<xref alt="Bhandari &amp; Mayer, 2024" rid="ref-Bhandari2024" ref-type="bibr">Bhandari
+  (<xref alt="Bhandari &amp; Mayer, 2024" rid="ref-bhandari2024comparing" ref-type="bibr">Bhandari
   &amp; Mayer, 2024</xref>).</p>
 </sec>
 <sec id="statement-of-need">
@@ -325,19 +325,15 @@ a Creative Commons Attribution 4.0 International License (CC BY
       <lpage></lpage>
     </element-citation>
   </ref>
-  <ref id="ref-Bhandari2024">
-    <element-citation publication-type="article-journal">
+  <ref id="ref-bhandari2024comparing">
+    <element-citation>
       <person-group person-group-type="author">
         <name><surname>Bhandari</surname><given-names>Biplov</given-names></name>
         <name><surname>Mayer</surname><given-names>Timothy</given-names></name>
       </person-group>
       <article-title>Comparing deep learning models for rice mapping in bhutan using high resolution satellite imagery</article-title>
-      <source>ISPRS Open Journal of Photogrammetry and Remote Sensing</source>
-      <publisher-name>Elsevier</publisher-name>
       <year iso-8601-date="2024">2024</year>
-      <volume>to appear</volume>
-      <fpage>to appear</fpage>
-      <lpage></lpage>
+      <uri>https://arxiv.org/abs/2406.07482</uri>
     </element-citation>
   </ref>
   <ref id="ref-Bakkestuen2023">

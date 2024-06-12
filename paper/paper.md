@@ -27,7 +27,7 @@ bibliography: paper.bib
 
 # Summary
 
-**`servir-aces`** Agricultural Classification and Estimation Service (ACES) is a Python package for generating training data using highly parallelized [apache-beam](https://beam.apache.org/) and [Google Earth Engine (GEE)](https://earthengine.google.com/) [@Gorelick2017] workflows as well as for training various Machine Learning (ML) and Deep Learning (DL) models for Remote Sensing Applications [@Mayer2023], [@Bhandari2024].
+**`servir-aces`** Agricultural Classification and Estimation Service (ACES) is a Python package for generating training data using highly parallelized [apache-beam](https://beam.apache.org/) and [Google Earth Engine (GEE)](https://earthengine.google.com/) [@Gorelick2017] workflows as well as for training various Machine Learning (ML) and Deep Learning (DL) models for Remote Sensing Applications [@Mayer2023], [@bhandari2024comparing].
 
 # Statement of Need
 
