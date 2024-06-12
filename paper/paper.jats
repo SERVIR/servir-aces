@@ -108,58 +108,72 @@ a Creative Commons Attribution 4.0 International License (CC BY
 <sec id="statement-of-need">
   <title>Statement of Need</title>
   <p>Despite robust platforms, specialized technical knowledge is
-  required to setup and run various ML/DL models, leading many
-  practitioners, scientists, and domain experts to find it difficult to
-  implement them. The <bold><monospace>servir-aces</monospace></bold>
-  Python package is created to fill this gap.
-  <bold><monospace>servir-aces</monospace></bold> siginicantly lowers
-  the barrier for users to export training data and both train and run
-  DL models using cloud-based technology with their GEE workflows.
-  Several examples are provided via a runnable notebook to make it
-  easier for scientists utilize this emerging field of DL.</p>
+  required to set up and run various Machine Learning (ML) and Deep
+  Learning (DL) models, making it difficult for many development
+  practitioners, scientists, and domain experts to implement them. The
+  <bold><monospace>servir-aces</monospace></bold> Python package is
+  designed to address this challenge by significantly lowering the
+  barrier for users to export training data and both train and run DL
+  models using cloud-based technology with their GEE workflows. Several
+  examples are provided via runnable notebook to make it easier for
+  scientists to utilize this emerging field of DL.</p>
   <p>With petabytes of data available via GEE, and integration of the
   TensorFlow (TF) platfrom, models trained in TF can be easily loaded
   into GEE. This package provides functionalities for 1) data
   processing; 2) data loading from GEE; 3) feature extraction, 4) model
   training, and 5) model inference. The combination of TF and GEE has
-  enabled several large scale ML and DL Remote Sensing applications.
-  Some of them include Wetland Area Mapping
+  enabled several large scale ML and DL Remote Sensing applications,
+  including Wetland Area Mapping
   (<xref alt="Bakkestuen et al., 2023" rid="ref-Bakkestuen2023" ref-type="bibr">Bakkestuen
   et al., 2023</xref>), Crop Type Mapping
-  (<xref alt="Poortinga et al., 2021" rid="ref-Poortinga2021" ref-type="bibr">Poortinga
-  et al., 2021</xref>), Surface Water Mapping
+  (<xref alt="Bakkestuen et al., 2023" rid="ref-Bakkestuen2023" ref-type="bibr">Bakkestuen
+  et al., 2023</xref>), Surface Water Mapping
   (<xref alt="Mayer et al., 2021" rid="ref-Mayer2021" ref-type="bibr">Mayer
   et al., 2021</xref>), and Urban Mapping
   (<xref alt="Parekh et al., 2021" rid="ref-Parekh2021" ref-type="bibr">Parekh
   et al., 2021</xref>). However, these applications tend to be developed
-  ad-hoc without using a common library and require a very specialized
-  domain as well as technical knowledge. In addition, several unified
-  libraries like torchgeo
+  ad-hoc without using a common package.</p>
+  <p>Several unified libraries like torchgeo
   (<xref alt="Stewart et al., 2022" rid="ref-Stewart_TorchGeo_Deep_Learning_2022" ref-type="bibr">Stewart
   et al., 2022</xref>) and
   <ext-link ext-link-type="uri" xlink:href="https://github.com/azavea/raster-vision">rastervision</ext-link>
-  exists but those are mostly targeted for pytorch user community. Some
-  efforts for GEE &amp; TensorFlow users stemmed out of geemap
+  exists, but they are primarily targeted for PyTorch user community.
+  Some efforts for GEE &amp; TensorFlow users, such as geemap
   (<xref alt="Wu, 2020" rid="ref-Wu2020" ref-type="bibr">Wu,
-  2020</xref>) but that is mostly for tree based approaches like Random
+  2020</xref>), are mostly for classical ML approaches like Random
   Forest, while
   <ext-link ext-link-type="uri" xlink:href="https://github.com/opengeos/geospatial-ml">geospatial-ml</ext-link>
-  has not seen much development since its inception. Thus there is a
-  need for a unified libraries to train deep learning models within the
-  GEE &amp; TensorFlow user community. The
-  <bold><monospace>servir-aces</monospace></bold> is a first step for
-  that. Although this was originally deeloped for agricultural related
-  applications, the library has matured enough to work for any kind of
-  image segmentation tasks.</p>
+  has not seen much development since its inception. Thus, there is a
+  need for unified libraries to train DL models integrating the GEE
+  &amp; TensorFlow user community.</p>
+  <p><bold><monospace>servir-aces</monospace></bold> addresses this need
+  by 1) Offering a streamlined application of commonly employed
+  architectures (CNN, DNN, and U-NET); 2) Allowing end-users to rapidly
+  adjust a wide range of model parameters for these common
+  architectures, including activation functions, optimizers, loss
+  functions, early stopping, dropout rate, batch size etc.; 3) More
+  efficiently and effectively connecting across the Google Cloud
+  ecosystem, linking Google Cloud, improved methods of parallelization
+  via Apache beam, Vertex AI, TensorFlow, and Google Earth Engine; and
+  4) Enabling broader development and incorporation of several methods
+  through the package’s utility functions, such as providing a collated
+  set of evaluation metrics for easier model performance comparisons, a
+  class for generating Remote Sensing features essential for scientific
+  community, and utility functionality for Apache Beam and Earth Engine.
+  Although <bold><monospace>servir-aces</monospace></bold> was
+  originally developed for agricultural-related applications, the
+  library has been further developed to work for any kind of DL image
+  segmentation tasks.</p>
 </sec>
 <sec id="servir-aces-audience">
   <title><bold><monospace>servir-aces</monospace></bold>
   Audience</title>
   <p><bold><monospace>servir-aces</monospace></bold> is intended for
-  development practitioner, researchers, and students who would like to
-  utilize various freely available Earth Observation (EO) data using
-  cloud-based GEE and TF ecosystem to perform large scale ML/DL related
-  Remote Sensing applications.</p>
+  development practitioner, researchers, scientists, software
+  developers, and students who would like to utilize various freely
+  available Earth Observation (EO) data using cloud-based GEE and TF
+  ecosystem to perform large scale ML/DL related Remote Sensing
+  applications.</p>
   <p>We also provide several notebook examples to showcase the usage of
   the <bold><monospace>servir-aces</monospace></bold>. Here we show how
   <bold><monospace>servir-aces</monospace></bold> can be used for
@@ -236,9 +250,9 @@ a Creative Commons Attribution 4.0 International License (CC BY
   <ext-link ext-link-type="uri" xlink:href="https://www.uah.edu/essc/laboratory-for-applied-science">Lab
   for Applied Science (LAS)</ext-link> as well as
   <ext-link ext-link-type="uri" xlink:href="https://tinyurl.com/servir-geo-ai-wg">SERVIR’s
-  Geospatial Artificial Intelleigence Working Group (Geo-AI
+  Geospatial Artificial Intelligence Working Group (Geo-AI
   WG)</ext-link> for their support and collaboration over the years.
-  Finally, wse are indebted to Dr Nick Clinton from the Google Earth
+  Finally, wse are indebted to Dr. Nick Clinton from the Google Earth
   Outreach Team for the support.</p>
 </sec>
 </body>
@@ -341,30 +355,6 @@ a Creative Commons Attribution 4.0 International License (CC BY
       <volume>15</volume>
       <issue>5</issue>
       <fpage>1203</fpage>
-      <lpage></lpage>
-    </element-citation>
-  </ref>
-  <ref id="ref-Poortinga2021">
-    <element-citation publication-type="article-journal">
-      <person-group person-group-type="author">
-        <name><surname>Poortinga</surname><given-names>Ate</given-names></name>
-        <name><surname>Thwal</surname><given-names>Nyein Soe</given-names></name>
-        <name><surname>Khanal</surname><given-names>Nishanta</given-names></name>
-        <name><surname>Mayer</surname><given-names>Timothy</given-names></name>
-        <name><surname>Bhandari</surname><given-names>Biplov</given-names></name>
-        <name><surname>Markert</surname><given-names>Kel</given-names></name>
-        <name><surname>Nicolau</surname><given-names>Andrea P</given-names></name>
-        <name><surname>Dilger</surname><given-names>John</given-names></name>
-        <name><surname>Tenneson</surname><given-names>Karis</given-names></name>
-        <name><surname>Clinton</surname><given-names>Nicholas</given-names></name>
-        <name><surname>others</surname></name>
-      </person-group>
-      <article-title>Mapping sugarcane in thailand using transfer learning, a lightweight convolutional neural network, NICFI high resolution satellite imagery and google earth engine</article-title>
-      <source>ISPRS Open Journal of Photogrammetry and Remote Sensing</source>
-      <publisher-name>Elsevier</publisher-name>
-      <year iso-8601-date="2021">2021</year>
-      <volume>1</volume>
-      <fpage>100003</fpage>
       <lpage></lpage>
     </element-citation>
   </ref>
