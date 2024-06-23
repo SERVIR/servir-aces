@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
+import re, os
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import List
@@ -111,3 +111,19 @@ class Utils:
             converted_string = re.sub(r"(?<!^)(?=[A-Z])", "_", string).lower()
             converted_strings.append(converted_string)
         return converted_strings
+
+    @staticmethod
+    def parse_params(feature_name):
+        # Fetch the feature_name string from the environment
+        params = os.getenv(feature_name)
+
+        # Normalize the string by replacing newlines with commas and stripping unwanted spaces
+        params = params.replace("\n", ",").replace(" ", "")
+
+        # Split the string into a list by commas
+        params_list = params.split(",")
+
+        # Optionally, you can remove any empty strings that may occur in the list
+        params_list = [feature for feature in params_list if feature]
+
+        return params_list

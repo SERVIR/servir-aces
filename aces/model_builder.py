@@ -111,13 +111,13 @@ class ModelBuilder:
         inputs = keras.Input(shape=(None, self.in_size), name="input_layer")
 
         x = keras.layers.Dense(256, activation="relu")(inputs)
-        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE", 0.))(x)
         x = keras.layers.Dense(128, activation="relu")(x)
-        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE", 0.))(x)
         x = keras.layers.Dense(64, activation="relu")(x)
-        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE", 0.))(x)
         x = keras.layers.Dense(32, activation="relu")(x)
-        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE", 0.))(x)
         output = keras.layers.Dense(self.out_classes, activation=kwargs.get("ACTIVATION_FN"), bias_initializer=INITIAL_BIAS)(x)
 
         model = keras.models.Model(inputs=inputs, outputs=output)
@@ -161,13 +161,13 @@ class ModelBuilder:
             inputs = inputs_main
 
         x = keras.layers.Conv2D(256, (1, 1), activation="relu")(inputs)
-        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE"), 0.)(x)
         x = keras.layers.Conv2D(128, (1, 1), activation="relu")(x)
-        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE"), 0.)(x)
         x = keras.layers.Conv2D(64, (1, 1), activation="relu")(x)
-        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE"), 0.)(x)
         x = keras.layers.Conv2D(32, (1, 1), activation="relu")(x)
-        x = keras.layers.Dropout(0.2)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE"), 0.)(x)
         output = keras.layers.Conv2D(self.out_classes, (1, 1), activation=kwargs.get("ACTIVATION_FN"), bias_initializer=INITIAL_BIAS)(x)
 
         model = keras.models.Model(inputs=inputs_main, outputs=output)
@@ -196,16 +196,16 @@ class ModelBuilder:
         inputs = keras.Input(shape=(kwargs.get("PATCH_SHAPE", 128)[0], kwargs.get("PATCH_SHAPE", 128)[0], self.in_size))
         x = keras.layers.Conv2D(32, 3, activation="relu", name="convd-1", padding="same")(inputs)
         x = keras.layers.BatchNormalization()(x)
-        x = keras.layers.Dropout(0.15)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE"), 0.)(x)
         x = keras.layers.Conv2D(64, 3, activation="relu", name="convd-2", padding="same")(x)
         x = keras.layers.BatchNormalization()(x)
-        x = keras.layers.Dropout(0.15)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE"), 0.)(x)
         x = keras.layers.Conv2D(128, 3, activation="relu", name="convd-3", padding="same")(x)
         x = keras.layers.BatchNormalization()(x)
-        x = keras.layers.Dropout(0.15)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE"), 0.)(x)
         x = keras.layers.Conv2D(128, 3, activation="relu", name="convd-4", padding="same")(x)
         x = keras.layers.BatchNormalization()(x)
-        x = keras.layers.Dropout(0.15)(x)
+        x = keras.layers.Dropout(kwargs.get("DROPOUT_RATE"), 0.)(x)
         outputs = keras.layers.Conv2D(self.out_classes, (1, 1), activation="softmax", name="final_conv")(x)
         model = keras.Model(inputs, outputs, name="cnn_model")
 
@@ -297,8 +297,6 @@ class ModelBuilder:
         inputs = keras.Input(shape=(None, None, self.in_size))
 
         DERIVE_FEATURES = kwargs.get("DERIVE_FEATURES", False)
-
-        print(f"DERIVE_FEATURES: {DERIVE_FEATURES}")
 
         if DERIVE_FEATURES:
             input_features = rs.concatenate_features_for_cnn(inputs)

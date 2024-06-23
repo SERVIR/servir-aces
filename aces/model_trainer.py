@@ -13,7 +13,7 @@ from keras import callbacks
 
 from aces.config import Config
 from aces.metrics import Metrics
-from aces.model_builder import ModelBuilder, DeSerializeInput, ReSerializeOutput, AddExtraFeatures
+from aces.model_builder import ModelBuilder, DeSerializeInput, ReSerializeOutput
 from aces.data_processor import DataProcessor
 from aces.utils import Utils, TFUtils
 
@@ -27,14 +27,12 @@ class ModelTrainer:
         model_builder: An instance of ModelBuilder for building the model.
         build_model: A partial function for building the model with the specified model type.
     """
-    def __init__(self, config: Config, use_seed: bool = True, seed: int = 42):
+    def __init__(self, config: Config):
         """
         Initialize the ModelTrainer object.
 
         Args:
             config: An object containing the configuration settings for model training.
-            use_seed: A flag indicating whether to use a seed for reproducibility (needs fixing).
-            seed: The seed value to use for reproducibility.
 
         Attributes:
             config: The configuration settings for model training.
@@ -42,16 +40,14 @@ class ModelTrainer:
             build_model: A partial function for building the model with the specified model type.
         """
         self.config = config
-        self.use_seed = use_seed
-        self.seed = seed
         # @FIXME: This isn't producing reproducable results
-        if self.use_seed:
+        if self.config.USE_SEED:
             # producable results
             import random
-            print(f"Using seed: {self.seed}")
-            tf.random.set_seed(self.seed)
-            np.random.seed(self.seed)
-            random.seed(2)
+            print(f"Using seed: {self.config.SEED}")
+            tf.random.set_seed(self.config.SEED)
+            np.random.seed(self.config.SEED)
+            random.seed(self.config.SEED)
 
         # @ToDO: Create a way to autoload loss function from the list without if else
         if self.config.LOSS == "custom_focal_tversky_loss":
@@ -68,7 +64,7 @@ class ModelTrainer:
         )
         self.build_model = partial(self.model_builder.build_model, model_type=self.config.MODEL_TYPE,
                                    **{"FOR_AI_PLATFORM": self.config.USE_AI_PLATFORM,
-                                      "DERIVE_FEATURES": self.config.DERIVE_FEATURES})
+                                      "DERIVE_FEATURES": self.config.DERIVE_FEATURES if hasattr(self.config, "DERIVE_FEATURES") else False,})
 
     def train_model(self) -> None:
         """
@@ -258,14 +254,6 @@ class ModelTrainer:
             save_weights_only=False,
         )  # save best model
 
-        early_stopping = callbacks.EarlyStopping(
-            monitor=self.config.CALLBACK_PARAMETER,
-            patience=int(0.3 * self.config.EPOCHS),
-            verbose=1,
-            mode="auto",
-            restore_best_weights=True,
-        )
-
         tensorboard = callbacks.TensorBoard(log_dir=str(self.config.MODEL_SAVE_DIR / "logs"), write_images=True)
 
         def lr_scheduler(epoch):
@@ -276,18 +264,25 @@ class ModelTrainer:
             else:
                 return self.config.MIN_LR
 
-        lr_callback = callbacks.LearningRateScheduler(lambda epoch: lr_scheduler(epoch), verbose=True)
-
         model_callbacks = [model_checkpoint, tensorboard]
 
         if self.config.USE_ADJUSTED_LR:
+            lr_callback = callbacks.LearningRateScheduler(lambda epoch: lr_scheduler(epoch), verbose=True)
             model_callbacks.append(lr_callback)
 
         if self.config.EARLY_STOPPING:
+            early_stopping = callbacks.EarlyStopping(
+                monitor=self.config.CALLBACK_PARAMETER,
+                patience=int(0.3 * self.config.EPOCHS),
+                verbose=1,
+                mode="auto",
+                restore_best_weights=True,
+            )
             model_callbacks.append(early_stopping)
 
         self.model_callbacks = model_callbacks
 
+        print(self.model)
         self.history = self.model.fit(
             x=self.TRAINING_DATASET,
             epochs=self.config.EPOCHS,
