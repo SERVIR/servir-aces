@@ -10,6 +10,8 @@ import os
 import ast
 from dotenv import load_dotenv
 
+from aces.utils import Utils
+
 
 class Config:
     """
@@ -30,8 +32,6 @@ class Config:
         FEATURES (str): The list of features used in the model.
         USE_ELEVATION (bool): Flag to use elevation data.
         USE_S1 (bool): Flag to use Sentinel-1 data.
-        DERIVE_FEATURES (bool): Flag to derive features.
-        ADDED_FEATURES (list): A list of additional features used in the model (used when DERIVE_FEATURES is true).
         LABELS (list): A list of labels used in the model.
         SCALE (int): The scale of the data.
         # Note: The seeding componenet needs fixing. It is not working as expected.
@@ -117,19 +117,28 @@ class Config:
             self.DATADIR = self.BASEDIR / os.getenv("DATADIR")
             self.TRAINING_DIR = self.DATADIR / "training"
             self.TESTING_DIR = self.DATADIR / "testing"
-            self.VALIDATION_DIR= self.DATADIR / "validation"
+            self.VALIDATION_DIR = self.DATADIR / "validation"
 
         print(f"BASEDIR: {self.BASEDIR}")
-        print(f"DATADIR: {self.DATADIR}")
+        print(f"checking if the DATADIR exists at: {self.DATADIR}")
+        if not Path(f"{self.DATADIR}").is_dir():
+            raise FileNotFoundError(f"The directory '{self.DATADIR}' does not exist.")
 
         self.OUTPUT_DIR = self.BASEDIR / os.getenv("OUTPUT_DIR")
 
         self.MODEL_NAME = os.getenv("MODEL_NAME")
+        if self.MODEL_NAME is None:
+            self.MODEL_NAME = "aces_model"
+
         self.MODEL_CHECKPOINT_NAME = os.getenv("MODEL_CHECKPOINT_NAME")
 
         self.MODEL_DIR_NAME = os.getenv("MODEL_DIR_NAME")
 
         self.MODEL_DIR = self.OUTPUT_DIR / self.MODEL_DIR_NAME
+        # Ensure MODEL_DIR directory exists, create if it doesn't
+        # this takes care of creating OUTPUT_DIR as well
+        print(f"creating if MODEL_DIR does not exist at: {self.MODEL_DIR}")
+        self.MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
         self.AUTO_MODEL_DIR_NAME = os.getenv("AUTO_MODEL_DIR_NAME") == "True"
 
@@ -137,11 +146,14 @@ class Config:
 
         self.SCALE = int(os.getenv("SCALE"))
 
-        self.FEATURES = os.getenv("FEATURES").split("\n")
-        self.ADDED_FEATURES = os.getenv("ADDED_FEATURES").split("\n")
+        # self.FEATURES = os.getenv("FEATURES").split("\n")
+        self.FEATURES = Utils.parse_params("FEATURES")
+
         self.USE_ELEVATION = os.getenv("USE_ELEVATION") == "True"
         self.USE_S1 = os.getenv("USE_S1") == "True"
-        self.LABELS = os.getenv("LABELS").split("\n")
+
+        # self.LABELS = os.getenv("LABELS").split("\n")
+        self.LABELS = Utils.parse_params("LABELS")
 
         if self.USE_ELEVATION:
                 self.FEATURES.extend(["elevation", "slope"])
@@ -154,15 +166,20 @@ class Config:
         print(f"using labels: {self.LABELS}")
 
         self.USE_SEED = os.getenv("USE_SEED") == "True"
-        self.SEED = int(os.getenv("SEED"))
+        if self.USE_SEED:
+            self.SEED = int(os.getenv("SEED"))
 
-        self.PRINT_INFO = os.getenv("USE_SEED") == "True"
+        self.PRINT_INFO = os.getenv("PRINT_INFO")
+        if self.PRINT_INFO is None:
+            self.PRINT_INFO = True
+        else:
+            self.PRINT_INFO = self.PRINT_INFO == "True"
 
         # patch size for training
         self.PATCH_SHAPE = ast.literal_eval(os.getenv("PATCH_SHAPE"))
         self.PATCH_SHAPE_SINGLE = self.PATCH_SHAPE[0]
         KERNEL_BUFFER = os.getenv("KERNEL_BUFFER")
-        if KERNEL_BUFFER == "0":
+        if KERNEL_BUFFER == "0" or KERNEL_BUFFER is None:
             self.KERNEL_BUFFER = None
         else:
             self.KERNEL_BUFFER = ast.literal_eval(KERNEL_BUFFER)
@@ -177,14 +194,39 @@ class Config:
 
         self.BATCH_SIZE = int(os.getenv("BATCH_SIZE"))
         self.EPOCHS = int(os.getenv("EPOCHS"))
-        self.RAMPUP_EPOCHS = int(os.getenv("RAMPUP_EPOCHS"))
-        self.SUSTAIN_EPOCHS = int(os.getenv("SUSTAIN_EPOCHS"))
+
+        self.RAMPUP_EPOCHS = os.getenv("RAMPUP_EPOCHS")
+        if self.RAMPUP_EPOCHS is not None:
+            self.RAMPUP_EPOCHS = int(self.RAMPUP_EPOCHS)
+
+        self.SUSTAIN_EPOCHS = os.getenv("SUSTAIN_EPOCHS")
+        if self.RAMPUP_EPOCHS is not None and self.SUSTAIN_EPOCHS is None:
+            raise ValueError("SUSTAIN_EPOCHS must be set if RAMPUP_EPOCHS is set.")
+
+        if self.SUSTAIN_EPOCHS is not None and self.RAMPUP_EPOCHS is not None:
+            self.SUSTAIN_EPOCHS = int(self.SUSTAIN_EPOCHS)
 
         self.USE_ADJUSTED_LR = os.getenv("USE_ADJUSTED_LR") == "True"
-        self.MAX_LR = float(os.getenv("MAX_LR"))
-        self.MID_LR = float(os.getenv("MID_LR"))
-        self.MIN_LR = float(os.getenv("MIN_LR"))
-        self.DROPOUT_RATE = float(os.getenv("DROPOUT_RATE"))
+        if self.USE_ADJUSTED_LR and not self.RAMPUP_EPOCHS and not self.SUSTAIN_EPOCHS:
+            raise ValueError("RAMPUP_EPOCHS and SUSTAIN_EPOCHS must be set if USE_ADJUSTED_LR is set.")
+
+        if self.USE_ADJUSTED_LR:
+            try:
+                self.MAX_LR = float(os.getenv("MAX_LR"))
+                self.MID_LR = float(os.getenv("MID_LR"))
+                self.MIN_LR = float(os.getenv("MIN_LR"))
+            except ValueError:
+                raise ValueError("MAX_LR, MID_LR, and MIN_LR must be set if USE_ADJUSTED_LR is set.")
+
+        self.DROPOUT_RATE = os.getenv("DROPOUT_RATE")
+        if self.DROPOUT_RATE is not None:
+            self.DROPOUT_RATE = float(self.DROPOUT_RATE)
+            if self.DROPOUT_RATE < 0.:
+                self.DROPOUT_RATE = 0.
+            elif self.DROPOUT_RATE > 1.:
+                self.DROPOUT_RATE = 1.
+        else:
+            self.DROPOUT_RATE = 0.
 
         self.LOSS = os.getenv("LOSS")
 
@@ -194,12 +236,28 @@ class Config:
 
         self.USE_BEST_MODEL_FOR_INFERENCE = os.getenv("USE_BEST_MODEL_FOR_INFERENCE") == "True"
 
-        self.ACTIVATION_FN = "sigmoid" if self.OUT_CLASS_NUM == 1 else "softmax"
+        self.ACTIVATION_FN = os.getenv("ACTIVATION_FN")
+        if self.ACTIVATION_FN == "sigmoid" and self.OUT_CLASS_NUM > 1:
+            raise ValueError("Sigmoid activation function is only for binary classification.")
+        if self.ACTIVATION_FN == "softmax" and self.OUT_CLASS_NUM == 1:
+            raise ValueError("Softmax activation function is only for multi-class classification.")
+
         self.CALLBACK_PARAMETER = os.getenv("CALLBACK_PARAMETER")
+        if self.CALLBACK_PARAMETER is None:
+            self.CALLBACK_PARAMETER = "val_loss"
 
         self.EARLY_STOPPING = os.getenv("EARLY_STOPPING") == "True"
-        self.TRANSFORM_DATA = os.getenv("TRANSFORM_DATA") == "True"
-        self.DERIVE_FEATURES = os.getenv("DERIVE_FEATURES") == "True"
+
+        # self.TRANSFORM_DATA = os.getenv("TRANSFORM_DATA") == "True"
+        self.TRANSFORM_DATA = os.getenv("TRANSFORM_DATA")
+        if self.TRANSFORM_DATA is None:
+            self.TRANSFORM_DATA = True
+        else:
+            self.TRANSFORM_DATA = self.TRANSFORM_DATA == "True"
+
+        # DERIVE_FEATURES & ADDED_FEATURES are currently not available
+        # The original idea was if DERVIRE_FEATURES is True, then the ADDED_FEATURES are concatenated
+        # This is not fully implemented yet
 
         # EE settings
         self.USE_SERVICE_ACCOUNT = os.getenv("USE_SERVICE_ACCOUNT") == "True"
