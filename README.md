@@ -7,6 +7,37 @@
 
 ACES (Agricultural Classification and Estimation Service) is a Python module for generating training data and training machine learning models for remote sensing applications. It provides functionalities for data processing, data loading from Earth Engine, feature extraction, and model training.
 
+## Installation
+
+```sh
+pip install -U servir-aces
+```
+
+For saving model plot in TensorFlow/Keras, you need `pydot` and Graphviz. To install, `pypot, run:
+
+```sh
+pip install pydot
+```
+
+The installation process for Graphviz varies depending on your operating system.
+
+- **For macOS**:\
+You can install Graphviz using Homebrew. If you don't have Homebrew installed, you can get it from https://brew.sh Once Homebrew is installed, run the following command:
+
+```sh
+brew install graphviz
+```
+
+- **For Windows**:\
+Download the installer from the Graphviz website ([Graphviz Download Page](https://graphviz.gitlab.io/download/)), and follow the installation instructions. Make sure to add the path to the Graphviz bin folder to your system’s PATH environment variable.
+
+- **For Linux (Ubuntu/Debian)**:\
+You can install Graphviz using apt:
+
+```sh
+sudo apt-get install graphviz
+```
+
 ## Features
 
 - Data loading and processing from Earth Engine.
