@@ -282,7 +282,6 @@ class ModelTrainer:
 
         self.model_callbacks = model_callbacks
 
-        print(self.model)
         self.history = self.model.fit(
             x=self.TRAINING_DATASET,
             epochs=self.config.EPOCHS,
