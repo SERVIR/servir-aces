@@ -13,7 +13,7 @@ ACES (Agricultural Classification and Estimation Service) is a Python module for
 pip install -U servir-aces
 ```
 
-For saving model plot in TensorFlow/Keras, you need `pydot` and Graphviz. To install, `pypot, run:
+For saving model plot in TensorFlow/Keras, you need `pydot` and Graphviz. To install, `pypot`, run:
 
 ```sh
 pip install pydot
