@@ -40,4 +40,9 @@ jobs:
               run: |
                   pip install --user -r requirements.txt
                   pip install .
-
+            - name: Install pytest
+              run: |
+                  pip install pytest
+            - name: PKG-TEST
+              run: |
+                  pytest -v -s tests/
