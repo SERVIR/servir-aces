@@ -40,6 +40,12 @@ jobs:
               run: |
                   pip install --user -r requirements.txt
                   pip install .
+            - name: Install pydot
+              run: |
+                  pip install pydot
+            - name: Install graphviz
+              run: |
+                  sudo apt-get install graphviz
             - name: Install pytest
               run: |
                   pip install pytest
