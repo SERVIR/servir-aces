@@ -31,23 +31,23 @@ bibliography: paper.bib
 
 # Statement of Need
 
-Despite robust platforms, specialized technical knowledge is required to set up and run various Machine Learning (ML) and Deep Learning (DL) models, making it difficult for many development practitioners, scientists, and domain experts to implement them. The **`servir-aces`** Python package is designed to address this challenge by significantly lowering the barrier for users to export training data and both train and run DL models using cloud-based technology with their GEE workflows. Several examples are provided via runnable notebook to make it easier for scientists to utilize this emerging field of DL.
+Despite robust platforms, specialized technical knowledge is required to set up and run various Machine Learning (ML) and Deep Learning (DL) models, making it difficult for many development practitioners, scientists, and domain experts to implement them. The **`servir-aces`** Python package is designed to address this challenge by significantly lowering the barrier for users to export training data and both train and run DL models using cloud-based technology with their GEE workflows. Several examples are provided via a user friendly notebook to make it easier for scientists to utilize this emerging field of DL.
 
 With petabytes of data available via GEE, and integration of the TensorFlow (TF) platfrom, models trained in TF can be easily loaded into GEE. This package provides functionalities for 1) data processing; 2) data loading from GEE; 3) feature extraction, 4) model training, and 5) model inference. The combination of TF and GEE has enabled several large scale ML and DL Remote Sensing applications, including Wetland Area Mapping [@Bakkestuen2023], Crop Type Mapping [@Bakkestuen2023], Surface Water Mapping [@Mayer2021], and Urban Mapping [@Parekh2021]. However, these applications tend to be developed ad-hoc without using a common package.
 
-Several unified libraries like torchgeo [@Stewart_TorchGeo_Deep_Learning_2022] and [rastervision](https://github.com/azavea/raster-vision) exists, but they are primarily targeted for PyTorch user community. Some efforts for GEE & TensorFlow users, such as geemap [@Wu2020], are mostly for classical ML approaches like Random Forest, while [geospatial-ml](https://github.com/opengeos/geospatial-ml) has not seen much development since its inception. Thus, there is a need for unified libraries to train DL models integrating the GEE & TensorFlow user community.
+Several unified libraries like torchgeo [@Stewart_TorchGeo_Deep_Learning_2022] and rastervision [@rastervision] exists, but they are primarily targeted for PyTorch user community. Some efforts for GEE & TensorFlow users, such as geemap [@Wu2020], are mostly used for classical ML approaches like Random Forest, while [geospatial-ml](https://github.com/opengeos/geospatial-ml) has not been developed further since its inception. Thus, there is a need for unified libraries to train DL models integrating the GEE & TensorFlow user community.
 
 **`servir-aces`** addresses this need by 1) Offering a streamlined application of commonly employed architectures (CNN, DNN, and U-NET); 2) Allowing end-users to rapidly adjust a wide range of model parameters for these common architectures, including activation functions, optimizers, loss functions, early stopping, dropout rate, batch size etc.; 3) More efficiently and effectively connecting across the Google Cloud ecosystem, linking Google Cloud, improved methods of parallelization via Apache beam, Vertex AI, TensorFlow, and Google Earth Engine; and 4) Enabling broader development and incorporation of several methods through the package's utility functions, such as providing a collated set of evaluation metrics for easier model performance comparisons, a class for generating Remote Sensing features essential for scientific community, and utility functionality for Apache Beam and Earth Engine. Although **`servir-aces`** was originally developed for agricultural-related applications, the library has been further developed to work for any kind of DL image segmentation tasks.
 
 # **`servir-aces`** Audience
 
-**`servir-aces`** is intended for development practitioner, researchers, scientists, software developers, and students who would like to utilize various freely available Earth Observation (EO) data using cloud-based GEE and TF ecosystem to perform large scale ML/DL related Remote Sensing applications.
+**`servir-aces`** is intended for development practitioners, researchers, scientists, software developers, and students who would like to utilize various freely available Earth Observation (EO) data using cloud-based GEE and TF ecosystem to perform large scale ML/DL related Remote Sensing applications.
 
-We also provide several notebook examples to showcase the usage of the **`servir-aces`**. Here we show how **`servir-aces`** can be used for crop-mapping related application. Ideally, the same process can be repeated for any kind of the image segmentation task.
+We also provide several [notebook](https://github.com/SERVIR/servir-aces/tree/main/notebook) examples to showcase the usage of the **`servir-aces`**. Here we show how **`servir-aces`** can be used for crop-mapping related applications. Ideally, the same process can be repeated for any kind of the image segmentation task.
 
 # **`servir-aces`** Functionality
 
-The major high-level functionality of the **servir-aces** packages are:
+The major high-level functionalities of the **servir-aces** packages are:
 - Data loading and processing from GEE.
 - Generation of training data for various ML and DL models.
 - Training and evaluation of ML/DL Models.
