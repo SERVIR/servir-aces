@@ -13,7 +13,7 @@ ACES (Agricultural Classification and Estimation Service) is a Python module for
 pip install -U servir-aces
 ```
 
-For saving model plot in TensorFlow/Keras, you need `pydot` and Graphviz. To install, `pypot`, run:
+For saving model plot in TensorFlow/Keras, you need `pydot` and Graphviz. To install, `pydot`, run:
 
 ```sh
 pip install pydot
@@ -132,8 +132,8 @@ For quickly running this, we have already prepared and exported the training dat
 
 
 ```sh
-mkdir DATADIR
-gsutil -m cp -r gs://dl-book/chapter-1/dnn_planet_wo_indices/* DATADIR
+mkdir path/to/your/project/data
+gsutil -m cp -r gs://dl-book/chapter-1/dnn_planet_wo_indices/* path/to/your/project/data
 ```
 
 The parent folder (if you run `gsutil -m cp -r gs://dl-book/chapter-1/* DATADIR`) has several dataset inside it. We use `dnn_planet_wo_indices` here because it has lightweight data and would be much faster to run. If you want to test U-Net model, you can use `unet_256x256_planet_wo_indices` folder instead. Each of these have training, testing, and validation sub-folder inside them.
@@ -282,7 +282,7 @@ import glob
 image_files_list = []
 json_file = None
 
-for f in glob.glob(f"{IMGDIR}/*"):
+for f in glob.glob(f"{IMAGEDIR}/*"):
     if f.endswith(".tfrecord.gz"):
         image_files_list.append(f)
     elif f.endswith(".json"):
@@ -432,13 +432,49 @@ You can upload to GCP using gsutil. The `OUTPUT_GCS_PATH` can be any path inside
 gsutil cp "{OUTPUT_IMAGE_FILE}" "{OUTPUT_GCS_PATH}"
 ```
 
-Once the file is available on GCP, you can then upload to earthengine using `earthengine` commnad line.
+Once the file is available on GCP, you can then upload to earthengine using `earthengine` command line. Learn more about earthengine command line tools options [here](https://developers.google.com/earth-engine/guides/command_line).
 
 ```sh
 earthengine upload image --asset_id={config.EE_OUTPUT_ASSET}/{config.OUTPUT_NAME} --pyramiding_policy=mode {OUTPUT_GCS_PATH} {json_file}
 ```
 
+Note: Since this requires to use GCP and enable billing, we have hosted the prediction in the GCP so you don't have to. To use this prediction from GCP and upload to GEE, first make sure you are authenticated to earthengine using (learn more [here](https://developers.google.com/earth-engine/guides/auth) to use different authentication techniques):
+
+```sh
+earthengine authenticate
+```
+
+You may need to set your project in earthengine to configure a default user project to be used for all API calls using the following command (replace `my-project` with your own project name). Learn more about authentication [here](https://developers.google.com/earth-engine/guides/auth).
+
+```sh
+earthengine set_project {my-project}
+```
+
+After that, let's say you want to upload it to your GEE asset to path say with `config.EE_OUTPUT_ASSET` as `users/biplov/aces_test` and `config.OUTPUT_NAME` as `prediction_dnn_v1` (you can directly use `{config.EE_OUTPUT_ASSET}` and `{config.OUTPUT_NAME}` as shown above), then do:
+
+```sh
+earthengine upload image --asset_id=users/biplov/aces_test/prediction_dnn_v1 --pyramiding_policy=mode gs://dl-book/chapter-1/prediction/prediction_dnn_v1.TFRecord gs://dl-book/chapter-1/images/image_2021mixer.json
+```
+
+This will give the message similar to below
+
+```sh
+Started upload task with ID: T3FMGOOXIXJKEAYXPS77MWDB
+```
+
+You can then go to [GEE](https://code.earthengine.google.com/) and check your `Tasks` tab to see that task with the given ID. Once complete, you can use this [script](https://code.earthengine.google.com/98960bd93d59d4236ecc7da02bb95dbb) to visualize your result. You can replace the asset with your own.
+
+
 ***Note: The inferencing is also available on this [notebook](https://github.com/SERVIR/servir-aces/blob/main/notebook/Rice_Mapping_Bhutan_2021.ipynb), scroll to `Inference using Saved U-Net Model` or `Inference using Saved DNN Model` depending upon which model you're using.***
+
+## Tests
+Several tests are provided in the `tests/` folder covering the functionality of the package. Install the testing environment with [`pytest`](https://docs.pytest.org/en/): `pip install pytest`.
+
+Then, run tests with pytest as:
+
+```python
+pytest -v -s tests/
+```
 
 ## Contributing
 Contributions to ACES are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on the GitHub repository.
