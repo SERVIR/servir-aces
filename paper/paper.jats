@@ -115,8 +115,8 @@ a Creative Commons Attribution 4.0 International License (CC BY
   designed to address this challenge by significantly lowering the
   barrier for users to export training data and both train and run DL
   models using cloud-based technology with their GEE workflows. Several
-  examples are provided via runnable notebook to make it easier for
-  scientists to utilize this emerging field of DL.</p>
+  examples are provided via a user friendly notebook to make it easier
+  for scientists to utilize this emerging field of DL.</p>
   <p>With petabytes of data available via GEE, and integration of the
   TensorFlow (TF) platfrom, models trained in TF can be easily loaded
   into GEE. This package provides functionalities for 1) data
@@ -135,15 +135,15 @@ a Creative Commons Attribution 4.0 International License (CC BY
   ad-hoc without using a common package.</p>
   <p>Several unified libraries like torchgeo
   (<xref alt="Stewart et al., 2022" rid="ref-Stewart_TorchGeo_Deep_Learning_2022" ref-type="bibr">Stewart
-  et al., 2022</xref>) and
-  <ext-link ext-link-type="uri" xlink:href="https://github.com/azavea/raster-vision">rastervision</ext-link>
-  exists, but they are primarily targeted for PyTorch user community.
-  Some efforts for GEE &amp; TensorFlow users, such as geemap
-  (<xref alt="Wu, 2020" rid="ref-Wu2020" ref-type="bibr">Wu,
-  2020</xref>), are mostly for classical ML approaches like Random
+  et al., 2022</xref>) and rastervision
+  (<xref alt="Azavea/Element 84, n.d." rid="ref-rastervision" ref-type="bibr">Azavea/Element
+  84, n.d.</xref>) exists, but they are primarily targeted for PyTorch
+  user community. Some efforts for GEE &amp; TensorFlow users, such as
+  geemap (<xref alt="Wu, 2020" rid="ref-Wu2020" ref-type="bibr">Wu,
+  2020</xref>), are mostly used for classical ML approaches like Random
   Forest, while
   <ext-link ext-link-type="uri" xlink:href="https://github.com/opengeos/geospatial-ml">geospatial-ml</ext-link>
-  has not seen much development since its inception. Thus, there is a
+  has not been developed further since its inception. Thus, there is a
   need for unified libraries to train DL models integrating the GEE
   &amp; TensorFlow user community.</p>
   <p><bold><monospace>servir-aces</monospace></bold> addresses this need
@@ -169,26 +169,29 @@ a Creative Commons Attribution 4.0 International License (CC BY
   <title><bold><monospace>servir-aces</monospace></bold>
   Audience</title>
   <p><bold><monospace>servir-aces</monospace></bold> is intended for
-  development practitioner, researchers, scientists, software
+  development practitioners, researchers, scientists, software
   developers, and students who would like to utilize various freely
   available Earth Observation (EO) data using cloud-based GEE and TF
   ecosystem to perform large scale ML/DL related Remote Sensing
   applications.</p>
-  <p>We also provide several notebook examples to showcase the usage of
-  the <bold><monospace>servir-aces</monospace></bold>. Here we show how
+  <p>We also provide several
+  <ext-link ext-link-type="uri" xlink:href="https://github.com/SERVIR/servir-aces/tree/main/notebook">notebook</ext-link>
+  examples to showcase the usage of the
+  <bold><monospace>servir-aces</monospace></bold>. Here we show how
   <bold><monospace>servir-aces</monospace></bold> can be used for
-  crop-mapping related application. Ideally, the same process can be
+  crop-mapping related applications. Ideally, the same process can be
   repeated for any kind of the image segmentation task.</p>
 </sec>
 <sec id="servir-aces-functionality">
   <title><bold><monospace>servir-aces</monospace></bold>
   Functionality</title>
-  <p>The major high-level functionality of the <bold>servir-aces</bold>
-  packages are: - Data loading and processing from GEE. - Generation of
-  training data for various ML and DL models. - Training and evaluation
-  of ML/DL Models. - Inferences of the trained ML/DL models. - Support
-  for remote sensing feature extraction. - Integration with Apache Beam
-  for data processing and parallelization.</p>
+  <p>The major high-level functionalities of the
+  <bold>servir-aces</bold> packages are: - Data loading and processing
+  from GEE. - Generation of training data for various ML and DL models.
+  - Training and evaluation of ML/DL Models. - Inferences of the trained
+  ML/DL models. - Support for remote sensing feature extraction. -
+  Integration with Apache Beam for data processing and
+  parallelization.</p>
   <p>The key functionality of
   <bold><monospace>servir-aces</monospace></bold> is organized into
   several modules:</p>
@@ -410,6 +413,16 @@ a Creative Commons Attribution 4.0 International License (CC BY
       <pub-id pub-id-type="doi">10.21105/joss.02305</pub-id>
       <fpage>2305</fpage>
       <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-rastervision">
+    <element-citation>
+      <person-group person-group-type="author">
+        <name><surname>Azavea/Element 84</surname><given-names>Robert Cheetham</given-names></name>
+      </person-group>
+      <article-title>Raster vision: An open source library and framework for deep learning on satellite and aerial imagery (2017-2023).</article-title>
+      <uri>https://github.com/azavea/raster-vision</uri>
+      <pub-id pub-id-type="doi">10.5281/zenodo.8018177</pub-id>
     </element-citation>
   </ref>
 </ref-list>
