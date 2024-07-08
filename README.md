@@ -432,7 +432,7 @@ You can upload to GCP using gsutil. The `OUTPUT_GCS_PATH` can be any path inside
 gsutil cp "{OUTPUT_IMAGE_FILE}" "{OUTPUT_GCS_PATH}"
 ```
 
-Once the file is available on GCP, you can then upload to earthengine using `earthengine` commnad line.
+Once the file is available on GCP, you can then upload to earthengine using `earthengine` command line. Learn more about earthengine command line tools options [here](https://developers.google.com/earth-engine/guides/command_line).
 
 ```sh
 earthengine upload image --asset_id={config.EE_OUTPUT_ASSET}/{config.OUTPUT_NAME} --pyramiding_policy=mode {OUTPUT_GCS_PATH} {json_file}
@@ -442,6 +442,12 @@ Note: Since this requires to use GCP and enable billing, we have hosted the pred
 
 ```sh
 earthengine authenticate
+```
+
+You may need to set your project in earthengine to configure a default user project to be used for all API calls using the following command (replace `my-project` with your own project name). Learn more about authentication [here](https://developers.google.com/earth-engine/guides/auth).
+
+```sh
+earthengine set_project {my-project}
 ```
 
 After that, let's say you want to upload it to your GEE asset to path say with `config.EE_OUTPUT_ASSET` as `users/biplov/aces_test` and `config.OUTPUT_NAME` as `prediction_dnn_v1` (you can directly use `{config.EE_OUTPUT_ASSET}` and `{config.OUTPUT_NAME}` as shown above), then do:
@@ -460,6 +466,15 @@ You can then go to [GEE](https://code.earthengine.google.com/) and check your `T
 
 
 ***Note: The inferencing is also available on this [notebook](https://github.com/SERVIR/servir-aces/blob/main/notebook/Rice_Mapping_Bhutan_2021.ipynb), scroll to `Inference using Saved U-Net Model` or `Inference using Saved DNN Model` depending upon which model you're using.***
+
+## Tests
+Several tests are provided in the `tests/` folder covering the functionality of the package. Install the testing environment with [`pytest`](https://docs.pytest.org/en/): `pip install pytest`.
+
+Then, run tests with pytest as:
+
+```python
+pytest -v -s tests/
+```
 
 ## Contributing
 Contributions to ACES are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on the GitHub repository.
