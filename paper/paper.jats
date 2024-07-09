@@ -136,10 +136,11 @@ a Creative Commons Attribution 4.0 International License (CC BY
   <p>Several unified libraries like torchgeo
   (<xref alt="Stewart et al., 2022" rid="ref-Stewart_TorchGeo_Deep_Learning_2022" ref-type="bibr">Stewart
   et al., 2022</xref>) and rastervision
-  (<xref alt="Azavea/Element 84, n.d." rid="ref-rastervision" ref-type="bibr">Azavea/Element
-  84, n.d.</xref>) exists, but they are primarily targeted for PyTorch
-  user community. Some efforts for GEE &amp; TensorFlow users, such as
-  geemap (<xref alt="Wu, 2020" rid="ref-Wu2020" ref-type="bibr">Wu,
+  (<xref alt="Fishgold et al., n.d." rid="ref-rastervision" ref-type="bibr">Fishgold
+  et al., n.d.</xref>) exists, but they are primarily targeted for
+  PyTorch user community. Some efforts for GEE &amp; TensorFlow users,
+  such as geemap
+  (<xref alt="Wu, 2020" rid="ref-Wu2020" ref-type="bibr">Wu,
   2020</xref>), are mostly used for classical ML approaches like Random
   Forest, while
   <ext-link ext-link-type="uri" xlink:href="https://github.com/opengeos/geospatial-ml">geospatial-ml</ext-link>
@@ -180,7 +181,7 @@ a Creative Commons Attribution 4.0 International License (CC BY
   <bold><monospace>servir-aces</monospace></bold>. Here we show how
   <bold><monospace>servir-aces</monospace></bold> can be used for
   crop-mapping related applications. Ideally, the same process can be
-  repeated for any of image segmentation task.</p>
+  repeated for any image segmentation task.</p>
 </sec>
 <sec id="servir-aces-functionality">
   <title><bold><monospace>servir-aces</monospace></bold>
@@ -438,11 +439,36 @@ a Creative Commons Attribution 4.0 International License (CC BY
   <ref id="ref-rastervision">
     <element-citation>
       <person-group person-group-type="author">
-        <name><surname>Azavea/Element 84</surname><given-names>Robert Cheetham</given-names></name>
+        <name><surname>Fishgold</surname><given-names>Lewis</given-names></name>
+        <name><surname>Hassan</surname><given-names>Adeel</given-names></name>
+        <name><surname>Emanuele</surname><given-names>Rob</given-names></name>
+        <name><surname>McClain</surname><given-names>James</given-names></name>
+        <name><surname>Kassel</surname><given-names>Simon</given-names></name>
+        <name><surname>Zhao</surname><given-names>Annie</given-names></name>
+        <string-name>jpolchlo</string-name>
+        <name><surname>Morrison</surname><given-names>Joe</given-names></name>
+        <name><surname>Bakker</surname><given-names>Laurens</given-names></name>
+        <name><surname>Santucci</surname><given-names>James</given-names></name>
+        <name><surname>Holeman</surname><given-names>Nathan</given-names></name>
+        <string-name>rbreslow</string-name>
+        <string-name>Taylor</string-name>
+        <name><surname>Park</surname><given-names>Bborie</given-names></name>
+        <name><surname>Liedman</surname><given-names>Per</given-names></name>
+        <name><surname>Kalra</surname><given-names>Umang</given-names></name>
+        <name><surname>Sani</surname><given-names>Ammar</given-names></name>
+        <name><surname>Meier</surname><given-names>Andreas</given-names></name>
+        <name><surname>Brown</surname><given-names>Chris</given-names></name>
+        <name><surname>McCallum</surname><given-names>Chuck</given-names></name>
+        <name><surname>Kettler</surname><given-names>Cole</given-names></name>
+        <name><surname>Cheipesh</surname><given-names>Eugene</given-names></name>
+        <string-name>Grigory</string-name>
+        <name><surname>Maleski</surname><given-names>Jerome</given-names></name>
+        <name><surname>Bertrand</surname><given-names>Matt</given-names></name>
+        <name><surname>Uryu</surname><given-names>Shinya</given-names></name>
       </person-group>
       <article-title>Raster Vision: An open source library and framework for deep learning on satellite and aerial imagery (2017-2023)</article-title>
       <uri>https://github.com/azavea/raster-vision</uri>
-      <pub-id pub-id-type="doi">10.5281/zenodo.11123303</pub-id>
+      <pub-id pub-id-type="doi">10.5281/zenodo.8018177</pub-id>
     </element-citation>
   </ref>
 </ref-list>
