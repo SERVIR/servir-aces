@@ -43,7 +43,7 @@ Several unified libraries like torchgeo [@Stewart_TorchGeo_Deep_Learning_2022] a
 
 **`servir-aces`** is intended for development practitioners, researchers, scientists, software developers, and students who would like to utilize various freely available Earth Observation (EO) data using cloud-based GEE and TF ecosystem to perform large scale ML/DL related remote sensing applications.
 
-We also provide several [notebook](https://github.com/SERVIR/servir-aces/tree/main/notebook) examples to showcase the usage of the **`servir-aces`**. Here we show how **`servir-aces`** can be used for crop-mapping related applications. Ideally, the same process can be repeated for any of image segmentation task.
+We also provide several [notebook](https://github.com/SERVIR/servir-aces/tree/main/notebook) examples to showcase the usage of the **`servir-aces`**. Here we show how **`servir-aces`** can be used for crop-mapping related applications. Ideally, the same process can be repeated for any image segmentation task.
 
 # **`servir-aces`** Functionality
 
