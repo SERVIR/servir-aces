@@ -136,8 +136,8 @@ a Creative Commons Attribution 4.0 International License (CC BY
   <p>Several unified libraries like torchgeo
   (<xref alt="Stewart et al., 2022" rid="ref-Stewart_TorchGeo_Deep_Learning_2022" ref-type="bibr">Stewart
   et al., 2022</xref>) and rastervision
-  (<xref alt="Fishgold et al., n.d." rid="ref-rastervision" ref-type="bibr">Fishgold
-  et al., n.d.</xref>) exists, but they are primarily targeted for
+  (<xref alt="Fishgold et al., 2023" rid="ref-rastervision" ref-type="bibr">Fishgold
+  et al., 2023</xref>) exists, but they are primarily targeted for
   PyTorch user community. Some efforts for GEE &amp; TensorFlow users,
   such as geemap
   (<xref alt="Wu, 2020" rid="ref-Wu2020" ref-type="bibr">Wu,
@@ -467,6 +467,7 @@ a Creative Commons Attribution 4.0 International License (CC BY
         <name><surname>Uryu</surname><given-names>Shinya</given-names></name>
       </person-group>
       <article-title>Raster Vision: An open source library and framework for deep learning on satellite and aerial imagery (2017-2023)</article-title>
+      <year iso-8601-date="2023">2023</year>
       <uri>https://github.com/azavea/raster-vision</uri>
       <pub-id pub-id-type="doi">10.5281/zenodo.8018177</pub-id>
     </element-citation>
