@@ -1,5 +1,6 @@
 # ACES (Agricultural Classification and Estimation Service)
 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.06729/status.svg)](https://doi.org/10.21105/joss.06729)
 [![image](https://img.shields.io/pypi/v/servir-aces.svg)](https://pypi.python.org/pypi/servir-aces)
 [![Conda Recipe](https://img.shields.io/badge/recipe-servir--aces-green.svg)](https://github.com/conda-forge/servir-aces-feedstock)
 [![image](https://img.shields.io/conda/vn/conda-forge/servir-aces.svg)](https://anaconda.org/conda-forge/servir-aces)
