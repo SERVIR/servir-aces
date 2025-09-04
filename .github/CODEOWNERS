@@ -1,0 +1,6 @@
+# Require reviews for any workflow changes
+.github/workflows/*  @biplovbhandari  @SERVIR/owners
+
+# (optional) docs site changes
+docs/**              @biplovbhandari  @SERVIR/owners
+mkdocs.yml           @biplovbhandari  @SERVIR/owners
