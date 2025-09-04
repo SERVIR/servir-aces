@@ -1,0 +1,1799 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Agricultural Classification and Estimation Service (ACES)">
+      
+      
+        <meta name="author" content="biplovbhandari">
+      
+      
+        <link rel="canonical" href="https://servir.github.io/servir-aces/ee_utils/">
+      
+      
+        <link rel="prev" href="../metrics/">
+      
+      
+        <link rel="next" href="../remote_sensing/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>ee_utils module - ACES Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:300,300i,400,400i,700,700i%7CRegular:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Google Sans";--md-code-font:"Regular"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../css/timeago.css">
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#aces.ee_utils" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ACES Documentation" class="md-header__button md-logo" aria-label="ACES Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ACES Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ee_utils module
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/SERVIR/servir-aces" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ACES Documentation" class="md-nav__button md-logo" aria-label="ACES Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ACES Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/SERVIR/servir-aces" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Usage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/SERVIR/servir-aces/issues" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Report Issue
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_processor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    data_processor module
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_builder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    model_builder module
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_trainer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    model_trainer module
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    metrics module
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    ee_utils module
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    ee_utils module
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#aces.ee_utils" class="md-nav__link">
+    <span class="md-ellipsis">
+      aces.ee_utils
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils" class="md-nav__link">
+    <span class="md-ellipsis">
+      EEUtils
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EEUtils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.beam_get_training_patches" class="md-nav__link">
+    <span class="md-ellipsis">
+      beam_get_training_patches()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.calculate_avg_min_max_statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      calculate_avg_min_max_statistics()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.country_bbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      country_bbox()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.get_credentials_by_service_account_key" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_credentials_by_service_account_key()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.initialize_session" class="md-nav__link">
+    <span class="md-ellipsis">
+      initialize_session()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../remote_sensing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    remote_sensing module
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#aces.ee_utils" class="md-nav__link">
+    <span class="md-ellipsis">
+      aces.ee_utils
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils" class="md-nav__link">
+    <span class="md-ellipsis">
+      EEUtils
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EEUtils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.beam_get_training_patches" class="md-nav__link">
+    <span class="md-ellipsis">
+      beam_get_training_patches()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.calculate_avg_min_max_statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      calculate_avg_min_max_statistics()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.country_bbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      country_bbox()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.get_credentials_by_service_account_key" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_credentials_by_service_account_key()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aces.ee_utils.EEUtils.initialize_session" class="md-nav__link">
+    <span class="md-ellipsis">
+      initialize_session()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+
+
+
+                  
+
+
+  
+  
+
+
+  <h1>ee_utils module</h1>
+
+<div class="doc doc-object doc-module">
+
+<a id="aces.ee_utils"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="aces.ee_utils.EEUtils" class="doc doc-heading">
+        <code>
+EEUtils        </code>
+
+
+
+<a href="#aces.ee_utils.EEUtils" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents ">
+
+      <p>This class provides utility functions to handle Earth Engine API information and make authenticated requests.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>aces/ee_utils.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">EEUtils</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    EEUtils: Earth Engine Utility Class</span>
+
+<span class="sd">    This class provides utility functions to handle Earth Engine API information and make authenticated requests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_credentials_by_service_account_key</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to retrieve credentials using a service account key.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        key (str): The path to the service account key JSON file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        ee.ServiceAccountCredentials: The authenticated credentials.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+        <span class="n">service_account</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="n">credentials</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ServiceAccountCredentials</span><span class="p">(</span><span class="n">service_account</span><span class="p">[</span><span class="s2">&quot;client_email&quot;</span><span class="p">],</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">credentials</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_session</span><span class="p">(</span><span class="n">use_highvolume</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">key</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Earth Engine session.</span>
+<span class="sd">        If use_highvolume is True, the high-volume Earth Engine API will be used.</span>
+<span class="sd">        If a project is provided, the session will be initialized with the project ID. Recommended to use project.</span>
+<span class="sd">        If a key is provided, the service account key will be used.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        use_highvolume (bool): Whether to use the high-volume Earth Engine API.</span>
+<span class="sd">        key (str or None): The path to the service account key JSON file. If None, the default credentials will be used.</span>
+<span class="sd">        project (str): The Google Cloud project ID to use for the session.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">use_highvolume</span> <span class="ow">and</span> <span class="n">project</span><span class="p">:</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">opt_url</span><span class="o">=</span><span class="s2">&quot;https://earthengine-highvolume.googleapis.com&quot;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">use_highvolume</span><span class="p">:</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">opt_url</span><span class="o">=</span><span class="s2">&quot;https://earthengine-highvolume.googleapis.com&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">project</span><span class="p">:</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">credentials</span> <span class="o">=</span> <span class="n">EEUtils</span><span class="o">.</span><span class="n">get_credentials_by_service_account_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">use_highvolume</span> <span class="ow">and</span> <span class="n">project</span><span class="p">:</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">credentials</span><span class="p">,</span> <span class="n">opt_url</span><span class="o">=</span><span class="s2">&quot;https://earthengine-highvolume.googleapis.com&quot;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">use_highvolume</span><span class="p">:</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">credentials</span><span class="p">,</span> <span class="n">opt_url</span><span class="o">=</span><span class="s2">&quot;https://earthengine-highvolume.googleapis.com&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">project</span><span class="p">:</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">credentials</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_avg_min_max_statistics</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">geometry</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">Dictionary</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate min and max of an image over a specific region.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        image (ee.Image): The image to calculate statistics on.</span>
+<span class="sd">        geometry (ee.FeatureCollection): The region to calculate statistics over.</span>
+<span class="sd">        scale (int, optional): The scale, in meters, of the projection to compute statistics in. Default is 30.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        ee.Dictionary: A dictionary containing the min and max of the image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">reducers</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> \
+            <span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">reducer2</span><span class="o">=</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">sharedInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">reducer2</span><span class="o">=</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">sharedInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">reduceRegion</span><span class="p">(</span>
+            <span class="n">reducer</span><span class="o">=</span><span class="n">reducers</span><span class="p">,</span>
+            <span class="n">geometry</span><span class="o">=</span><span class="n">geometry</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
+            <span class="n">maxPixels</span><span class="o">=</span><span class="mf">1E13</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">stats</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_collection_data</span><span class="p">(</span><span class="n">collection</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">,</span> <span class="n">export_type</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;cloud&quot;</span><span class="p">,</span> <span class="n">start_training</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">export_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">export_type</span> <span class="o">=</span> <span class="p">[</span><span class="n">export_type</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">_type</span> <span class="ow">in</span> <span class="n">export_type</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_type</span> <span class="o">==</span> <span class="s2">&quot;cloud&quot;</span><span class="p">:</span>
+                <span class="n">EEUtils</span><span class="o">.</span><span class="n">_export_collection_to_cloud_storage</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">_type</span> <span class="o">==</span> <span class="s2">&quot;asset&quot;</span><span class="p">:</span>
+                <span class="n">EEUtils</span><span class="o">.</span><span class="n">_export_collection_to_asset</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">_type</span> <span class="o">==</span> <span class="s2">&quot;drive&quot;</span><span class="p">:</span>
+                <span class="n">EEUtils</span><span class="o">.</span><span class="n">_export_collection_to_drive</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">,</span> <span class="s2">&quot;asset&quot;</span><span class="p">,</span> <span class="s2">&quot;drive&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Currently supported export types are: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_type</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_export_collection_to_drive</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exporting training data to Google Drive..&quot;</span><span class="p">)</span>
+        <span class="n">training_task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">toDrive</span><span class="p">(</span>
+            <span class="n">collection</span><span class="o">=</span><span class="n">collection</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;myExportTableTask&quot;</span><span class="p">),</span>
+            <span class="n">folder</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;folder&quot;</span><span class="p">,</span> <span class="s2">&quot;myFolder&quot;</span><span class="p">),</span>
+            <span class="n">fileNamePrefix</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_prefix&quot;</span><span class="p">,</span> <span class="s2">&quot;myExportTableTask&quot;</span><span class="p">),</span>
+            <span class="n">fileFormat</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_format&quot;</span><span class="p">,</span> <span class="s2">&quot;CSV&quot;</span><span class="p">),</span>
+            <span class="n">selectors</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;selectors&quot;</span><span class="p">,</span> <span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">propertyNames</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">start_training</span><span class="p">:</span> <span class="n">training_task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_export_collection_to_asset</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">asset_id</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;asset_id&quot;</span><span class="p">,</span> <span class="s2">&quot;myAssetId&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exporting training data to </span><span class="si">{</span><span class="n">asset_id</span><span class="si">}</span><span class="s2">..&quot;</span><span class="p">)</span>
+        <span class="n">training_task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">toAsset</span><span class="p">(</span>
+            <span class="n">collection</span><span class="o">=</span><span class="n">collection</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;myExportTableTask&quot;</span><span class="p">),</span>
+            <span class="n">assetId</span><span class="o">=</span><span class="n">asset_id</span><span class="p">,</span>
+            <span class="n">selectors</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;selectors&quot;</span><span class="p">,</span> <span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">propertyNames</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">start_training</span><span class="p">:</span> <span class="n">training_task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_export_collection_to_cloud_storage</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;myExportTableTask&quot;</span><span class="p">)</span>
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bucket&quot;</span><span class="p">,</span> <span class="s2">&quot;myBucket&quot;</span><span class="p">)</span>
+        <span class="n">file_prefix</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_prefix&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_prefix&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">description</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exporting training data to gs://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file_prefix</span><span class="si">}</span><span class="s2">..&quot;</span><span class="p">)</span>
+        <span class="n">training_task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">toCloudStorage</span><span class="p">(</span>
+            <span class="n">collection</span><span class="o">=</span><span class="n">collection</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">fileNamePrefix</span><span class="o">=</span><span class="n">file_prefix</span><span class="p">,</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+            <span class="n">fileFormat</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_format&quot;</span><span class="p">,</span> <span class="s2">&quot;TFRecord&quot;</span><span class="p">),</span>
+            <span class="n">selectors</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;selectors&quot;</span><span class="p">,</span> <span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">propertyNames</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">start_training</span><span class="p">:</span> <span class="n">training_task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">beam_export_collection_to_cloud_storage</span><span class="p">(</span><span class="n">collection_index</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aces.ee_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">EEUtils</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">ee</span>
+        <span class="n">EEUtils</span><span class="o">.</span><span class="n">initialize_session</span><span class="p">(</span><span class="n">use_highvolume</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">(</span><span class="n">collection_index</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">collection_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">description</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;myExportTableTask&quot;</span><span class="p">)</span>
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bucket&quot;</span><span class="p">,</span> <span class="s2">&quot;myBucket&quot;</span><span class="p">)</span>
+        <span class="n">file_prefix</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_prefix&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_prefix&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">description</span>
+        <span class="n">file_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file_prefix</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exporting training data to gs://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file_prefix</span><span class="si">}</span><span class="s2">..&quot;</span><span class="p">)</span>
+        <span class="n">training_task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">toCloudStorage</span><span class="p">(</span>
+            <span class="n">collection</span><span class="o">=</span><span class="n">collection</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">description</span><span class="si">}</span><span class="s2">__index_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">fileNamePrefix</span><span class="o">=</span><span class="n">file_prefix</span><span class="p">,</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+            <span class="n">fileFormat</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_format&quot;</span><span class="p">,</span> <span class="s2">&quot;TFRecord&quot;</span><span class="p">),</span>
+            <span class="n">selectors</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;selectors&quot;</span><span class="p">,</span> <span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">propertyNames</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">start_training</span><span class="p">:</span> <span class="n">training_task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_image</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">export_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;asset&quot;</span><span class="p">,</span> <span class="n">start_training</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">export_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">export_type</span> <span class="o">=</span> <span class="p">[</span><span class="n">export_type</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">_type</span> <span class="ow">in</span> <span class="n">export_type</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_type</span> <span class="o">==</span> <span class="s2">&quot;cloud&quot;</span><span class="p">:</span>
+                <span class="n">EEUtils</span><span class="o">.</span><span class="n">_export_image_to_cloud_storage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">_type</span> <span class="o">==</span> <span class="s2">&quot;asset&quot;</span><span class="p">:</span>
+                <span class="n">EEUtils</span><span class="o">.</span><span class="n">_export_image_to_asset</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cloud&quot;</span><span class="p">,</span> <span class="s2">&quot;asset&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Currently supported export types are: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_type</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_export_image_to_cloud_storage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;myExportImageTask&quot;</span><span class="p">)</span>
+        <span class="n">bucket</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bucket&quot;</span><span class="p">,</span> <span class="s2">&quot;myBucket&quot;</span><span class="p">)</span>
+        <span class="n">file_name_prefix</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_name_prefix&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_name_prefix&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">description</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">):</span>
+                <span class="n">region</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="p">):</span>
+                <span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;region must be an ee.FeatureCollection or ee.Geometry object. Found </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">region</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exporting training data to gs://</span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file_name_prefix</span><span class="si">}</span><span class="s2">..&quot;</span><span class="p">)</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span>
+            <span class="s2">&quot;fileNamePrefix&quot;</span><span class="p">:</span> <span class="n">file_name_prefix</span><span class="p">,</span>
+            <span class="s2">&quot;bucket&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bucket&quot;</span><span class="p">,</span> <span class="s2">&quot;myBucket&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;fileFormat&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_format&quot;</span><span class="p">,</span> <span class="s2">&quot;GeoTIFF&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;formatOptions&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;format_options&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="n">region</span><span class="p">,</span>
+            <span class="s2">&quot;scale&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+            <span class="s2">&quot;maxPixels&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_pixels&quot;</span><span class="p">,</span> <span class="mf">1e10</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">Utils</span><span class="o">.</span><span class="n">convert_camel_to_snake</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> not found in kwargs. Double check your parameter name (camelCase vs snake_case)&quot;</span><span class="p">)</span>
+
+        <span class="n">not_none_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="n">training_task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">toCloudStorage</span><span class="p">(</span><span class="o">**</span><span class="n">not_none_params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">start_training</span><span class="p">:</span> <span class="n">training_task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_export_image_to_asset</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">start_training</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">asset_id</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;asset_id&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exporting image to </span><span class="si">{</span><span class="n">asset_id</span><span class="si">}</span><span class="s2">..&quot;</span><span class="p">)</span>
+
+        <span class="n">training_task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">toAsset</span><span class="p">(</span>
+            <span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;myExportImageTask&quot;</span><span class="p">),</span>
+            <span class="n">assetId</span><span class="o">=</span><span class="n">asset_id</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span>
+            <span class="n">maxPixels</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_pixels&quot;</span><span class="p">,</span> <span class="mf">1E13</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">start_training</span><span class="p">:</span> <span class="n">training_task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">country_bbox</span><span class="p">(</span><span class="n">country_name</span><span class="p">,</span> <span class="n">max_error</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to get a bounding box geometry of a country</span>
+
+<span class="sd">        args:</span>
+<span class="sd">            country_name (str): US-recognized country name</span>
+<span class="sd">            max_error (float,optional): The maximum amount of error tolerated when</span>
+<span class="sd">                performing any necessary reprojection. default = 100</span>
+
+<span class="sd">        returns:</span>
+<span class="sd">            ee.Geometry: geometry of country bounding box</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">all_countries</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">(</span><span class="s2">&quot;USDOS/LSIB_SIMPLE/2017&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">all_countries</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Filter</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;country_na&quot;</span><span class="p">,</span> <span class="n">country_name</span><span class="p">))</span>\
+                            <span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="n">max_error</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">(</span><span class="n">max_error</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_image_collection_statistics</span><span class="p">(</span><span class="n">image_collection</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+        <span class="n">reducers</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> \
+            <span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">reducer2</span><span class="o">=</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">sharedInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> \
+                <span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">reducer2</span><span class="o">=</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">sharedInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> \
+                    <span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">reducer2</span><span class="o">=</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">stdDev</span><span class="p">(),</span> <span class="n">sharedInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> \
+                        <span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">reducer2</span><span class="o">=</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">percentile</span><span class="p">([</span><span class="mi">25</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">75</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;Q1&quot;</span><span class="p">,</span> <span class="s2">&quot;Q2&quot;</span><span class="p">,</span> <span class="s2">&quot;Q3&quot;</span><span class="p">]),</span> <span class="n">sharedInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">reducer</span> <span class="o">=</span> <span class="n">image_collection</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">reducer</span><span class="o">=</span><span class="n">reducers</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reducer</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_planet_indices</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+        <span class="n">ndvi</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">normalizedDifference</span><span class="p">([</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;NDVI&quot;</span><span class="p">)</span>
+        <span class="n">evi</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">expression</span> <span class="p">(</span>
+            <span class="s2">&quot;2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))&quot;</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s2">&quot;NIR&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;N&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;RED&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;BLUE&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">)</span>
+            <span class="p">})</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;EVI&quot;</span><span class="p">)</span>
+        <span class="n">ndwi</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">normalizedDifference</span><span class="p">([</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;NDWI&quot;</span><span class="p">)</span>
+        <span class="n">savi</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span><span class="s2">&quot;((NIR - RED) / (NIR + RED + 0.5))*(1.5)&quot;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s2">&quot;NIR&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;N&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;RED&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">)</span>
+        <span class="p">})</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;SAVI&quot;</span><span class="p">)</span>
+        <span class="n">msavi2</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span><span class="s2">&quot;(( (2*NIR + 1) - sqrt( ((2*NIR + 1) * (2*NIR + 1)) - 8 * (NIR - R) ) )) / 2&quot;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s2">&quot;NIR&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;N&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;R&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">)</span>
+        <span class="p">})</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;MSAVI2&quot;</span><span class="p">)</span>
+
+        <span class="n">mtvi2</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span><span class="s2">&quot;( 1.5*(1.2*(NIR - GREEN) - 2.5*(RED - GREEN)) ) / ( sqrt( ((2*NIR + 1) * (2*NIR + 1)) - (6*NIR - 5*sqrt(RED)) - 0.5 ) )&quot;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s2">&quot;NIR&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;N&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;RED&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;GREEN&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">),</span>
+        <span class="p">})</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;MTVI2&quot;</span><span class="p">)</span>
+
+        <span class="n">vari</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span><span class="s2">&quot;(GREEN - RED) / (GREEN + RED - BLUE)&quot;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s2">&quot;GREEN&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;RED&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;BLUE&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">),</span>
+        <span class="p">})</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;VARI&quot;</span><span class="p">)</span>
+
+        <span class="n">tgi</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span><span class="s2">&quot;( (120*(RED - BLUE)) - (190*(RED - GREEN)) ) / 2&quot;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s2">&quot;GREEN&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;RED&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;BLUE&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">),</span>
+        <span class="p">})</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;TGI&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ndvi</span><span class="o">.</span><span class="n">addBands</span><span class="p">([</span><span class="n">evi</span><span class="p">,</span> <span class="n">ndwi</span><span class="p">,</span> <span class="n">savi</span><span class="p">,</span> <span class="n">msavi2</span><span class="p">,</span> <span class="n">mtvi2</span><span class="p">,</span> <span class="n">vari</span><span class="p">,</span> <span class="n">tgi</span><span class="p">])</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_evi</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+        <span class="n">evi</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">expression</span> <span class="p">(</span>
+            <span class="s2">&quot;2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))&quot;</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s2">&quot;NIR&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;nir&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;RED&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;red&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;BLUE&quot;</span><span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+            <span class="p">})</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;EVI&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">evi</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_s1_indices</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+        <span class="n">VV</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VV&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;vv&quot;</span><span class="p">)</span>
+        <span class="n">VH</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VH&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;vh&quot;</span><span class="p">)</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">VV</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">VH</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;s1_ratio&quot;</span><span class="p">)</span>
+        <span class="n">ndratio</span> <span class="o">=</span> <span class="n">VV</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">VH</span><span class="p">)</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">VV</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">VH</span><span class="p">))</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;s1_ndratio&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">VV</span><span class="o">.</span><span class="n">addBands</span><span class="p">([</span><span class="n">VH</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">ndratio</span><span class="p">])</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_stratified_samples</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">region</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="p">,</span> <span class="n">numPoints</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="n">classBand</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">:</span>
+        <span class="c1"># Add a latitude and longitude band.</span>
+        <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">pixelLonLat</span><span class="p">())</span><span class="o">.</span><span class="n">stratifiedSample</span><span class="p">(</span>
+            <span class="n">numPoints</span><span class="o">=</span><span class="n">numPoints</span><span class="p">,</span>
+            <span class="n">classBand</span><span class="o">=</span><span class="n">classBand</span> <span class="k">if</span> <span class="n">classBand</span> <span class="k">else</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="n">Config</span><span class="o">.</span><span class="n">SEED</span><span class="p">),</span>
+            <span class="n">classValues</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_values&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">classPoints</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_points&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span><span class="c1"># [2000, 600, 600, 600]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">setGeometry</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;longitude&quot;</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;latitude&quot;</span><span class="p">)])))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_image_by_collection</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">collection</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">:</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">sampleRegions</span><span class="p">(</span>
+            <span class="n">collection</span><span class="o">=</span><span class="n">collection</span><span class="p">,</span>
+            <span class="n">properties</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;properties&quot;</span><span class="p">,</span> <span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">propertyNames</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()),</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">geometries</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;geometries&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="n">tileScale</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tile_scale&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">samples</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_image</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">region</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">:</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                              <span class="n">scale</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCALE&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scale&quot;</span><span class="p">),</span>
+                              <span class="n">seed</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SEED&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">),</span>
+                              <span class="n">geometries</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;geometries&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">sample</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">beam_yield_sample_points_with_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">sample_locations</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">,</span> <span class="n">use_service_account</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aces.ee_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">EEUtils</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aces.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">ee</span>
+        <span class="n">EEUtils</span><span class="o">.</span><span class="n">initialize_session</span><span class="p">(</span><span class="n">use_highvolume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">Config</span><span class="o">.</span><span class="n">EE_SERVICE_CREDENTIALS</span> <span class="k">if</span> <span class="n">use_service_account</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Yielding Index: </span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">sample_locations</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">sample_locations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">index</span><span class="p">))</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">point</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">],</span> <span class="n">index</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">beam_yield_sample_points</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">sample_locations</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">,</span> <span class="n">use_service_account</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aces.ee_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">EEUtils</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aces.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">ee</span>
+        <span class="n">EEUtils</span><span class="o">.</span><span class="n">initialize_session</span><span class="p">(</span><span class="n">use_highvolume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">Config</span><span class="o">.</span><span class="n">EE_SERVICE_CREDENTIALS</span> <span class="k">if</span> <span class="n">use_service_account</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Yielding Index: </span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">sample_locations</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">sample_locations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">index</span><span class="p">))</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">point</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">beam_sample_neighbourhood</span><span class="p">(</span><span class="n">coords_index</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Config</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;config.env&quot;</span><span class="p">,</span> <span class="n">use_service_account</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aces.ee_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">EEUtils</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aces.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">ee</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">Config</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;config must be of type Config or str&quot;</span><span class="p">)</span>
+
+        <span class="n">EEUtils</span><span class="o">.</span><span class="n">initialize_session</span><span class="p">(</span><span class="n">use_highvolume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">EE_SERVICE_CREDENTIALS</span> <span class="k">if</span> <span class="n">use_service_account</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">coords_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">coords_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_kernel</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">Kernel</span><span class="p">:</span>
+            <span class="n">eelist</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">)</span>
+            <span class="n">lists</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">eelist</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">)</span>
+            <span class="n">kernel</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Kernel</span><span class="o">.</span><span class="n">fixed</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">lists</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">kernel</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">create_neighborhood</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">neighborhoodToArray</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">sample_data</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+                <span class="n">region</span><span class="o">=</span><span class="n">points</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">SCALE</span><span class="p">,</span>
+                <span class="n">tileScale</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+                <span class="n">geometries</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+
+        <span class="n">image_kernel</span> <span class="o">=</span> <span class="n">get_kernel</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">PATCH_SHAPE_SINGLE</span><span class="p">)</span>
+        <span class="n">neighborhood</span> <span class="o">=</span> <span class="n">create_neighborhood</span><span class="p">(</span><span class="n">image_kernel</span><span class="p">)</span>
+        <span class="n">training_data</span> <span class="o">=</span> <span class="n">sample_data</span><span class="p">(</span><span class="n">neighborhood</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">training_data</span><span class="p">,</span> <span class="n">index</span>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">beam_get_training_patches</span><span class="p">(</span><span class="n">coords</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">bands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+                                  <span class="n">scale</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span> <span class="n">use_service_account</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a training patch centered on the coordinates.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aces.ee_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">EEUtils</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">aces.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">ee</span>
+        <span class="n">EEUtils</span><span class="o">.</span><span class="n">initialize_session</span><span class="p">(</span><span class="n">use_highvolume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">Config</span><span class="o">.</span><span class="n">EE_SERVICE_CREDENTIALS</span> <span class="k">if</span> <span class="n">use_service_account</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">google.api_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptions</span><span class="p">,</span> <span class="n">retry</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+
+        <span class="c1"># @retry.Retry(timeout=10*60) # seconds</span>
+        <span class="nd">@retry</span><span class="o">.</span><span class="n">Retry</span><span class="p">(</span><span class="n">deadline</span><span class="o">=</span><span class="mi">10</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span> <span class="c1"># seconds</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_patch</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">region</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="p">,</span> <span class="n">bands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Get the patch of pixels in the geometry as a Numpy array.&quot;&quot;&quot;</span>
+            <span class="c1"># Create the URL to download the band values of the patch of pixels.</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">getDownloadURL</span><span class="p">({</span>
+                <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="n">region</span><span class="p">,</span>
+                <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">patch_size</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">],</span>
+                <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;NPY&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="n">bands</span><span class="p">,</span>
+            <span class="p">})</span>
+            <span class="c1"># Download the pixel data. If we get &quot;429: Too Many Requests&quot; errors,</span>
+            <span class="c1"># it&quot;s safe to retry the request.</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">429</span><span class="p">:</span>
+                <span class="c1"># The retry.Retry library only works with `google.api_core` exceptions.</span>
+                <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">TooManyRequests</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">503</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ServiceUnavailable</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+                <span class="c1"># Still raise any other exceptions to make sure we got valid data.</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+            <span class="c1"># Load the NumPy file data and return it as a NumPy array.</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">),</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># @retry.Retry(timeout=10*60) # seconds</span>
+        <span class="nd">@retry</span><span class="o">.</span><span class="n">Retry</span><span class="p">(</span><span class="n">deadline</span><span class="o">=</span><span class="mi">10</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span> <span class="c1"># seconds</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">compute_pixel</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">region</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="p">,</span> <span class="n">bands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">scale_x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">scale_y</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Get the patch of pixels in the geometry as a Numpy array.&quot;&quot;&quot;</span>
+
+            <span class="c1"># Make a request object.</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;expression&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span>
+                <span class="s2">&quot;fileFormat&quot;</span><span class="p">:</span> <span class="s2">&quot;NPY&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;bandIds&quot;</span><span class="p">:</span> <span class="n">bands</span><span class="p">,</span>
+                <span class="s2">&quot;grid&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">patch_size</span><span class="p">,</span>
+                        <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="n">patch_size</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;affineTransform&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;scaleX&quot;</span><span class="p">:</span> <span class="n">scale_x</span><span class="p">,</span>
+                        <span class="s2">&quot;shearX&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;translateX&quot;</span><span class="p">:</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="s2">&quot;shearY&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;scaleY&quot;</span><span class="p">:</span> <span class="n">scale_y</span><span class="p">,</span>
+                        <span class="s2">&quot;translateY&quot;</span><span class="p">:</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;crsCode&quot;</span><span class="p">:</span> <span class="s2">&quot;EPSG:4326&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">computePixels</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="c1"># Load the NumPy file data and return it as a NumPy array.</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">),</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">point</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">patch_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_patch</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">bands</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="aces.ee_utils.EEUtils.beam_get_training_patches" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">beam_get_training_patches</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">bands</span><span class="o">=</span><span class="p">[],</span> <span class="n">scale</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">use_service_account</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#aces.ee_utils.EEUtils.beam_get_training_patches" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Get a training patch centered on the coordinates.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>aces/ee_utils.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">beam_get_training_patches</span><span class="p">(</span><span class="n">coords</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">bands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+                              <span class="n">scale</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span> <span class="n">use_service_account</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a training patch centered on the coordinates.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">aces.ee_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">EEUtils</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">aces.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">ee</span>
+    <span class="n">EEUtils</span><span class="o">.</span><span class="n">initialize_session</span><span class="p">(</span><span class="n">use_highvolume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">Config</span><span class="o">.</span><span class="n">EE_SERVICE_CREDENTIALS</span> <span class="k">if</span> <span class="n">use_service_account</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">google.api_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptions</span><span class="p">,</span> <span class="n">retry</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+
+    <span class="c1"># @retry.Retry(timeout=10*60) # seconds</span>
+    <span class="nd">@retry</span><span class="o">.</span><span class="n">Retry</span><span class="p">(</span><span class="n">deadline</span><span class="o">=</span><span class="mi">10</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span> <span class="c1"># seconds</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_patch</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">region</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="p">,</span> <span class="n">bands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the patch of pixels in the geometry as a Numpy array.&quot;&quot;&quot;</span>
+        <span class="c1"># Create the URL to download the band values of the patch of pixels.</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">getDownloadURL</span><span class="p">({</span>
+            <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="n">region</span><span class="p">,</span>
+            <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">patch_size</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">],</span>
+            <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;NPY&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;bands&quot;</span><span class="p">:</span> <span class="n">bands</span><span class="p">,</span>
+        <span class="p">})</span>
+        <span class="c1"># Download the pixel data. If we get &quot;429: Too Many Requests&quot; errors,</span>
+        <span class="c1"># it&quot;s safe to retry the request.</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">429</span><span class="p">:</span>
+            <span class="c1"># The retry.Retry library only works with `google.api_core` exceptions.</span>
+            <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">TooManyRequests</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">503</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ServiceUnavailable</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+            <span class="c1"># Still raise any other exceptions to make sure we got valid data.</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="c1"># Load the NumPy file data and return it as a NumPy array.</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">),</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># @retry.Retry(timeout=10*60) # seconds</span>
+    <span class="nd">@retry</span><span class="o">.</span><span class="n">Retry</span><span class="p">(</span><span class="n">deadline</span><span class="o">=</span><span class="mi">10</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span> <span class="c1"># seconds</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_pixel</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">region</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="p">,</span> <span class="n">bands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">scale_x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">scale_y</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the patch of pixels in the geometry as a Numpy array.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Make a request object.</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;expression&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span>
+            <span class="s2">&quot;fileFormat&quot;</span><span class="p">:</span> <span class="s2">&quot;NPY&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;bandIds&quot;</span><span class="p">:</span> <span class="n">bands</span><span class="p">,</span>
+            <span class="s2">&quot;grid&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">patch_size</span><span class="p">,</span>
+                    <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="n">patch_size</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;affineTransform&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;scaleX&quot;</span><span class="p">:</span> <span class="n">scale_x</span><span class="p">,</span>
+                    <span class="s2">&quot;shearX&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;translateX&quot;</span><span class="p">:</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">&quot;shearY&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;scaleY&quot;</span><span class="p">:</span> <span class="n">scale_y</span><span class="p">,</span>
+                    <span class="s2">&quot;translateY&quot;</span><span class="p">:</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;crsCode&quot;</span><span class="p">:</span> <span class="s2">&quot;EPSG:4326&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">computePixels</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="c1"># Load the NumPy file data and return it as a NumPy array.</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">),</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">point</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">patch_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_patch</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">bands</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="aces.ee_utils.EEUtils.calculate_avg_min_max_statistics" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">calculate_avg_min_max_statistics</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">geometry</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#aces.ee_utils.EEUtils.calculate_avg_min_max_statistics" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Calculate min and max of an image over a specific region.</p>
+      <p>image (ee.Image): The image to calculate statistics on.
+geometry (ee.FeatureCollection): The region to calculate statistics over.
+scale (int, optional): The scale, in meters, of the projection to compute statistics in. Default is 30.</p>
+      <p>ee.Dictionary: A dictionary containing the min and max of the image.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>aces/ee_utils.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_avg_min_max_statistics</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">geometry</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ee</span><span class="o">.</span><span class="n">Dictionary</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate min and max of an image over a specific region.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    image (ee.Image): The image to calculate statistics on.</span>
+<span class="sd">    geometry (ee.FeatureCollection): The region to calculate statistics over.</span>
+<span class="sd">    scale (int, optional): The scale, in meters, of the projection to compute statistics in. Default is 30.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    ee.Dictionary: A dictionary containing the min and max of the image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">reducers</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> \
+        <span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">reducer2</span><span class="o">=</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">sharedInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> \
+        <span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">reducer2</span><span class="o">=</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">sharedInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">reduceRegion</span><span class="p">(</span>
+        <span class="n">reducer</span><span class="o">=</span><span class="n">reducers</span><span class="p">,</span>
+        <span class="n">geometry</span><span class="o">=</span><span class="n">geometry</span><span class="p">,</span>
+        <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span>
+        <span class="n">maxPixels</span><span class="o">=</span><span class="mf">1E13</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">stats</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="aces.ee_utils.EEUtils.country_bbox" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">country_bbox</span><span class="p">(</span><span class="n">country_name</span><span class="p">,</span> <span class="n">max_error</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#aces.ee_utils.EEUtils.country_bbox" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to get a bounding box geometry of a country</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>country_name</code></td>
+        <td><code>str</code></td>
+        <td><p>US-recognized country name</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>max_error</code></td>
+        <td><code>float,optional</code></td>
+        <td><p>The maximum amount of error tolerated when
+performing any necessary reprojection. default = 100</p></td>
+        <td><code>100</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Geometry</code></td>
+      <td><p>geometry of country bounding box</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>aces/ee_utils.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">country_bbox</span><span class="p">(</span><span class="n">country_name</span><span class="p">,</span> <span class="n">max_error</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function to get a bounding box geometry of a country</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        country_name (str): US-recognized country name</span>
+<span class="sd">        max_error (float,optional): The maximum amount of error tolerated when</span>
+<span class="sd">            performing any necessary reprojection. default = 100</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Geometry: geometry of country bounding box</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">all_countries</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">(</span><span class="s2">&quot;USDOS/LSIB_SIMPLE/2017&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_countries</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Filter</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;country_na&quot;</span><span class="p">,</span> <span class="n">country_name</span><span class="p">))</span>\
+                        <span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="n">max_error</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span><span class="p">(</span><span class="n">max_error</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="aces.ee_utils.EEUtils.get_credentials_by_service_account_key" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_credentials_by_service_account_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#aces.ee_utils.EEUtils.get_credentials_by_service_account_key" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Helper function to retrieve credentials using a service account key.</p>
+      <p>key (str): The path to the service account key JSON file.</p>
+      <p>ee.ServiceAccountCredentials: The authenticated credentials.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>aces/ee_utils.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_credentials_by_service_account_key</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function to retrieve credentials using a service account key.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    key (str): The path to the service account key JSON file.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    ee.ServiceAccountCredentials: The authenticated credentials.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+    <span class="n">service_account</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+    <span class="n">credentials</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ServiceAccountCredentials</span><span class="p">(</span><span class="n">service_account</span><span class="p">[</span><span class="s2">&quot;client_email&quot;</span><span class="p">],</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">credentials</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="aces.ee_utils.EEUtils.initialize_session" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">initialize_session</span><span class="p">(</span><span class="n">use_highvolume</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#aces.ee_utils.EEUtils.initialize_session" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Initialize the Earth Engine session.
+If use_highvolume is True, the high-volume Earth Engine API will be used.
+If a project is provided, the session will be initialized with the project ID. Recommended to use project.
+If a key is provided, the service account key will be used.</p>
+      <p>use_highvolume (bool): Whether to use the high-volume Earth Engine API.
+key (str or None): The path to the service account key JSON file. If None, the default credentials will be used.
+project (str): The Google Cloud project ID to use for the session.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>aces/ee_utils.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">initialize_session</span><span class="p">(</span><span class="n">use_highvolume</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">key</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize the Earth Engine session.</span>
+<span class="sd">    If use_highvolume is True, the high-volume Earth Engine API will be used.</span>
+<span class="sd">    If a project is provided, the session will be initialized with the project ID. Recommended to use project.</span>
+<span class="sd">    If a key is provided, the service account key will be used.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    use_highvolume (bool): Whether to use the high-volume Earth Engine API.</span>
+<span class="sd">    key (str or None): The path to the service account key JSON file. If None, the default credentials will be used.</span>
+<span class="sd">    project (str): The Google Cloud project ID to use for the session.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">use_highvolume</span> <span class="ow">and</span> <span class="n">project</span><span class="p">:</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">opt_url</span><span class="o">=</span><span class="s2">&quot;https://earthengine-highvolume.googleapis.com&quot;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">use_highvolume</span><span class="p">:</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">opt_url</span><span class="o">=</span><span class="s2">&quot;https://earthengine-highvolume.googleapis.com&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">project</span><span class="p">:</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">credentials</span> <span class="o">=</span> <span class="n">EEUtils</span><span class="o">.</span><span class="n">get_credentials_by_service_account_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_highvolume</span> <span class="ow">and</span> <span class="n">project</span><span class="p">:</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">credentials</span><span class="p">,</span> <span class="n">opt_url</span><span class="o">=</span><span class="s2">&quot;https://earthengine-highvolume.googleapis.com&quot;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">use_highvolume</span><span class="p">:</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">credentials</span><span class="p">,</span> <span class="n">opt_url</span><span class="o">=</span><span class="s2">&quot;https://earthengine-highvolume.googleapis.com&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">project</span><span class="p">:</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">credentials</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 4, 2025 16:18:28 UTC"><span class="timeago" datetime="2025-09-04T16:18:28+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 4, 2025 16:18:28 UTC">2025-09-04</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="September 4, 2025 16:18:28 UTC"><span class="timeago" datetime="2025-09-04T16:18:28+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="September 4, 2025 16:18:28 UTC">2025-09-04</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 - 2024 SERVIR Global
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "search.highlight", "search.share"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+        <script src="../js/timeago.min.js"></script>
+      
+        <script src="../js/timeago_mkdocs_material.js"></script>
+      
+    
+  </body>
+</html>
